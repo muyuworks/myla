@@ -1,0 +1,11 @@
+# API Server
+uvicorn
+starlette
+fastapi
+python-dotenv
+
+# Persistence
+sqlmodel
+
+# LLMs
+openai

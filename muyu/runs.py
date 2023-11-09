@@ -1,0 +1,141 @@
+from typing import List, Dict, Any, Optional, Union
+from sqlmodel import Field, Session, Column, JSON, select
+from pydantic import BaseModel
+from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBModel, ListModel
+from ._models import create as create_model
+from . import assistants
+
+class RunEdit(MetadataModel):
+    pass
+
+class RunCreate(RunEdit):
+    assistant_id: str
+    model: Optional[str]
+    instructions: Optional[str]
+    tools: Optional[List[Dict[str, Any]]] = []
+
+class RunModify(RunEdit):
+    pass
+
+class RunBase(BaseModel):
+    thread_id: Optional[str] = Field(index=True)
+    assistant_id: str = Field(index=True)
+    status: Optional[str] = Field(index=True, nullable=True)
+    required_action: Optional[Dict] = Field(sa_column=Column(JSON))
+    last_error: Optional[Dict] = Field(sa_column=Column(JSON))
+    expires_at: Optional[int]
+    started_at: Optional[int]
+    failed_at: Optional[int]
+    completed_at: Optional[int]
+
+class RunRead(ReadModel, RunBase):
+    model: Optional[str]
+    instructions: Optional[str]
+    tools: Optional[List[Dict]]
+    file_ids: Optional[List[str]]
+
+class Run(DBModel, RunBase, table=True):
+    """
+    Represents an assistant that can call the model and use tools.
+    """
+    pass
+
+
+def create(thread_id: str, run: RunCreate, session: Session = None) -> RunRead:
+    db_model = Run.from_orm(run)
+    dbo = create_model(object="thread.run",
+                       meta_model=run, db_model=db_model)
+    
+    assitant = assistants.get(id=run.assistant_id, session=session)
+    d = dbo.dict()
+    d.update(assitant.dict())
+
+    r = RunRead(**d)
+    r.metadata = dbo.metadata_
+    return r
+
+
+@auto_session
+def get(thread_id:str, run_id: str, session: Session = None) -> Union[RunRead, None]:
+    r = None
+    dbo = session.get(Run, run_id)
+    if dbo:
+        
+        d = dbo.dict()
+
+        # Get thread
+        # Get assistant
+        assitant = assistants.get(id=dbo.assistant_id, session=session)
+        
+        d.update(assitant.dict())
+
+        r = RunRead(**d)
+        r.metadata = dbo.metadata_
+    return r
+
+
+@auto_session
+def modify(id: str, run: RunModify, session: Session = None) -> Union[RunRead, None]:
+    r = None
+
+    dbo = session.get(Run, id)
+    if dbo:
+        for k, v in run.dict(exclude_unset=True).items():
+            
+            if k == 'metadata':
+                dbo.metadata_ = v
+            else:
+                setattr(dbo, k, v)
+            
+        session.add(dbo)
+        session.commit()
+        session.refresh(dbo)
+
+        d = dbo.dict()
+
+        # Get thread
+        # Get assistant
+        assitant = assistants.get(id=dbo.assistant_id, session=session)
+        
+        d.update(assitant.dict())
+
+        r = RunRead(**d)
+        r.metadata = dbo.metadata_
+
+    return r
+
+
+@auto_session
+def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
+    dbo = session.get(Run, id)
+    if dbo:
+        session.delete(dbo)
+        session.commit()
+    return DeletionStatus(id=id, object="thread.run.deleted", deleted=True)
+
+@auto_session
+def list(thread_id:str, limit: int = 20, order: str = "desc", after:str = None, before:str = None, session: Optional[Session] = None) -> ListModel:
+    select_stmt = select(Run)
+
+    select_stmt = select_stmt.order_by(-Run.created_at if order == "desc" else Run.created_at)
+    if after:
+        select_stmt = select_stmt.filter(Run.id > after)
+    if before:
+        select_stmt = select_stmt.filter(Run.id < before)
+
+    select_stmt = select_stmt.limit(limit)
+    
+    dbos = session.exec(select_stmt).all()
+    rs = []
+    for dbo in dbos:
+        d = dbo.dict()
+        # Get assistant
+        assitant = assistants.get(id=dbo.assistant_id, session=session)
+        if assitant:
+            d.update(assitant.dict())
+
+        a = RunRead(**d)
+        a.metadata = dbo.metadata_
+        rs.append(a)
+    r = ListModel(data=rs)
+    return r
