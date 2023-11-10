@@ -43,13 +43,15 @@ class Message(DBModel, table=True):
     file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
 
 
-def create(thread_id: str, message: MessageCreate, session: Session = None) -> MessageRead:
+def create(thread_id: str, message: MessageCreate, assistant_id:str = None, run_id:str=None, session: Session = None) -> MessageRead:
     db_model = Message(
         thread_id=thread_id,
         role=message.role,
         content=[
             MessageContent(type="text", text=[MessageText(value=message.content)]).dict()
-        ]
+        ],
+        assistant_id=assistant_id,
+        run_id=run_id
     )
 
     dbo = create_model(object="thread.message",

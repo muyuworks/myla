@@ -15,7 +15,10 @@ async def chat_complete(run: runs.RunRead):
 
         # Get Assistant
         assistant = assistants.get(id=run.assistant_id)
+        assistant_id = None
         if assistant is not None:
+            assistant_id = assistant.id
+
             if not instructions:
                 instructions = assistant.instructions
             if not model:
@@ -68,7 +71,7 @@ async def chat_complete(run: runs.RunRead):
             role="assistant",
             content=''.join(genereated)
         )
-        messages.create(thread_id=thread_id, message=msg_generated)
+        messages.create(thread_id=thread_id, message=msg_generated, assistant_id=assistant_id, run_id=run.id)
 
         runs.update(
             id=run.id,
