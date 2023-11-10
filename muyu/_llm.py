@@ -1,5 +1,4 @@
 import os
-import asyncio
 import datetime
 import openai
 from . import messages, runs, assistants
@@ -91,4 +90,4 @@ async def chat_complete(run: runs.RunRead, iter):
             failed_at=int(round(datetime.datetime.now().timestamp()))
         )
         await iter.put(e)
-        await iter.put(None)
+        await iter.put(None) #DONE

@@ -22,6 +22,9 @@ class RunModify(RunEdit):
 class RunBase(BaseModel):
     thread_id: Optional[str] = Field(index=True)
     assistant_id: str = Field(index=True)
+    model: Optional[str]
+    instructions: Optional[str]
+    tools: Optional[List[Dict]] = Field(sa_column=Column(JSON))
     status: Optional[str] = Field(index=True, nullable=True)
     required_action: Optional[Dict] = Field(sa_column=Column(JSON))
     last_error: Optional[Dict] = Field(sa_column=Column(JSON))
@@ -31,16 +34,13 @@ class RunBase(BaseModel):
     completed_at: Optional[int]
 
 class RunRead(ReadModel, RunBase):
-    model: Optional[str]
-    instructions: Optional[str]
-    tools: Optional[List[Dict]]
     file_ids: Optional[List[str]]
 
 class Run(DBModel, RunBase, table=True):
     """
     Represents an assistant that can call the model and use tools.
     """
-    pass
+    
 
 class ThreadRunCreate(MetadataModel):
     assistant_id: str

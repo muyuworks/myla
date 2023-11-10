@@ -36,7 +36,7 @@ def get_run_iter(run_id):
     return _run_iters.get(run_id)
 
 _last_clear_at = datetime.now().timestamp()
-def clear_iters():
+async def clear_iters():
     now = datetime.now().timestamp()
     if _last_clear_at + 10*60 > now:
         return

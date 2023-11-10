@@ -8,7 +8,7 @@ assistant = openai.beta.assistants.create(
     name="Chatbot",
     instructions="Your are a usefull assistant.",
     tools=[],
-    model="gpt-3.5-turbo"
+    model="Qwen-14B-Chat-Int4"
 )
 print(f"Assistant created, id:{assistant.id}")
 
@@ -18,7 +18,7 @@ print(f"Thread created, id:{thread.id}")
 message = openai.beta.threads.messages.create(
     thread_id=thread.id,
     role="user",
-    content="hi"
+    content="和你对话的人是谁"
 )
 print(f"User message created, id: {message.id}, content={message.content[0].text[0]['value']}")
 
@@ -36,7 +36,7 @@ list_messages(thread=thread)
 run = openai.beta.threads.runs.create(
   thread_id=thread.id,
   assistant_id=assistant.id,
-  instructions="Please address the user as Jane Doe. The user has a premium account."
+  instructions="你是一个博识热情的assistant, 一个对话机器人。和你对话的user是shellc。"
 )
 print(f"Run created, id: {run.id}")
 
