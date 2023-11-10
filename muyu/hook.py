@@ -1,6 +1,4 @@
-import json
 from typing import List, Dict
-import asyncio
 import aiohttp
 
 
@@ -22,7 +20,6 @@ class HTTPHook(Hook):
 
     async def before(self, messages: List[Dict]):
         async with aiohttp.ClientSession() as session:
-            print(json.dumps(messages))
             async with session.post(url=self.url, json=messages) as resp:
                 if resp.status == 200:
                     result = await resp.json()
