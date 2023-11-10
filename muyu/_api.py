@@ -230,7 +230,7 @@ async def get_message_stream(thread_id:str, run_id:str):
     return StreamingResponse(aiter(), headers={'Content-Type': "text/event-stream"})
 
 @api.post("/hooks/{hook_name}/before", tags=["Hooks"])
-async def execute_tool(hook_name:str, messages: List[dict]):
+async def execute_hook(hook_name:str, messages: List[dict]):
     h = tools.get_tool(hook_name)
     if not h or not isinstance(h, hook.Hook):
         raise HTTPException(status_code=404, detail="Hook not found")
