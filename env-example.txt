@@ -1,3 +1,7 @@
 # Persistence
 DATABASE_URL=sqlite:///.muyu.db
 DATABASE_CONNECT_ARGS={"check_same_thread": false}
+
+# LLMs
+#LLM_ENDPOINT=
+LLM_API_KEY=sk-
