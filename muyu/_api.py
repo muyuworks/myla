@@ -1,7 +1,8 @@
+import os, sys
 import json
 from typing import List
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
 
@@ -12,11 +13,20 @@ from ._models import DeletionStatus, ListModel
 from . import assistants, threads, messages, runs
 from ._run_scheduler import RunScheduler
 from ._run_queue import get_run_iter, create_run_iter
+
+from . import tools, hook
+
 API_VERSION = "v1"
 
 
 @asynccontextmanager
 async def lifespan(api: FastAPI):
+    ext_dir = os.environ.get("EXT_DIR")
+    if ext_dir:
+        sys.path.append(ext_dir)
+    
+    tools.load_tools()
+
     # on startup
     Persistence.default().initialize_database()
     await RunScheduler.default().start()
@@ -218,3 +228,17 @@ async def get_message_stream(thread_id:str, run_id:str):
             elif isinstance(c, Exception):
                 yield "event: error\ndata: %s\n\n" % json.dumps({"e": str(c)})
     return StreamingResponse(aiter(), headers={'Content-Type': "text/event-stream"})
+
+@api.post("/hooks/{hook_name}/before", tags=["Hooks"])
+async def execute_tool(hook_name:str, messages: List[dict]):
+    h = tools.get_tool(hook_name)
+    if not h or not isinstance(h, hook.Hook):
+        raise HTTPException(status_code=404, detail="Hook not found")
+    
+    messages, args, metadata = await h.before(messages)
+
+    return {
+        "messages": messages,
+        "args": args,
+        "metadata": metadata
+    }

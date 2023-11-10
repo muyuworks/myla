@@ -4,6 +4,9 @@ starlette
 fastapi
 python-dotenv
 
+# Hook
+aiohttp[speedups]
+
 # Persistence
 sqlmodel
 

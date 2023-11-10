@@ -5,3 +5,24 @@ DATABASE_CONNECT_ARGS={"check_same_thread": false}
 # LLMs
 LLM_ENDPOINT=http://172.88.0.20:8888/v1/
 LLM_API_KEY=sk-
+
+TOOLS='
+[
+    {
+        "name": "$iur",
+        "impl": "iur_hook.IURHook",
+        "args": {}
+    },
+    {
+        "name": "$retrieval",
+        "impl": "retrieval.RetrievalHook"
+    },
+    {
+        "name": "$iur_http",
+        "impl": "muyu.hook.HTTPHook",
+        "args": {
+            "url": "http://localhost:2000/hooks/%24iur/before"
+        }
+    }
+]
+'

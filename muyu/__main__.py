@@ -15,6 +15,16 @@ sys.path.insert(0, MUYU_LIB_DIR)
 
 
 def runserver(args):
+    if args.extentions:
+        ext_dir = os.path.abspath(args.extentions)
+        os.environ['EXT_DIR'] = ext_dir
+
+        if args.reload:
+            if not args.reload_dirs:
+                args.reload_dirs = []
+                args.reload_dirs.append(MUYU_LIB_DIR)
+            args.reload_dirs.append(ext_dir)
+
     uvicorn.run('muyu:api', host=args.host, port=args.port,
                 workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,
                 log_config=LOGGING_CONFIG, reload_dirs=args.reload_dirs)
@@ -34,6 +44,7 @@ parser.add_argument('--reload-dirs', default=None,
                     help="set reload directories explicitly, default is applications directory")
 parser.add_argument('--env-file', default='.env',
                     help="environment configuration file")
+parser.add_argument("--extentions", default=None, help="extentions directory")
 
 
 def main():
