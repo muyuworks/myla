@@ -40,6 +40,27 @@ class Run(DBModel, RunBase, table=True):
     """
     pass
 
+class ThreadRunCreate(MetadataModel):
+    assistant_id: str
+    thread: Optional[Dict]
+    model: Optional[str]
+    instructions: Optional[str]
+    tools: Optional[List[Dict]]
+    file_ids: Optional[List[str]]
+
+class RunStep(DBModel, MetadataModel):
+    assistant_id: str = Field(index=True)
+    thread_id: str = Field(index=True)
+    run_id: str = Field(index=True)
+    type: str
+    status: str
+    step_details: Dict
+    last_error: Optional[Dict]
+    expired_at: Optional[int]
+    cancelled_at: Optional[int]
+    failed_at: Optional[int]
+    completed_at: Optional[int]
+
 
 def create(thread_id: str, run: RunCreate, session: Session = None) -> RunRead:
     db_model = Run.from_orm(run)
@@ -139,3 +160,19 @@ def list(thread_id:str, limit: int = 20, order: str = "desc", after:str = None, 
         rs.append(a)
     r = ListModel(data=rs)
     return r
+
+def cancel(thread_id: str, run_id: str, session: Session = None) -> Union[RunRead, None]:
+    return
+
+def create_thread_and_run(thread_run: ThreadRunCreate, session: Session = None) -> Union[RunRead, None]:
+    return None
+
+def create_step(run_id: str, step: RunStep, session: Session = None) -> Union[RunStep, None]:
+    
+    return None
+
+def list_steps(thread_id: str, run_id: str, session: Session = None) -> ListModel:
+    return ListModel(object="thread.run.step", data=[])
+
+def get_step(thread_id: str, run_id: str, step_id: str, session: Session = None) -> Union[RunStep, None]:
+    return None
