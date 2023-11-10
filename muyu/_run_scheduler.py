@@ -1,6 +1,5 @@
 import asyncio
-from .runs import RunRead
-from ._run_queue import run_queue
+from ._run_queue import get_run_task, create_run_iter, clear_iters
 from ._llm import chat_complete
 
 class RunScheduler:
@@ -18,9 +17,11 @@ class RunScheduler:
     async def start(self):
         async def consume():
             while True:
-                run = await run_queue().get()
+                run = await get_run_task()
                 task = asyncio.create_task(
-                    chat_complete(run)
+                    chat_complete(run=run, iter=create_run_iter(run.id))
                 )
                 self.tasks.add(task)
+
+                await clear_iters()
         return asyncio.ensure_future(consume())

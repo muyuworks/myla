@@ -1,10 +1,10 @@
 import os
+import asyncio
 import datetime
 import openai
 from . import messages, runs, assistants
 
-
-async def chat_complete(run: runs.RunRead):
+async def chat_complete(run: runs.RunRead, iter):
     try:
         thread_id = run.thread_id
 
@@ -66,6 +66,7 @@ async def chat_complete(run: runs.RunRead):
             c = r.choices[0].delta.content
             if c is not None:
                 genereated.append(c)
+                await iter.put(c)
 
         msg_generated = messages.MessageCreate(
             role="assistant",
@@ -78,6 +79,7 @@ async def chat_complete(run: runs.RunRead):
             status="completed",
             completed_at=int(round(datetime.datetime.now().timestamp()))
         )
+        await iter.put(None) # Completed
     except Exception as e:
         print(e)
         runs.update(id=run.id,
@@ -88,3 +90,5 @@ async def chat_complete(run: runs.RunRead):
             },
             failed_at=int(round(datetime.datetime.now().timestamp()))
         )
+        await iter.put(e)
+        await iter.put(None)

@@ -121,5 +121,5 @@ def list(thread_id: str, limit: int = 20, order: str = "desc", after:str = None,
         a = MessageRead(**dbo.dict())
         a.metadata = dbo.metadata_
         rs.append(a)
-    r = MessageList(data=rs)
+    r = MessageList(data=rs, first_id=rs[0].id if len(rs) > 0 else None, last_id=rs[-1].id if len(rs) > 0 else None)
     return r

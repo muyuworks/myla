@@ -1,7 +1,8 @@
+import json
 from typing import List
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
 
 from .persistence import Persistence
@@ -10,7 +11,7 @@ from sqlmodel import Session
 from ._models import DeletionStatus, ListModel
 from . import assistants, threads, messages, runs
 from ._run_scheduler import RunScheduler
-
+from ._run_queue import get_run_iter, create_run_iter
 API_VERSION = "v1"
 
 
@@ -196,3 +197,24 @@ def retrieve_run_step(thread_id: str, run_id: str, step_id: str):
 @api.get("/v1/threads/{thread_id}/runs/{run_id}/steps", response_model=ListModel, tags=['Runs'])
 def list_run_steps(thread_id: str, run_id: str):
     return runs.list_steps(thread_id=thread_id, run_id=run_id)
+
+@api.get("/v1/threads/{thread_id}/runs/{run_id}/stream", tags=['Runs'])
+async def get_message_stream(thread_id:str, run_id:str):
+    iter = get_run_iter(run_id=run_id)
+    #iter = create_run_iter(run_id=run_id)
+    #for i in range(10):
+    #    await iter.put(str(i))
+
+    async def aiter():
+        if not iter:
+            return
+    
+        async for c in iter:
+            if isinstance(c, str):
+                e = {
+                    "c": c
+                }
+                yield "event: message\ndata: %s\n\n" % json.dumps(e)
+            elif isinstance(c, Exception):
+                yield "event: error\ndata: %s\n\n" % json.dumps({"e": str(c)})
+    return StreamingResponse(aiter(), headers={'Content-Type': "text/event-stream"})
