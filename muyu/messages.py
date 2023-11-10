@@ -24,6 +24,7 @@ class MessageRead(ReadModel):
     thread_id: str
     assistant_id: Optional[str]
     run_id: Optional[str]
+    role: Optional[str]
     content: Optional[List[MessageContent]]
     file_ids: Optional[List[str]] = []
 

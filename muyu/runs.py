@@ -64,14 +64,13 @@ class RunStep(DBModel, MetadataModel):
 
 def create(thread_id: str, run: RunCreate, session: Session = None) -> RunRead:
     db_model = Run.from_orm(run)
+    db_model.thread_id = thread_id
+    db_model.status = "queued"
+
     dbo = create_model(object="thread.run",
                        meta_model=run, db_model=db_model)
-    
-    assitant = assistants.get(id=run.assistant_id, session=session)
-    d = dbo.dict()
-    d.update(assitant.dict())
 
-    r = RunRead(**d)
+    r = RunRead(**dbo.dict())
     r.metadata = dbo.metadata_
     return r
 
@@ -112,15 +111,11 @@ def modify(id: str, run: RunModify, session: Session = None) -> Union[RunRead, N
         session.commit()
         session.refresh(dbo)
 
-        d = dbo.dict()
-
         # Get thread
         # Get assistant
-        assitant = assistants.get(id=dbo.assistant_id, session=session)
+        #asistant = assistants.get(id=dbo.assistant_id, session=session)
         
-        d.update(assitant.dict())
-
-        r = RunRead(**d)
+        r = RunRead(**dbo.dict())
         r.metadata = dbo.metadata_
 
     return r
@@ -149,13 +144,13 @@ def list(thread_id:str, limit: int = 20, order: str = "desc", after:str = None, 
     dbos = session.exec(select_stmt).all()
     rs = []
     for dbo in dbos:
-        d = dbo.dict()
+        
         # Get assistant
-        assitant = assistants.get(id=dbo.assistant_id, session=session)
-        if assitant:
-            d.update(assitant.dict())
+        #asistant = assistants.get(id=dbo.assistant_id, session=session)
+        #if assitant:
+        #    d.update(assitant.dict())
 
-        a = RunRead(**d)
+        a = RunRead(**dbo.dict())
         a.metadata = dbo.metadata_
         rs.append(a)
     r = ListModel(data=rs)
