@@ -31,6 +31,7 @@ class DeletionStatus(BaseModel):
 class ListModel(BaseModel):
     object: str = "list"
     data: List[Any] = []
+    has_more: bool = False
 
 def auto_session(func):
     def inner(session: Optional[Session] = None, **kwargs):

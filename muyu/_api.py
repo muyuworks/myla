@@ -9,6 +9,7 @@ from sqlmodel import Session
 
 from ._models import DeletionStatus, ListModel
 from . import assistants, threads, messages, runs
+from ._run_scheduler import RunScheduler
 
 API_VERSION = "v1"
 
@@ -17,6 +18,8 @@ API_VERSION = "v1"
 async def lifespan(api: FastAPI):
     # on startup
     Persistence.default().initialize_database()
+    await RunScheduler.default().start()
+
     yield
     # on shutdown
     pass
@@ -143,7 +146,7 @@ def delete_message(thread_id: str, message_id: str):
     return messages.delete(id=message_id)
 
 
-@api.get("/v1/threads/{thread_id}/messages", response_model=ListModel, tags=['Threads'])
+@api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Threads'])
 def list_messages(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
     return messages.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before)
 

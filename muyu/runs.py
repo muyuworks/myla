@@ -1,9 +1,11 @@
+import asyncio
 from typing import List, Dict, Any, Optional, Union
 from sqlmodel import Field, Session, Column, JSON, select
 from pydantic import BaseModel
 from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBModel, ListModel
 from ._models import create as create_model
 from . import assistants
+from ._run_queue import run_queue
 
 class RunEdit(MetadataModel):
     pass
@@ -72,6 +74,10 @@ def create(thread_id: str, run: RunCreate, session: Session = None) -> RunRead:
 
     r = RunRead(**dbo.dict())
     r.metadata = dbo.metadata_
+
+    # Submit run to run
+    asyncio.run(run_queue().put(r))
+
     return r
 
 
@@ -171,3 +177,18 @@ def list_steps(thread_id: str, run_id: str, session: Session = None) -> ListMode
 
 def get_step(thread_id: str, run_id: str, step_id: str, session: Session = None) -> Union[RunStep, None]:
     return None
+
+@auto_session
+def update(id: str, session: Session = None, **kwargs):
+    dbo = session.get(Run, id)
+    if dbo:
+        for k, v in kwargs.items():
+            
+            if k == 'metadata':
+                dbo.metadata_ = v
+            else:
+                setattr(dbo, k, v)
+            
+        session.add(dbo)
+        session.commit()
+        session.refresh(dbo)

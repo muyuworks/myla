@@ -28,6 +28,8 @@ class MessageRead(ReadModel):
     content: Optional[List[MessageContent]]
     file_ids: Optional[List[str]] = []
 
+class MessageList(ListModel):
+    data: List[MessageRead]
 
 class Message(DBModel, table=True):
     """
@@ -99,7 +101,7 @@ def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
     return DeletionStatus(id=id, object="thread.message.deleted", deleted=True)
 
 @auto_session
-def list(thread_id: str, limit: int = 20, order: str = "desc", after:str = None, before:str = None, session: Optional[Session] = None) -> ListModel:
+def list(thread_id: str, limit: int = 20, order: str = "desc", after:str = None, before:str = None, session: Optional[Session] = None) -> MessageList:
     select_stmt = select(Message)
     select_stmt = select_stmt.where(Message.thread_id == thread_id)
 
@@ -117,5 +119,5 @@ def list(thread_id: str, limit: int = 20, order: str = "desc", after:str = None,
         a = MessageRead(**dbo.dict())
         a.metadata = dbo.metadata_
         rs.append(a)
-    r = ListModel(data=rs)
+    r = MessageList(data=rs)
     return r

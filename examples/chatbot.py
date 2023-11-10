@@ -24,6 +24,7 @@ print(f"User message created, id: {message.id}, content={message.content[0].text
 
 def list_messages(thread):
     messages = openai.beta.threads.messages.list(
+        limit=20,
         thread_id=thread.id
     )
     print("Messages: ")
@@ -48,7 +49,7 @@ def check_run_status(thread, run):
     return run
 
 for i in range(3):
-    time.sleep(3)
+    time.sleep(1)
     r = check_run_status(thread=thread, run= run)
     if r.status == "completed":
         list_messages(thread=thread)
