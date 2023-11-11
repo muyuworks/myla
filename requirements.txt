@@ -4,6 +4,9 @@ starlette
 fastapi
 python-dotenv
 
+# Web
+jinja2
+
 # Hook
 aiohttp[speedups]
 

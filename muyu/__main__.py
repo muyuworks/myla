@@ -29,7 +29,7 @@ def runserver(args):
     if args.vectorstore:
         os.environ['VECTORSTORE_DIR'] = args.vectorstore
 
-    uvicorn.run('muyu:api', host=args.host, port=args.port,
+    uvicorn.run('muyu:entry', host=args.host, port=args.port,
                 workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,
                 log_config=LOGGING_CONFIG, reload_dirs=args.reload_dirs)
 

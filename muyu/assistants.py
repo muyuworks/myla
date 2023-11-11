@@ -1,3 +1,4 @@
+import os
 from typing import List, Dict, Any, Optional, Union
 from sqlmodel import Field, Session, Column, JSON, select
 from pydantic import BaseModel
@@ -36,6 +37,11 @@ class Assistant(DBModel, AssistantBase, table=True):
 
 def create(assistant: AssistantCreate, session: Session = None) -> AssistantRead:
     db_model = Assistant.from_orm(assistant)
+    if not db_model.model or db_model == '':
+        default_model = os.environ.get("DEFAULT_LLM_MODEL_NAME")
+        if default_model:
+            db_model.model = default_model
+
     dbo = create_model(object="assistant",
                        meta_model=assistant, db_model=db_model)
     r = AssistantRead(**dbo.dict())

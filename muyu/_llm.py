@@ -43,9 +43,10 @@ async def chat_complete(run: runs.RunRead, iter):
             })
 
         # Laod history
-        msgs = messages.list(thread_id=thread_id)
+        msgs = messages.list(thread_id=thread_id, order="desc").data
+        msgs = msgs[::-1]
 
-        for msg in msgs.data:
+        for msg in msgs:
             role = msg.role
             content = msg.content[0]
             if content.type == "text":
@@ -157,7 +158,8 @@ async def retrieval(msgs, metadata, tool):
     docs = await tool.search(vs_name=vs_name, query=query, **args)
     msgs.append({
         "role": "system",
-        "content": json.dumps(docs, ensure_ascii=False)
+        "content": json.dumps(docs, ensure_ascii=False),
+        "type": "docs"
     })
 
     return msgs, metadata

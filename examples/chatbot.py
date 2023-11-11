@@ -1,7 +1,7 @@
 import time
 import openai
 
-openai.base_url = "http://localhost:2000/v1/"
+openai.base_url = "http://localhost:2000/api/v1/"
 openai.api_key = "sk-xxx"
 
 assistant = openai.beta.assistants.create(
