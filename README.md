@@ -20,7 +20,7 @@ cp env-example.txt .env
 ### 启动
 
 ```
-./scripts/muyu --reload
+./scripts/muyu --reload --extentions ./extentions --vectorstore ./vectorstore --debug
 ```
 
 ## 打包
