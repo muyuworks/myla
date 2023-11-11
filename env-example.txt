@@ -5,6 +5,7 @@ DATABASE_CONNECT_ARGS={"check_same_thread": false}
 # LLMs
 LLM_ENDPOINT=http://172.88.0.20:8888/v1/
 LLM_API_KEY=sk-xx
+DEFAULT_LLM_MODEL_NAME=Qwen-14B-Chat-Int4
 
 # Ebeddings
 EMBEDDINGS_IMPL=bge
