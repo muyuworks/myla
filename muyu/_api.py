@@ -2,38 +2,16 @@ import os, sys
 import json
 from typing import List
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from contextlib import asynccontextmanager
 
-from .persistence import Persistence
-from sqlmodel import Session
-
-from ._models import DeletionStatus, ListModel
+from ._models import ListModel
 from . import assistants, threads, messages, runs
-from ._run_scheduler import RunScheduler
-from ._run_queue import get_run_iter, create_run_iter
+from ._run_queue import get_run_iter
 
 from . import tools, hook
 
 API_VERSION = "v1"
-
-
-@asynccontextmanager
-async def lifespan(api: FastAPI):
-    ext_dir = os.environ.get("EXT_DIR")
-    if ext_dir:
-        sys.path.append(ext_dir)
-    
-    tools.load_tools()
-
-    # on startup
-    Persistence.default().initialize_database()
-    await RunScheduler.default().start()
-
-    yield
-    # on shutdown
-    pass
 
 tags_metadata = [
     {
@@ -52,7 +30,6 @@ tags_metadata = [
 
 # FastAPI
 api = FastAPI(
-    lifespan=lifespan,
     title="Muyu API",
     version=API_VERSION,
     docs_url="/swagger",
@@ -210,7 +187,7 @@ def list_run_steps(thread_id: str, run_id: str):
 
 @api.get("/v1/threads/{thread_id}/runs/{run_id}/stream", tags=['Runs'])
 async def get_message_stream(thread_id:str, run_id:str):
-    iter = get_run_iter(run_id=run_id)
+    iter = await get_run_iter(run_id=run_id)
     #iter = create_run_iter(run_id=run_id)
     #for i in range(10):
     #    await iter.put(str(i))

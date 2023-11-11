@@ -6,7 +6,8 @@ class RunScheduler:
     _instance = None
 
     def __init__(self) -> None:
-        self.tasks = set()
+        #self.tasks = set()
+        pass
 
     @staticmethod
     def default():
@@ -19,9 +20,9 @@ class RunScheduler:
             while True:
                 run = await get_run_task()
                 task = asyncio.create_task(
-                    chat_complete(run=run, iter=create_run_iter(run.id))
+                    chat_complete(run=run, iter=await create_run_iter(run.id))
                 )
-                self.tasks.add(task)
+                #self.tasks.add(task)
 
                 await clear_iters()
         return asyncio.ensure_future(consume())

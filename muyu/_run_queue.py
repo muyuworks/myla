@@ -21,6 +21,7 @@ class AsyncIterator:
     
 _run_tasks = asyncio.Queue()
 _run_iters = {}
+_lock = asyncio.Lock()
 
 async def submit_run_task(run):
     await _run_tasks.put(run)
@@ -28,12 +29,14 @@ async def submit_run_task(run):
 async def get_run_task():
     return await _run_tasks.get()
 
-def create_run_iter(run_id):
-    _run_iters[run_id] = AsyncIterator()
-    return _run_iters[run_id]
+async def create_run_iter(run_id):
+    async with _lock:
+        _run_iters[run_id] = AsyncIterator()
+        return _run_iters[run_id]
 
-def get_run_iter(run_id):
-    return _run_iters.get(run_id)
+async def get_run_iter(run_id):
+    async with _lock:
+        return _run_iters.get(run_id)
 
 _last_clear_at = datetime.now().timestamp()
 async def clear_iters():
@@ -43,4 +46,5 @@ async def clear_iters():
     
     for run_id, iter in _run_iters.items():
         if iter.created_at + 10*60 < now:
-            _run_iters.pop(run_id)
+            async with _lock:
+                _run_iters.pop(run_id)
