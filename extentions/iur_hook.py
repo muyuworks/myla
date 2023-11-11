@@ -6,12 +6,16 @@ class IURHook(Hook):
         """
         :return: (LLM 上下文消息, 调用 LLM 的参数, 生成 Message 的 Metadata)
         """
+        llm_message = [
+            {
+                "role": "system",
+                "content": "你是欧舒丹天猫旗舰店的售前客服，正在与顾客对话。"
+            }
+        ]
         iur_query = None
         if messages and len(messages) > 0:
-            iur_query = "😭"
+            iur_query = messages[-1]['content']
             messages[-1]['content'] = iur_query
-            messages.append({
-                "role": "system",
-                "content": "你的回答必须在结尾加上emoji符号 😁"
-            })
-        return messages, {"temperature": 0.7}, {"IUR_Generated": iur_query}
+        
+        llm_message.extend(messages)
+        return llm_message, {"temperature": 0.5}, {"IUR_Generated": iur_query}

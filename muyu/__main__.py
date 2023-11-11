@@ -25,6 +25,9 @@ def runserver(args):
                 args.reload_dirs.append(MUYU_LIB_DIR)
             args.reload_dirs.append(ext_dir)
 
+    if args.vectorstore:
+        os.environ['VECTORSTORE_DIR'] = args.vectorstore
+
     uvicorn.run('muyu:api', host=args.host, port=args.port,
                 workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,
                 log_config=LOGGING_CONFIG, reload_dirs=args.reload_dirs)
@@ -45,6 +48,7 @@ parser.add_argument('--reload-dirs', default=None,
 parser.add_argument('--env-file', default='.env',
                     help="environment configuration file")
 parser.add_argument("--extentions", default=None, help="extentions directory")
+parser.add_argument("--vectorstore", default=None, help="vectorstore directory")
 
 
 def main():

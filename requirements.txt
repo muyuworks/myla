@@ -7,6 +7,12 @@ python-dotenv
 # Hook
 aiohttp[speedups]
 
+# Retrieval
+langchain
+
+# Embeddings
+sentence_transformers
+
 # Persistence
 sqlmodel
 

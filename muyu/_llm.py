@@ -1,10 +1,11 @@
 import os
-import traceback
+import json
 import datetime
 import openai
 from .tools import get_tool
 from . import hook
 from . import messages, runs, assistants
+from . import _logging as log
 
 async def chat_complete(run: runs.RunRead, iter):
     try:
@@ -15,6 +16,7 @@ async def chat_complete(run: runs.RunRead, iter):
         model = run.model
         instructions = run.instructions
         tools = run.tools
+        run_metadata = run.metadata if run.metadata else {}
 
         # Get Assistant
         assistant = assistants.get(id=run.assistant_id)
@@ -28,6 +30,10 @@ async def chat_complete(run: runs.RunRead, iter):
                 model = assistant.model
             if not tools or len(tools) == 0:
                 tools = assistant.tools
+
+            a_metadata = assistant.metadata if assistant.metadata else {}
+            a_metadata.update(run_metadata)
+            run_metadata = a_metadata
 
         if instructions is not None:
             llm_messages.append({
@@ -55,7 +61,15 @@ async def chat_complete(run: runs.RunRead, iter):
         )
 
         # Before hooks
-        llm_messages, args, metadate = await before_hooks(messages=llm_messages, tools=tools)
+        llm_messages, args, metadata = await before_hooks(messages=llm_messages, tools=tools)
+
+        docs = await retrieval(llm_messages, metadata=run_metadata)
+        llm_messages.append({
+            "role": "system",
+            "content": json.dumps(docs, ensure_ascii=False)
+        })
+
+        print(llm_messages)
 
         # print(f"Task run, run_id: {run.id}, message: {history}")
         api_key = os.environ.get("LLM_API_KEY")
@@ -80,7 +94,7 @@ async def chat_complete(run: runs.RunRead, iter):
         msg_generated = messages.MessageCreate(
             role="assistant",
             content=''.join(genereated),
-            metadata=metadate
+            metadata=metadata
         )
         messages.create(thread_id=thread_id, message=msg_generated, assistant_id=assistant_id, run_id=run.id)
 
@@ -91,7 +105,9 @@ async def chat_complete(run: runs.RunRead, iter):
         )
         await iter.put(None) # Completed
     except Exception as e:
-        traceback.print_exc()
+        log.info(f"LLM Failed: {e}")
+        log.debug("LLM exc: ", exc_info=e)
+        
         runs.update(id=run.id,
             status="failed",
             last_error={
@@ -117,3 +133,19 @@ async def before_hooks(messages, tools):
             if n_metadata:
                 metadata.update(n_metadata)
     return messages, args, metadata
+
+async def retrieval(messages, metadata):
+    if not metadata or "retrieval_collection_name" not in metadata:
+        return
+    tool = get_tool("retrieval")
+
+    vs_name = metadata["retrieval_collection_name"]
+    args = {}
+    if "retrieval_top_k" in metadata:
+        args["top_k"] = metadata["retrieval_top_k"]
+
+    query = ""
+    if len(messages) > 0:
+        query = messages[-1]["content"]
+    print(f"Retrieval: {query}, {metadata}")
+    return await tool.search(vs_name=vs_name, query=query, **args)

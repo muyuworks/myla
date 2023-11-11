@@ -18,7 +18,7 @@ print(f"Thread created, id:{thread.id}")
 message = openai.beta.threads.messages.create(
     thread_id=thread.id,
     role="user",
-    content="和你对话的人是谁"
+    content="你们有什么产品？"
 )
 print(f"User message created, id: {message.id}, content={message.content[0].text[0]['value']}")
 
@@ -36,8 +36,9 @@ list_messages(thread=thread)
 run = openai.beta.threads.runs.create(
   thread_id=thread.id,
   assistant_id=assistant.id,
-  instructions="你是一个博识热情的assistant, 一个对话机器人。和你对话的user是shellc。",
-  tools=[{"type": "$iur_http"}]
+  #instructions="你是一个博识热情的assistant, 一个对话机器人。和你对话的user是shellc。",
+  tools=[{"type": "iur"}, {"type": "retrieval"}],
+  metadata={"retrieval_collection_name": "uco"}
 )
 print(f"Run created, id: {run.id}")
 
@@ -49,8 +50,8 @@ def check_run_status(thread, run):
     print(f"Check run status, run_id:{run.id}, status: {run.status}")
     return run
 
-for i in range(3):
-    time.sleep(1)
+for i in range(10):
+    time.sleep(3)
     r = check_run_status(thread=thread, run= run)
     if r.status == "completed":
         list_messages(thread=thread)
