@@ -8,10 +8,10 @@ class IURHook(Hook):
         """
         iur_query = None
         if messages and len(messages) > 0:
-            iur_query = "中国的首都在哪"
+            iur_query = "😭"
             messages[-1]['content'] = iur_query
             messages.append({
                 "role": "system",
-                "content": "你的回答必须在结尾加上emoji符号"
+                "content": "你的回答必须在结尾加上emoji符号 😁"
             })
         return messages, {"temperature": 0.7}, {"IUR_Generated": iur_query}
