@@ -37,7 +37,7 @@ run = openai.beta.threads.runs.create(
   thread_id=thread.id,
   assistant_id=assistant.id,
   #instructions="你是一个博识热情的assistant, 一个对话机器人。和你对话的user是shellc。",
-  tools=[{"type": "iur"}, {"type": "retrieval"}],
+  tools=[{"type": "$iur"}, {"type": "retrieval"}],
   metadata={"retrieval_collection_name": "uco"}
 )
 print(f"Run created, id: {run.id}")

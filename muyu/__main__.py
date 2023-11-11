@@ -5,16 +5,17 @@ import argparse
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
 
-logger = {"handlers": ["default"], "level": "INFO", "propagate": False}
-LOGGING_CONFIG['loggers'][''] = logger
-LOGGING_CONFIG['loggers']['muyu'] = logger
-
 MUYU_LIB_DIR = os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.pardir))
 sys.path.insert(0, MUYU_LIB_DIR)
 
 
 def runserver(args):
+    log_level = "DEBUG" if args.debug else "INFO"
+    logger = {"handlers": ["default"], "level": log_level, "propagate": False}
+    LOGGING_CONFIG['loggers'][''] = logger
+    LOGGING_CONFIG['loggers']['muyu'] = logger
+
     if args.extentions:
         ext_dir = os.path.abspath(args.extentions)
         os.environ['EXT_DIR'] = ext_dir
@@ -48,7 +49,10 @@ parser.add_argument('--reload-dirs', default=None,
 parser.add_argument('--env-file', default='.env',
                     help="environment configuration file")
 parser.add_argument("--extentions", default=None, help="extentions directory")
-parser.add_argument("--vectorstore", default=None, help="vectorstore directory")
+parser.add_argument("--vectorstore", default=None,
+                    help="vectorstore directory")
+parser.add_argument("--debug", default=False,
+                    action='store_true', help="enable debug")
 
 
 def main():
