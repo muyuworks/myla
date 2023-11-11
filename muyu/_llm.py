@@ -66,7 +66,6 @@ async def chat_complete(run: runs.RunRead, iter):
         llm_messages, args, metadata = await run_tools(tools=tools, msgs=llm_messages, metadata=run_metadata)
         log.debug(f"Messages sumit to LLM: {llm_messages}")
 
-        # print(f"Task run, run_id: {run.id}, message: {history}")
         api_key = os.environ.get("LLM_API_KEY")
         endpoint = os.environ.get("LLM_ENDPOINT")
 
@@ -131,7 +130,7 @@ async def run_hook(msgs, metadata, tool):
     args = {}
     metadata = metadata if metadata else {}
 
-    msgs, n_args, n_metadata = await tool.before(messages=msgs)
+    msgs, n_args, n_metadata = await tool.before(messages=msgs, metadata=metadata)
     if n_args:
         args.update(n_args)
     if n_metadata:

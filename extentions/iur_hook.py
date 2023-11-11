@@ -1,8 +1,8 @@
-from typing import List, Dict
+from typing import Optional, List, Dict
 from muyu.hook import Hook
 
 class IURHook(Hook):
-    async def before(self, messages: List[Dict]):
+    async def before(self, messages: List[Dict], metadata: Optional[Dict] = None):
         """
         :return: (LLM 上下文消息, 调用 LLM 的参数, 生成 Message 的 Metadata)
         """
@@ -18,4 +18,5 @@ class IURHook(Hook):
             messages[-1]['content'] = iur_query
         
         llm_message.extend(messages)
-        return llm_message, {"temperature": 0.5}, {"IUR_Generated": iur_query}
+        metadata['iur_query'] = iur_query
+        return llm_message, {"temperature": 0.5}, metadata
