@@ -206,7 +206,7 @@ async def get_message_stream(thread_id:str, run_id:str):
     return StreamingResponse(aiter(), headers={'Content-Type': "text/event-stream"})
 
 @api.post("/tools/{tool_name}/execute", tags=["Tools"])
-async def execute_hook(tool_name:str, context: tools.Context):
+async def execute_tool(tool_name:str, context: tools.Context):
     tool_instance = _tools.get_tool(tool_name)
     if not tool_instance or not isinstance(tool_instance, tools.Tool):
         raise HTTPException(status_code=404, detail="Tool not found")
