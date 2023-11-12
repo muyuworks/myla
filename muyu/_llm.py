@@ -68,15 +68,17 @@ async def chat_complete(run: runs.RunRead, iter):
 
         # Run tools
         context: Context = await run_tools(tools=tools, messages=messages, run_metadata=run_metadata)
-        
+        log.debug("Context after tools: {context}")
+
         genereated = []
 
         if context.is_completed:
-            completed_msg = messages[-1]["content"]
+            completed_msg = context.messages[-1]["content"]
             genereated.append(completed_msg)
             iter.put(completed_msg)
         else:
-            resp = await llm.chat_complete(messages=context.messages, model=model, stream=True, **context.llm_args)
+            combined_messages = combine_system_messages(messages=context.messages)
+            resp = await llm.chat_complete(messages=combined_messages, model=model, stream=True, **context.llm_args)
 
             for r in resp:
                 c = r.choices[0].delta.content
@@ -126,11 +128,29 @@ async def run_tools(tools, messages, run_metadata):
         tool_instance: Tool = get_tool(tool_name)
 
         if not isinstance(tool_instance, Tool):
-            log.warn("tool instance is not a Tool: {tool_name}")
+            log.warn(f"tool instance is not a Tool: {tool_name}")
             continue
 
-        tool_instance.execute(context=context)
+        await tool_instance.execute(context=context)
         if context.is_completed:
             return context
 
     return context
+
+def combine_system_messages(messages):
+    """Combine multiple system messages into one"""
+    normal_messages = []
+    system_message = []
+    for msg in messages:
+        if msg["role"] == "system":
+            system_message.append(msg["content"])
+        else:
+            normal_messages.append(msg)
+    r_messages = [
+        {
+            "role": "system",
+            "content": '\n'.join(system_message)
+        }
+    ]
+    r_messages.extend(normal_messages)
+    return r_messages

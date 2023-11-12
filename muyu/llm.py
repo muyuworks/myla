@@ -7,8 +7,7 @@ def plain_messages(messages: List[Dict], model=None):
     text = []
     for m in messages:
         role = m['role']
-        if role != 'system':
-            text.append(f"{role}: {m['content']}")
+        text.append(f"{role}: {m['content']}")
     return '\n'.join(text)
 
 async def chat_complete(messages: List[Dict], model=None, stream=False, **kwargs):

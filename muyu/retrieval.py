@@ -5,6 +5,15 @@ import langchain.vectorstores as vectorstores
 from .tools import Tool, Context
 from ._logging import logger
 
+RETRIEVAL_INSTRUCTIONS_EN="""
+You should refer to the content below to generate your response. 
+The reference content is an array in JSON format, where each record represents a reference content record. 
+The `doc` attribute of a reference content record represents the reference content, 
+while the `score` attribute represents the relevance score between the reference content and the question.
+The higher the score, the higher the relevance. 
+
+The reference content is enclosed in the <DOCS> tag.
+"""
 
 class RetrievalTool(Tool):
     def __init__(self) -> None:
@@ -32,8 +41,20 @@ class RetrievalTool(Tool):
         docs = await self.retrieval.search(vs_name=vs_name, query=query, **args)
         context.messages.append({
             "role": "system",
+            "content": RETRIEVAL_INSTRUCTIONS_EN,
+        })
+        context.messages.append({
+            "role": "system",
+            "content": "<DOCS>",
+        })
+        context.messages.append({
+            "role": "system",
             "content": json.dumps(docs, ensure_ascii=False),
             "type": "docs"
+        })
+        context.messages.append({
+            "role": "system",
+            "content": "<DOCS>",
         })
 
 

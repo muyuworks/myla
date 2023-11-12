@@ -16,12 +16,12 @@ EMBEDDINGS_DEVICE=cpu
 TOOLS='
 [
     {
-        "name": "retrieval",
-        "impl": "muyu.retrieval.Retrieval"
+        "name": "$retrieval",
+        "impl": "muyu.retrieval.RetrievalTool"
     },
     {
         "name": "$iur",
-        "impl": "iur_hook.IURHook",
+        "impl": "muyu.iur.IURTool",
         "args": {}
     }
 ]

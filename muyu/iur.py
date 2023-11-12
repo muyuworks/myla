@@ -2,13 +2,13 @@ from .tools import Tool, Context
 from . import llm, logger
 
 INSTRUCTIONS_ZH = """
-你是专业的文本分析助手, 下面是你和用户的对话:
+你是专业的文本分析助手, 下面是其他AI助手和用户的对话, system 是AI助手的身份设定, user是用户, assistant是AI助手:
 -开始对话-
 {history}
 -结束对话-
-最新用户问题: {last_user_message}
-请你结合对话修改最新用户问题, 使修改后的用户问题包含完整意图。请直接输出修改后的结果。
-修改后的用户问题:
+用户提问: {last_user_message}
+请你扮演和AI助手对话的用户, 结合AI助手和用户的对话修改用户提问, 使修改后的用户提问包含完整意图, 易于AI助手理解。请直接输出修改后的结果。
+修改用表示用户意图的提问:
 """
 
 class IURTool(Tool):
