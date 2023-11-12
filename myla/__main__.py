@@ -5,16 +5,16 @@ import argparse
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
 
-MUYU_LIB_DIR = os.path.abspath(os.path.join(
+MYLA_LIB_DIR = os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.pardir))
-sys.path.insert(0, MUYU_LIB_DIR)
+sys.path.insert(0, MYLA_LIB_DIR)
 
 
 def runserver(args):
     log_level = "DEBUG" if args.debug else "INFO"
     logger = {"handlers": ["default"], "level": log_level, "propagate": False}
     LOGGING_CONFIG['loggers'][''] = logger
-    LOGGING_CONFIG['loggers']['muyu'] = logger
+    LOGGING_CONFIG['loggers']['myla'] = logger
 
     if args.extentions:
         ext_dir = os.path.abspath(args.extentions)
@@ -23,13 +23,13 @@ def runserver(args):
         if args.reload:
             if not args.reload_dirs:
                 args.reload_dirs = []
-                args.reload_dirs.append(MUYU_LIB_DIR)
+                args.reload_dirs.append(MYLA_LIB_DIR)
             args.reload_dirs.append(ext_dir)
 
     if args.vectorstore:
         os.environ['VECTORSTORE_DIR'] = args.vectorstore
 
-    uvicorn.run('muyu:entry', host=args.host, port=args.port,
+    uvicorn.run('myla:entry', host=args.host, port=args.port,
                 workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,
                 log_config=LOGGING_CONFIG, reload_dirs=args.reload_dirs)
 

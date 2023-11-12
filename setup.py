@@ -1,7 +1,7 @@
 # coding: utf-8
 
 """
-    Muyu
+    Myla
 """
 
 import os
@@ -24,7 +24,7 @@ def find_version(*file_paths):
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
 
-version = find_version('muyu', '__init__.py')
+version = find_version('myla', '__init__.py')
 
 install_requires = []
 with open(os.path.join(here, 'requirements.txt')) as f:
@@ -33,12 +33,12 @@ with open(os.path.join(here, 'requirements.txt')) as f:
             install_requires.append(r)
 
 setup(
-    name='muyu',
+    name='myla',
     version=version,
     packages=find_packages(),
     package_data={
         #'webui': ['**/*']
     },
     install_requires = install_requires,
-    scripts=['setup.py', './scripts/muyu', 'requirements.txt'],
+    scripts=['setup.py', './scripts/myla', 'requirements.txt'],
 )

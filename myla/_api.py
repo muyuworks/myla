@@ -29,7 +29,7 @@ tags_metadata = [
 
 # FastAPI
 api = FastAPI(
-    title="Muyu API",
+    title="Myla API",
     version=API_VERSION,
     docs_url="/swagger",
     redoc_url='/docs'

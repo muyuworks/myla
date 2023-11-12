@@ -1,6 +1,6 @@
 import json
-from muyu import tools
-from muyu.tools import Context
+from myla import tools
+from myla.tools import Context
 
 class ECTool(tools.Tool):
     def __init__(self, device='cpu') -> None:

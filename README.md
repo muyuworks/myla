@@ -1,4 +1,4 @@
-# Muyu Assistants
+# Muyu Local Assistant
 
 ## 开发环境设置
 
@@ -20,7 +20,7 @@ cp env-example.txt .env
 ### 启动
 
 ```
-./scripts/muyu --reload --extentions ./extentions --vectorstore ./vectorstore --debug
+./scripts/myla --reload --extentions ./extentions --vectorstore ./vectorstore --debug
 ```
 
 ## 打包

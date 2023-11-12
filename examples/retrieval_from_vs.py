@@ -1,4 +1,4 @@
-from muyu.retrieval import Retrieval
+from myla.retrieval import Retrieval
 
 if __name__ == '__main__':
     from dotenv import load_dotenv

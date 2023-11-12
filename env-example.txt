@@ -16,13 +16,22 @@ EMBEDDINGS_DEVICE=cpu
 TOOLS='
 [
     {
-        "name": "$retrieval",
-        "impl": "muyu.retrieval.RetrievalTool"
+        "name": "$iur",
+        "impl": "myla.iur.IURTool",
+        "args": {}
     },
     {
-        "name": "$iur",
-        "impl": "muyu.iur.IURTool",
-        "args": {}
+        "name": "$retrieval",
+        "impl": "myla.retrieval.RetrievalTool"
+    },
+    {
+        "name": "$doc_summary",
+        "impl": "myla.retrieval.DocSummaryTool"
+    },
+    {
+        "name": "$ec",
+        "impl": "ec.ECTool",
+        "args": {"device": "cpu"}
     }
 ]
 '

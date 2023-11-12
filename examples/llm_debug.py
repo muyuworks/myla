@@ -1,5 +1,5 @@
 import asyncio
-import muyu.llm as llm
+import myla.llm as llm
 
 async def main():
     r = await llm.chat_complete(messages=[{
