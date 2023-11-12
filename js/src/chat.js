@@ -252,7 +252,8 @@ export const Chat = (props) => {
                     </Col>
                     <Col flex='none'>
                         <Form.Item style={{ marginLeft: '15px', marginBottom: 0 }}>
-                            <Button htmlType='submit' type="primary" shape="circle" icon={<BulbOutlined />} disabled={generating} className=''>
+                            <Button htmlType='submit' type="primary" shape="circle"  disabled={generating}>
+                                <BulbOutlined />
                             </Button>
                         </Form.Item>
                     </Col>

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
 import { Layout, List, Avatar, Space, Typography, Button, Card, Modal, Form, Input } from 'antd'
-import { MenuUnfoldOutlined, MenuFoldOutlined, MessageFilled, PlusCircleOutlined } from '@ant-design/icons'
+import { MenuUnfoldOutlined, MenuFoldOutlined, MessageFilled, PlusCircleOutlined,CloseCircleOutlined,EditOutlined } from '@ant-design/icons'
 import {
 
 } from '@ant-design/icons';
@@ -23,8 +23,8 @@ let welcome_message = `
 export const Aify = (props) => {
     const [leftCollapsed, setLeftCollapsed] = useState(false);
     const [rightCollapsed, setRightCollapsed] = useState(false);
-    const [asistants, setAsistants] = useState();
-    const [assistantMap, setAsistantMap] = useState({});
+    const [assistants, setAssistants] = useState();
+    const [assistantMap, setAssistantMap] = useState({});
     const [currentAssistantId, setCurrentAsistantId] = useState(null);
     const [currentThreadId, setCurrentThreadId] = useState(null);
     const [threads, setThreads] = useState();
@@ -33,9 +33,10 @@ export const Aify = (props) => {
     const [user, setUser] = useState();
 
     const [openCreateAssistantModal, setOpenCreateAssistantModal] = useState(false);
+    const [assistantToModify, setAssistantToModify] = useState(false);
     const [createAssistantForm] = Form.useForm();
 
-    const createAssistant = () => {
+    const createAssistant = (assistant_id) => {
         let name = createAssistantForm.getFieldValue("name");
         let desc = createAssistantForm.getFieldValue("desc");
         let instructions = createAssistantForm.getFieldValue("instructions");
@@ -44,8 +45,8 @@ export const Aify = (props) => {
         var metadata = createAssistantForm.getFieldValue("metadata");
         metadata = metadata ? JSON.parse(metadata) : {}
         metadata.icon = icon
-
-        fetch("/api/v1/assistants", {
+        console.log(tools);
+        fetch(assistant_id ? `/api/v1/assistants/${assistant_id}` : "/api/v1/assistants", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -55,13 +56,31 @@ export const Aify = (props) => {
                 "description": desc,
                 "model": '',
                 "instructions": instructions,
-                "tools": JSON.parse(tools ? tools : []),
+                "tools": tools ? JSON.parse(tools) : [],
                 "metadata": metadata
             })
         }).then(r => {
             loadAsistants();
             setOpenCreateAssistantModal(false);
+            createAssistantForm.resetFields();
         });
+    }
+
+    const deleteAssistant = (assistant_id) => {
+        fetch(`/api/v1/assistants/${assistant_id}`, {
+            method: 'DELETE',
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(r => r.json())
+        .then(thread => {
+            loadAsistants();
+        })
+    }
+
+    const modifyAssistant = (assistant_id) => {
+
     }
 
     const loadAsistants = () => {
@@ -79,8 +98,8 @@ export const Aify = (props) => {
                     }
                     m[a.id] = a;
                 });
-                setAsistants(asis.data);
-                setAsistantMap(m);
+                setAssistants(asis.data);
+                setAssistantMap(m);
             })
     }
 
@@ -143,6 +162,22 @@ export const Aify = (props) => {
         
     }
 
+    const deleteThread = (thread_id) => {
+        fetch(`/api/v1/threads/${thread_id}`, {
+            method: 'DELETE',
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(r => r.json())
+        .then(thread => {
+            loadThreads();
+            if (currentThreadId == thread_id) {
+                setCurrentThreadId(null);
+            }
+        })
+    }
+
     const switchThread = (assistant_id, thread_id) => {
         setCurrentAsistantId(assistant_id);
         setCurrentThreadId(thread_id);
@@ -182,28 +217,35 @@ export const Aify = (props) => {
                     itemLayout="horizontal"
                     dataSource={threads}
                     renderItem={(thread => (
-                        <List.Item>
-                            <Link
-                                onClick={() => switchThread(thread.metadata.assistant_id, thread.id)}
-                            >
-                                <Space>
-                                    <Avatar style={{ backgroundColor: '#fff' }}>{(assistantMap[thread.metadata.assistant_id] && assistantMap[thread.metadata.assistant_id].metadata.icon) ?? '🤖'}</Avatar>
-                                    {!leftCollapsed ? (
-                                        <Space direction='vertical' size={0}>
-                                            <Text type="secondary"
-                                                ellipsis={{
-                                                    rows: 1,
-                                                }}
-                                                style={{ width: '220px' }}
-                                            >
-                                                <div id={`last-msg-${thread.id}`}>{assistantMap[thread.metadata.assistant_id].name}</div>
-                                            </Text>
-                                        </Space>
-                                    ) : null}
+                        assistantMap[thread.metadata.assistant_id] != null? (
+                        <List.Item style={currentThreadId == thread.id ? {backgroundColor: 'whitesmoke'} : {}}>
+                            <Space>
+                                <Link
+                                    onClick={() => switchThread(thread.metadata.assistant_id, thread.id)}
+                                >
+                                    <Space>
+                                        <Avatar style={{ backgroundColor: '#fff' }}>{(assistantMap[thread.metadata.assistant_id].metadata.icon) ?? '🤖'}</Avatar>
+                                        {!leftCollapsed ? (
+                                            <Space direction='horizontal' size={0}>
+                                                <Text type="secondary"
+                                                    ellipsis={{
+                                                        rows: 1,
+                                                    }}
+                                                    style={{ width: '220px' }}
+                                                >
+                                                    <div id={`last-msg-${thread.id}`}>{assistantMap[thread.metadata.assistant_id].name}</div>
+                                                </Text>
+                                            </Space>
+                                        ) : null}
 
-                                </Space>
-                            </Link>
+                                    </Space>
+                                </Link>
+                                {!leftCollapsed ? (
+                                <Link onClick={() => deleteThread(thread.id)}><CloseCircleOutlined style={{color: '#ccc', marginTop: 15}}/></Link>
+                                ) : null}
+                            </Space>
                         </List.Item>
+                        ) : null
                     ))}
                 />
             </Sider>
@@ -271,7 +313,7 @@ export const Aify = (props) => {
                 reverseArrow
             >
                 <div style={{marginLeft: 15, marginRight: 15, marginTop: 20}}>
-                    <Button type="dashed" block onClick={() => setOpenCreateAssistantModal(true)}>
+                    <Button type="dashed" block onClick={() => {setOpenCreateAssistantModal(true);setAssistantToModify(null)}}>
                         <PlusCircleOutlined />
                     </Button>
                 </div>
@@ -279,8 +321,8 @@ export const Aify = (props) => {
                     split={false}
                     size='small'
                     itemLayout="horizontal"
-                    dataSource={asistants}
-                    renderItem={(asistant) => (
+                    dataSource={assistants}
+                    renderItem={(assistant) => (
                         <List.Item>
                             <Card
                                 style={{
@@ -288,16 +330,18 @@ export const Aify = (props) => {
                                     marginTop: 16,
                                 }}
                                 actions={[
-                                    <span><MessageFilled key="createSession" onClick={() => createThread(asistant.id, asistant.name)} /></span>,
+                                    <MessageFilled key="createSession" onClick={() => createThread(assistant.id, assistant.name)} />,
+                                    <EditOutlined onClick={() => {setAssistantToModify(assistant); setOpenCreateAssistantModal(true); }}/>,
+                                    <CloseCircleOutlined onClick={() => deleteAssistant(assistant.id)}/>,
                                 ]}
                             >
                                 <Meta
-                                    avatar={<Avatar style={{ backgroundColor: '#eee' }}>{asistant.metadata.icon ?? '🤖'}</Avatar>}
-                                    title={asistant.name}
+                                    avatar={<Avatar style={{ backgroundColor: '#eee' }}>{assistant.metadata.icon ?? '🤖'}</Avatar>}
+                                    title={assistant.name}
                                 />
                                 <div className='pt-3'>
                                     <Text type="secondary">
-                                        {asistant.description}
+                                        {assistant.description}
                                     </Text>
                                 </div>
                             </Card>
@@ -310,46 +354,47 @@ export const Aify = (props) => {
                     title="Build your assistant"
                     //centered
                     open={openCreateAssistantModal}
-                    onOk={() => createAssistant()}
-                    onCancel={() => setOpenCreateAssistantModal(false)}
+                    onOk={() => {createAssistant(assistantToModify ? assistantToModify.id : null)}}
+                    onCancel={() => {createAssistantForm.resetFields();setOpenCreateAssistantModal(false); setAssistantToModify(null)}}
+                    afterOpenChange={() => createAssistantForm.resetFields()}
                 >
-                    <Form form={createAssistantForm}>
-                        <Form.Item name='name' >
+                    <Form form={createAssistantForm} layout="vertical">
+                        <Form.Item name='name' initialValue={assistantToModify ? assistantToModify.name : null}>
                             <Input
                                 type='text'
                                 style={{width: 200}}
                                 placeholder="Name"
                             />
                         </Form.Item>
-                        <Form.Item name='desc' >
+                        <Form.Item label='Name' name='desc' initialValue={assistantToModify ? assistantToModify.description : null} >
                             <Input
                                 type='text'
                                 //style={{width: 200}}
                                 placeholder="Description"
                             />
                         </Form.Item>
-                        <Form.Item name='instructions' >
+                        <Form.Item label='Instructions' name='instructions' initialValue={assistantToModify ? assistantToModify.instructions : null}>
                             <TextArea
-                                rows={3}
+                                autoSize
                                 //style={{width: 200}}
                                 placeholder="Instructions"
                             />
                         </Form.Item>
-                        <Form.Item name='tools'>
+                        <Form.Item label='Tools' name='tools' initialValue={assistantToModify ? JSON.stringify(assistantToModify.tools) : null}>
                             <TextArea
-                                rows={3}
+                                autoSize
                                 //style={{width: 200}}
                                 placeholder='tools settings, like: [{"type": "$iur"}, {"type": "retrieval"}]'
                             />
                         </Form.Item>
-                        <Form.Item name='metadata'>
+                        <Form.Item label='Metadata' name='metadata' initialValue={assistantToModify ? JSON.stringify(assistantToModify.metadata) : null}>
                             <TextArea
-                                rows={3}
+                                autoSize
                                 //style={{width: 200}}
                                 placeholder='metadata, like: {"retrieval_collection_name": "uco"}'
                             />
                         </Form.Item>
-                        <Form.Item name='icon' initialValue={"🤖"}>
+                        <Form.Item label='Avatar' name='icon' initialValue={assistantToModify ? assistantToModify.metadata.icon : "🤖"}>
                             <Input
                                 type='text'
                                 style={{width: 50, height: 50, fontSize: 24}}
