@@ -45,8 +45,11 @@ async def chat_complete(run: runs.RunRead, iter):
                 "content": instructions
             })
 
+        # llm_args
+        llm_args = run_metadata['llm_args'] if 'llm_args' in run_metadata else {"temperature": 0.0}
+
         # Laod history
-        history = list_messages(thread_id=thread_id, order="desc").data
+        history = list_messages(thread_id=thread_id, order="desc", limit=4).data
         history = history[::-1]
 
         # append history to messages
@@ -68,6 +71,8 @@ async def chat_complete(run: runs.RunRead, iter):
 
         # Run tools
         context: Context = await run_tools(tools=tools, messages=messages, run_metadata=run_metadata)
+        llm_args.update(context.llm_args)
+
         log.debug("Context after tools: {context}")
 
         genereated = []
@@ -78,9 +83,9 @@ async def chat_complete(run: runs.RunRead, iter):
             iter.put(completed_msg)
         else:
             combined_messages = combine_system_messages(messages=context.messages)
-            resp = await llm.chat_complete(messages=combined_messages, model=model, stream=True, **context.llm_args)
+            resp = await llm.chat_complete(messages=combined_messages, model=model, stream=True, **llm_args)
 
-            for r in resp:
+            async for r in resp:
                 c = r.choices[0].delta.content
                 if c is not None:
                     genereated.append(c)

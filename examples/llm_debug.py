@@ -5,8 +5,10 @@ async def main():
     r = await llm.chat_complete(messages=[{
         "role": "system",
         "content": "你是谁"
-    }])
-    print(r)
+    }], stream=True)
+    async for c in r:
+        print(c)
+
 
 if __name__ == '__main__':
     import dotenv

@@ -18,14 +18,15 @@ async def chat_complete(messages: List[Dict], model=None, stream=False, **kwargs
     if not model:
         model = os.environ.get("DEFAULT_LLM_MODEL_NAME")
 
-    llm = openai.OpenAI(api_key=api_key, base_url=base_url)
+    llm = openai.AsyncOpenAI(api_key=api_key, base_url=base_url)
 
     @utils.retry
-    def _call():
-        resp = llm.chat.completions.create(
+    async def _call():
+        resp = await llm.chat.completions.create(
             model=model,
             messages=messages,
             stream=stream,
+            timeout=120,
             **kwargs
         )
         if stream:
@@ -34,7 +35,7 @@ async def chat_complete(messages: List[Dict], model=None, stream=False, **kwargs
             genereated = resp.choices[0].message.content
             return genereated
     
-    return _call()
+    return await _call()
 
 async def complete(instructions: str, **kwargs):
     r = await chat_complete(messages=[{

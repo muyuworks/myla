@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 import langchain.vectorstores as vectorstores
 from .tools import Tool, Context
 from ._logging import logger
+from . import llm
 
 RETRIEVAL_INSTRUCTIONS_EN="""
 You should refer to the content below to generate your response. 
@@ -13,6 +14,10 @@ while the `score` attribute represents the relevance score between the reference
 The higher the score, the higher the relevance. 
 
 The reference content is enclosed in the <DOCS> tag.
+"""
+
+RETRIEVAL_INSTRUCTIONS_ZH="""
+优先参考<DOCS>标签中的内容对最新的问题进行回答。
 """
 
 class RetrievalTool(Tool):
@@ -39,23 +44,62 @@ class RetrievalTool(Tool):
         query = context.messages[-1]["content"]
 
         docs = await self.retrieval.search(vs_name=vs_name, query=query, **args)
-        context.messages.append({
-            "role": "system",
-            "content": RETRIEVAL_INSTRUCTIONS_EN,
-        })
-        context.messages.append({
-            "role": "system",
-            "content": "<DOCS>",
-        })
-        context.messages.append({
-            "role": "system",
-            "content": json.dumps(docs, ensure_ascii=False),
-            "type": "docs"
-        })
-        context.messages.append({
-            "role": "system",
-            "content": "<DOCS>",
-        })
+        print(json.dumps(docs, ensure_ascii=False))
+        if docs and len(docs) > 0:
+            messages = context.messages
+            last_message = messages[-1]
+            messages = messages[:-1]
+
+            messages.append({
+                "role": "system",
+                "content": RETRIEVAL_INSTRUCTIONS_ZH,
+            })
+            messages.append({
+                "role": "system",
+                "content": "<DOCS>"
+            })
+            messages.append({
+                "role": "system",
+                "content": json.dumps(docs, ensure_ascii=False),
+                "type": "docs"
+            })
+            messages.append({
+                "role": "system",
+                "content": "<DOCS>"
+            })
+            messages.append(last_message)
+            context.messages = messages
+
+DOC_SUMMARY_INSTRUCTIONS_ZH = """
+你是专业的问答分析助手。下面是JSON格式的问答记录。
+<问答记录开始>
+{docs}
+<问答记录介绍>
+
+请根据问答记录生成新问题的候选回答。
+新问题: {query}
+候选回答:
+"""
+class DocSummaryTool(Tool):
+    async def execute(self, context: Context) -> None:
+        if len(context.messages) == 0:
+            return
+        
+        last_message = context.messages[-1]['content']
+
+        docs = None
+
+        for msg in context.messages:
+            if msg.get('type') == 'docs':
+                docs = msg
+        
+        if docs:
+            summary = await llm.chat_complete(messages=[{
+                "role": "system",
+                "content": DOC_SUMMARY_INSTRUCTIONS_ZH.format(docs=docs['content'], query=last_message)
+            }], stream=False, temperature=0)
+            if summary:
+                docs['content'] = summary
 
 
 class Retrieval:
