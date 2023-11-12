@@ -109,13 +109,13 @@ def list_threads(limit: int = 20, order: str = "desc", after: str = None, before
 # Messages
 
 
-@api.post("/v1/threads/{thread_id}/messages", response_model=messages.MessageRead, tags=['Threads'])
+@api.post("/v1/threads/{thread_id}/messages", response_model=messages.MessageRead, tags=['Messages'])
 def create_message(thread_id: str, message: messages.MessageCreate):
     r = messages.create(thread_id=thread_id, message=message)
     return r
 
 
-@api.get("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Threads'])
+@api.get("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
 def retrieve_message(thread_id: str, message_id: str):
     t = messages.get(id=message_id)
     if not t:
@@ -123,17 +123,17 @@ def retrieve_message(thread_id: str, message_id: str):
     return t
 
 
-@api.post("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Threads'])
+@api.post("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
 def modify_message(thread_id: str, message_id: str, message: messages.MessageModify):
     return messages.modify(id=message_id, message=message)
 
 
-@api.delete("/v1/threads/{thread_id}/messages/{message_id}", tags=['Threads'])
+@api.delete("/v1/threads/{thread_id}/messages/{message_id}", tags=['Messages'])
 def delete_message(thread_id: str, message_id: str):
     return messages.delete(id=message_id)
 
 
-@api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Threads'])
+@api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Messages'])
 def list_messages(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
     return messages.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before)
 
@@ -205,7 +205,7 @@ async def get_message_stream(thread_id:str, run_id:str):
                 yield "event: error\ndata: %s\n\n" % json.dumps({"e": str(c)})
     return StreamingResponse(aiter(), headers={'Content-Type': "text/event-stream"})
 
-@api.post("/tools/{tool_name}/execute", tags=["Tools"])
+@api.post("/tools/{tool_name}/execute", tags=["Tools"], response_model=tools.Context)
 async def execute_tool(tool_name:str, context: tools.Context):
     tool_instance = _tools.get_tool(tool_name)
     if not tool_instance or not isinstance(tool_instance, tools.Tool):
