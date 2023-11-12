@@ -44,7 +44,7 @@ class RetrievalTool(Tool):
         query = context.messages[-1]["content"]
 
         docs = await self.retrieval.search(vs_name=vs_name, query=query, **args)
-        print(json.dumps(docs, ensure_ascii=False))
+        logger.debug(json.dumps(docs, ensure_ascii=False))
         if docs and len(docs) > 0:
             messages = context.messages
             last_message = messages[-1]

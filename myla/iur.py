@@ -28,7 +28,7 @@ class IURTool(Tool):
 
         iur_query = await llm.complete(INSTRUCTIONS_ZH.format(history=history, last_user_message=last_user_message), temperature=0)
 
-        logger.info(f"Converstations: \n{history}\n IUR: {iur_query}")
+        logger.debug(f"Converstations: \n{history}\n IUR: {iur_query}")
         
         context.messages[-1]['content'] = iur_query
 
