@@ -27,9 +27,14 @@ class RunScheduler:
                     self.tasks.add(task)
 
                     await clear_iters()
+
+                    done = []
                     for t in self.tasks:
                         if t.done():
-                            self.tasks.remove(t)
+                            done.append(t)
+                    for t in done:
+                        self.tasks.remove(t)
+                        
                 except Exception as e:
                     logger.error(f"RunScheduler error: {e}")  
 

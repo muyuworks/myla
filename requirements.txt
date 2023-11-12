@@ -7,7 +7,7 @@ python-dotenv
 # Web
 jinja2
 
-# Hook
+# HTTP Client
 aiohttp[speedups]
 
 # Retrieval

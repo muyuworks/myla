@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
 import { Layout, List, Avatar, Space, Typography, Button, Card, Modal, Form, Input } from 'antd'
-import { MenuUnfoldOutlined, MenuFoldOutlined, MessageFilled, PlusCircleOutlined,CloseCircleOutlined,EditOutlined } from '@ant-design/icons'
+import { MenuUnfoldOutlined, MenuFoldOutlined, MessageFilled, RobotOutlined,CloseCircleOutlined,EditOutlined } from '@ant-design/icons'
 import {
 
 } from '@ant-design/icons';
@@ -312,9 +312,9 @@ export const Aify = (props) => {
                 trigger={null}
                 reverseArrow
             >
-                <div style={{marginLeft: 15, marginRight: 15, marginTop: 20}}>
-                    <Button type="dashed" block onClick={() => {setOpenCreateAssistantModal(true);setAssistantToModify(null)}}>
-                        <PlusCircleOutlined />
+                <div style={{marginLeft: 18, marginRight: 18, marginTop: 20}}>
+                    <Button type="primary" block onClick={() => {setOpenCreateAssistantModal(true);setAssistantToModify(null)}}>
+                        <RobotOutlined /> Build Assistant
                     </Button>
                 </div>
                 <List

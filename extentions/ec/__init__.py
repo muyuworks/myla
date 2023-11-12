@@ -19,7 +19,7 @@ class ECTool(tools.Tool):
             return
         
         docs = json.loads(docs)
-        print(docs)
+        #print(docs)
         #
 
     
