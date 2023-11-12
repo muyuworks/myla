@@ -35,3 +35,6 @@ TOOLS='
     }
 ]
 '
+
+# HuggingFace
+TOKENIZERS_PARALLELISM=4
