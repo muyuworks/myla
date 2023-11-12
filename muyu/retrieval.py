@@ -1,6 +1,40 @@
 import os
+import json
 from typing import Optional, Dict, Any
 import langchain.vectorstores as vectorstores
+from .tools import Tool, Context
+from ._logging import logger
+
+
+class RetrievalTool(Tool):
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.retrieval = Retrieval()
+
+    async def execute(self, context: Context) -> None:
+        if len(context.messages) == 0:
+            logger.debug("History is empty, skip retrieval")
+            return
+
+        if "retrieval_collection_name" not in context.run_metadata:
+            logger.debug(
+                "not retrieval_collection_name in run_metadata, skip retrieval")
+            return
+
+        vs_name = context.run_metadata["retrieval_collection_name"]
+        args = {}
+        if "retrieval_top_k" in context.run_metadata:
+            args["top_k"] = context.run_metadata["retrieval_top_k"]
+
+        query = context.messages[-1]["content"]
+
+        docs = await self.retrieval.search(vs_name=vs_name, query=query, **args)
+        context.messages.append({
+            "role": "system",
+            "content": json.dumps(docs, ensure_ascii=False),
+            "type": "docs"
+        })
 
 
 class Retrieval:
@@ -36,7 +70,7 @@ class Retrieval:
     def _get_vectorstore_path(self, name):
         root = os.environ.get("VECTORSTORE_DIR")
         if not root:
-            print("VECTORSTORE_DIR required")
+            logger.warn("VECTORSTORE_DIR required")
             return None
 
         fname = os.path.join(root, name)
@@ -45,7 +79,8 @@ class Retrieval:
     def _get_vectorstore(self, name):
         if name not in self._vectorstores:
             vs_path = self._get_vectorstore_path(name=name)
-            vs = vectorstores.FAISS.load_local(vs_path, self.get_ebeddings(), normalize_L2=True)
+            vs = vectorstores.FAISS.load_local(
+                vs_path, self.get_ebeddings(), normalize_L2=True)
             self._vectorstores[name] = vs
         return self._vectorstores[name]
 
@@ -66,13 +101,3 @@ class Retrieval:
                     query_instruction=instruction if instruction else DEFAULT_QUERY_BGE_INSTRUCTION_ZH
                 )
         return self._embeddings
-
-
-if __name__ == '__main__':
-    from dotenv import load_dotenv
-    load_dotenv('.env')
-
-    retrieval = Retrieval()
-
-    result = retrieval.search(vs_name="uco", query="保湿")
-    print(result)

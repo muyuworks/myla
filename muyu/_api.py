@@ -1,4 +1,3 @@
-import os, sys
 import json
 from typing import List
 from pydantic import BaseModel
@@ -6,10 +5,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 
 from ._models import ListModel
-from . import assistants, threads, messages, runs
+from . import _tools, assistants, threads, messages, runs
 from ._run_queue import get_run_iter
 
-from . import tools, hook
+from . import tools
 
 API_VERSION = "v1"
 
@@ -206,16 +205,12 @@ async def get_message_stream(thread_id:str, run_id:str):
                 yield "event: error\ndata: %s\n\n" % json.dumps({"e": str(c)})
     return StreamingResponse(aiter(), headers={'Content-Type': "text/event-stream"})
 
-@api.post("/hooks/{hook_name}/before", tags=["Hooks"])
-async def execute_hook(hook_name:str, messages: List[dict]):
-    h = tools.get_tool(hook_name)
-    if not h or not isinstance(h, hook.Hook):
-        raise HTTPException(status_code=404, detail="Hook not found")
+@api.post("/tools/{tool_name}/execute", tags=["Tools"])
+async def execute_hook(tool_name:str, context: tools.Context):
+    tool_instance = _tools.get_tool(tool_name)
+    if not tool_instance or not isinstance(tool_instance, tools.Tool):
+        raise HTTPException(status_code=404, detail="Tool not found")
     
-    messages, args, metadata = await h.before(messages)
+    await tool_instance.execute(context=context)
 
-    return {
-        "messages": messages,
-        "args": args,
-        "metadata": metadata
-    }
+    return context

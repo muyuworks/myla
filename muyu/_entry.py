@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from .persistence import Persistence
 from ._run_scheduler import RunScheduler
-from . import tools
+from . import _tools
 from . import _env
 from ._api import api
 from ._web_template import render
@@ -19,7 +19,7 @@ async def lifespan(api: FastAPI):
     if ext_dir:
         sys.path.append(ext_dir)
     
-    tools.load_tools()
+    _tools.load_tools()
 
     # on startup
     Persistence.default().initialize_database()
