@@ -65,7 +65,7 @@ class RetrievalTool(Tool):
             })
             messages.append({
                 "role": "system",
-                "content": "<DOCS>"
+                "content": "</DOCS>"
             })
             messages.append(last_message)
             context.messages = messages
@@ -145,11 +145,11 @@ class Retrieval:
         if name not in self._vectorstores:
             vs_path = self._get_vectorstore_path(name=name)
             vs = vectorstores.FAISS.load_local(
-                vs_path, self.get_ebeddings(), normalize_L2=True)
+                vs_path, self.get_embeddings(), normalize_L2=True)
             self._vectorstores[name] = vs
         return self._vectorstores[name]
 
-    def get_ebeddings(self):
+    def get_embeddings(self):
         if not self._embeddings:
             impl = os.environ.get("EMBEDDINGS_IMPL")
             model_name = os.environ.get("EMBEDDINGS_MODEL_NAME")
