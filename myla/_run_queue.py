@@ -23,8 +23,8 @@ _run_tasks = asyncio.Queue()
 _run_iters = {}
 _lock = asyncio.Lock()
 
-async def submit_run_task(run):
-    await _run_tasks.put(run)
+def submit_run_task(run):
+    _run_tasks.put_nowait(run)
 
 async def get_run_task():
     return await _run_tasks.get()

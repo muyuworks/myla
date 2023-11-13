@@ -76,7 +76,7 @@ def create(thread_id: str, run: RunCreate, session: Session = None) -> RunRead:
     r.metadata = dbo.metadata_
 
     # Submit run to run
-    asyncio.run(submit_run_task(r))
+    submit_run_task(r)
 
     return r
 
