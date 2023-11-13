@@ -1,14 +1,12 @@
 import os
-import json
 import datetime
-import openai
 from ._tools import get_tool
 from .tools import Tool, Context
 from . import runs, assistants
 from .messages import create as create_message
 from .messages import list as list_messages, create as create_message, MessageCreate
 from ._logging import logger as log
-from . import llm
+from . import llms
 
 async def chat_complete(run: runs.RunRead, iter):
     try:
@@ -83,10 +81,10 @@ async def chat_complete(run: runs.RunRead, iter):
             iter.put(completed_msg)
         else:
             combined_messages = combine_system_messages(messages=context.messages)
-            resp = await llm.chat_complete(messages=combined_messages, model=model, stream=True, **llm_args)
+            llm = llms.get(model_name=model)
+            resp = await llm.chat(messages=combined_messages, stream=True, **llm_args)
 
-            async for r in resp:
-                c = r.choices[0].delta.content
+            async for c in resp:
                 if c is not None:
                     genereated.append(c)
                     await iter.put(c)

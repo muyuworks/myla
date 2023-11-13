@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 import langchain.vectorstores as vectorstores
 from .tools import Tool, Context
 from ._logging import logger
-from . import llm
+from . import llms
 
 RETRIEVAL_INSTRUCTIONS_EN="""
 You should refer to the content below to generate your response. 
@@ -94,7 +94,7 @@ class DocSummaryTool(Tool):
                 docs = msg
         
         if docs:
-            summary = await llm.chat_complete(messages=[{
+            summary = await llms.get().chat(messages=[{
                 "role": "system",
                 "content": DOC_SUMMARY_INSTRUCTIONS_ZH.format(docs=docs['content'], query=last_message)
             }], stream=False, temperature=0)

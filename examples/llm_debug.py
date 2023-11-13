@@ -1,11 +1,17 @@
 import asyncio
-import myla.llm as llm
+from myla.llms.openai import OpenAI
+from myla.llms.chatglm import ChatGLM
 
 async def main():
-    r = await llm.chat_complete(messages=[{
-        "role": "system",
-        "content": "你是谁"
-    }], stream=True)
+    openai = ChatGLM()
+    r = await openai.chat(messages=[{
+            "role": "system",
+            "content": "你是谁"
+        }],
+        stream=True,
+        model="/Users/shellc/Workspaces/chatglm.cpp/chatglm-ggml.bin"
+    )
+    print(r)
     async for c in r:
         print(c)
 

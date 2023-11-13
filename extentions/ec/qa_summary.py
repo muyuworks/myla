@@ -1,5 +1,5 @@
 from myla.tools import Tool, Context
-from myla import llm
+from myla import llms
 
 DOC_SUMMARY_INSTRUCTIONS_ZH = """
 你是专业的文本分析助手, 你负责为用户问题生成候选答案。
@@ -29,7 +29,7 @@ class QASummaryTool(Tool):
                 docs = msg
         
         if docs:
-            summary = await llm.chat_complete(messages=[{
+            summary = await llms.get().chat(messages=[{
                 "role": "system",
                 "content": DOC_SUMMARY_INSTRUCTIONS_ZH.format(docs=docs['content'], query=last_message)
             }], stream=False, temperature=0)

@@ -1,5 +1,6 @@
 from .tools import Tool, Context
-from . import llm, logger
+from . import llms, logger
+from .llms import utils
 
 INSTRUCTIONS_ZH = """
 你是专业的文本分析助手, 负责改写用户回复, 下面是AI助手和用户的对话记录, system 是AI助手的身份设定, user是用户, assistant是AI助手:
@@ -28,9 +29,9 @@ class IURTool(Tool):
         if not last_user_message:
             return
 
-        history = llm.plain_messages(messages=context.messages)
+        history = utils.plain_messages(messages=context.messages)
 
-        iur_query = await llm.complete(INSTRUCTIONS_ZH.format(history=history, last_user_message=last_user_message), temperature=0)
+        iur_query = await llms.get().generate(INSTRUCTIONS_ZH.format(history=history, last_user_message=last_user_message), temperature=0)
 
         logger.debug(f"Converstations: \n{history}\n IUR: {iur_query}")
         
