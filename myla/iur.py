@@ -2,13 +2,17 @@ from .tools import Tool, Context
 from . import llm, logger
 
 INSTRUCTIONS_ZH = """
-你是专业的文本分析助手, 下面是其他AI助手和用户的对话, system 是AI助手的身份设定, user是用户, assistant是AI助手:
+你是专业的文本分析助手, 负责改写用户回复, 下面是AI助手和用户的对话记录, system 是AI助手的身份设定, user是用户, assistant是AI助手:
 -开始对话-
 {history}
 -结束对话-
-用户提问: {last_user_message}
-请你扮演和AI助手对话的用户, 结合AI助手和用户的对话修改用户提问, 使修改后的用户提问包含完整意图, 易于AI助手理解。请直接输出修改后的结果，不要包含前缀说明。
-修改用表示用户意图的提问:
+用户最新回复: {last_user_message}
+请你结合对话记录改写用户最新回复。
+如果用户最新回复是好的、谢谢、你好等问候语或礼貌性回复，不要改写用户回复。
+如果用户最新回复是提问，请你以用户的身份改写，使其表述更清晰并包含用户的完整意图, 易于AI助手理解。
+
+请直接输出修改后的结果，不要包含前缀说明。
+改写后的用户回复:
 """
 
 class IURTool(Tool):

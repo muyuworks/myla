@@ -39,3 +39,11 @@ python ./setup.py sdist
 6. 能依赖数据结构的尽量不要依赖数据实例
 7. 5、6条以可方便地单独 UT 为标准
 8. 需要高频使用或调试的原子功能建议都做成小工具放到 examples 里
+
+## 可用的 Tools
+
+* iur : 根据 Assistant 或 Run 的 Instuctions 改写用户问题
+* retrieval : 知识库召回
+* doc_summary : 对知识库召回的内容进行 Summary
+* ec_qa_summary : 对知识库召回的内容根据电商客服场景进行 Summary
+* ec : 电商场景的其他处理（未实现）
