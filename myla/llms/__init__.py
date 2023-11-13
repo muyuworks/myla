@@ -7,12 +7,12 @@ def get(model_name=None):
     """
     if not model_name:
         model_name = os.environ.get("DEFAULT_LLM_MODEL_NAME")
-
+    print(model_name)
     idx = model_name.find("@")
 
     backend = model_name[:idx] if idx != -1 else "openai"
     model = model_name[idx+1:] if idx != -1 else model_name
-
+    print(backend, model)
     if backend == "openai":
         from .openai import OpenAI
         return OpenAI(model=model)

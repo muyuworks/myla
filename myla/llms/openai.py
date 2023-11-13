@@ -22,6 +22,8 @@ class OpenAI(LLM):
         )
     
     async def generate(self, instructions: str, model=None, stream=False, **kwargs):
+        if not model:
+            model = self.model
         return await generate(instructions=instructions, model=model, stream=stream, **kwargs)
 
 

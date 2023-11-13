@@ -71,7 +71,7 @@ async def chat_complete(run: runs.RunRead, iter):
         context: Context = await run_tools(tools=tools, messages=messages, run_metadata=run_metadata)
         llm_args.update(context.llm_args)
 
-        log.debug("Context after tools: {context}")
+        log.debug(f"Context after tools: {context}")
 
         genereated = []
 
