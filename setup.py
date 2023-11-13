@@ -37,7 +37,7 @@ setup(
     version=version,
     packages=find_packages(),
     package_data={
-        #'webui': ['**/*']
+        'webui': ['**/*']
     },
     install_requires = install_requires,
     scripts=['setup.py', './scripts/myla', 'requirements.txt'],
