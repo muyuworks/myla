@@ -1,5 +1,5 @@
 import os
-from backend import LLM
+from .backend import LLM
 
 def get(model_name=None):
     """
