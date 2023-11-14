@@ -40,13 +40,14 @@ async def get_run_iter(run_id):
 
 _last_clear_at = datetime.now().timestamp()
 async def clear_iters():
+    expires = 60*10
     now = datetime.now().timestamp()
-    if _last_clear_at + 20 > now:
+    if _last_clear_at + expires > now:
         return
     async with _lock:
         expired = []
         for run_id, iter in _run_iters.items():
-            if iter.created_at + 20 < now:
+            if iter.created_at + expires < now:
                 expired.append(run_id)
 
         for run_id in expired:
