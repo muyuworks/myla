@@ -103,7 +103,7 @@ async def chat_complete(run: runs.RunRead, iter):
         )
         await iter.put(None) # Completed
     except Exception as e:
-        log.info(f"LLM Failed: {e}")
+        log.warn(f"LLM Failed: {e}")
         log.debug("LLM exc: ", exc_info=e)
         
         runs.update(id=run.id,
@@ -121,6 +121,9 @@ async def run_tools(tools, messages, run_metadata):
     run_metadata = run_metadata if run_metadata else {}
 
     context = Context(messages=messages, run_metadata=run_metadata)
+
+    if not tools:
+        tools = []
 
     for tool in tools:
         tool_name = tool["type"]

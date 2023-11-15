@@ -3,7 +3,7 @@ import os
 import json
 
 from sqlmodel import SQLModel, create_engine, Session
-
+from ._logging import logger
 
 class Persistence:
     _default = None
@@ -18,7 +18,11 @@ class Persistence:
             self._connect_args = json.loads(
                 os.environ['DATABASE_CONNECT_ARGS'])
         if not self._database_url:
-            raise ValueError("database_url is required.")
+            #raise ValueError("database_url is required.")
+            logger.warn("DATABASE_URL not specified, use sqlite:///myla.db")
+            self._database_url = 'sqlite:///myla.db'
+        if not self._connect_args:
+            self._connect_args = {}
         
         self._engine = create_engine(self._database_url, connect_args=self._connect_args)
 

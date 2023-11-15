@@ -8,6 +8,9 @@ def get(model_name=None):
     if not model_name:
         model_name = os.environ.get("DEFAULT_LLM_MODEL_NAME")
 
+    if not model_name:
+        raise ValueError(f"Invalid LLM backend: {model_name}, you should set DEFAULT_LLM_MODEL_NAME in environment variables.")
+
     idx = model_name.find("@")
 
     backend = model_name[:idx] if idx != -1 else "openai"

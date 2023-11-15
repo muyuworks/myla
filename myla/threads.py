@@ -1,8 +1,8 @@
-from typing import List, Dict, Any, Optional, Union
-from sqlmodel import Field, Session, Column, JSON, select
-from pydantic import BaseModel
+from typing import Optional, Union
+from sqlmodel import Session, select
 from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBModel, ListModel
 from ._models import create as create_model
+from .messages import Message
 
 class ThreadEdit(MetadataModel):
     # message list
@@ -71,6 +71,9 @@ def modify(id: str, thread: ThreadEdit, session: Session = None):
 def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
     dbo = session.get(Thread, id)
     if dbo:
+        # delete all messages that belong to this thread
+        session.query(Message).where(Message.thread_id == id).delete()
+
         session.delete(dbo)
         session.commit()
     return DeletionStatus(id=id, object="thread.deleted", deleted=True)
