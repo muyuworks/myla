@@ -1,49 +1,57 @@
-# Muyu Local Assistant
+[English](README.md) | [简体中文](README_zh_CN.md)
 
-## 开发环境设置
+# Myla: Deploy an AI assistant compatible with OpenAI locally
 
-### 安装依赖
-```
-pip install requirements.txt
-pip install requirements_dev.txt
-```
+Myla stands for MY Local Assistant and is designed and optimized for deploying AI assistants based on large language models (LLMs) in a private environment. Myla provides an API compatible with the OpenAI assistant API, with support for multiple LLM backends. Whether on a laptop or a production server, you can quickly develop and run an AI assistant.
 
-### 设置环境变量和配置
+## Quick Start
+### Installation
 
+Myla can be installed from PyPI using ·pip·. It is recommended to create a new virtual environment before installation to avoid conflicts.
 
-```
-set PYTHONPATH=.
+Python version requirement: <= 3.11
 
-cp env-example.txt .env
+```bash
+pip install myla
 ```
 
-### 启动
+### Configuration
+
+Myla supports using an OpenAI API-compatible LLM service as the backend. You can use the OpenAI API directly or deploy your own local LLM. If you want to deploy a local LLM, it is recommended to use [Xorbits Inference](https://github.com/xorbitsai/inference).
+
+Create a `.env` file in the current directory with the following content:
 
 ```
-./scripts/myla --reload --extentions ./extentions --vectorstore ./vectorstore --debug
+# Database configuration
+DATABASE_URL=sqlite:///myla.db
+DATABASE_CONNECT_ARGS={"check_same_thread": false}
+
+# LLM configuration
+LLM_ENDPOINT=https://api.openai.com/v1/
+LLM_API_KEY=sk-xx
+DEFAULT_LLM_MODEL_NAME=gpt-3.5-turbo
 ```
 
-## 打包
+### Start
 
+```bash
+myla
 ```
-python ./setup.py sdist
+
+For more startup options:
+```bash
+myla --help
 ```
 
-## 开发约定
+### WebUI
+Access from your browser: http://localhost:2000/
 
-1. 这个项目中的代码和具体客户的需求无关, 客户的非通用需求需要单独创建项目
-2. 通用需求分两类：1) 所有场景都需要的; 2) 某类场景都需要的
-3. 第一类需求的解决方案是提供某种机制, 代码放在 myla 这个 package 中
-4. 第二类需求的解决方案是提供某种扩展实现, 代码放在 extentions 这个目录中
-5. 建议尽可能把代码拆分成更细的粒度的函数或类
-6. 能依赖数据结构的尽量不要依赖数据实例
-7. 5、6条以可方便地单独 UT 为标准
-8. 需要高频使用或调试的原子功能建议都做成小工具放到 examples 里
+### API
 
-## 可用的 Tools
+* API Docs: http://localhost:2000/api/docs
+* Swagger: http://localhost:2000/api/swagger
 
-* iur : 根据 Assistant 或 Run 的 Instuctions 改写用户问题
-* retrieval : 知识库召回
-* doc_summary : 对知识库召回的内容进行 Summary
-* ec_qa_summary : 对知识库召回的内容根据电商客服场景进行 Summary
-* ec : 电商场景的其他处理（未实现）
+
+## Community
+
+Myla is still under rapid development, and community contributions are welcome.

@@ -8,13 +8,13 @@ python-dotenv
 jinja2
 
 # HTTP Client
-aiohttp[speedups]
+aiohttp
 
 # Retrieval
-langchain
+#langchain
 
 # Embeddings
-sentence_transformers
+#sentence_transformers
 
 # Persistence
 sqlmodel

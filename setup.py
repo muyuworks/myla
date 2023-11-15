@@ -35,6 +35,12 @@ with open(os.path.join(here, 'requirements.txt')) as f:
 setup(
     name='myla',
     version=version,
+    description="A local implementation of OpenAI Assistants API: Myla stands for MY Local Assistant",
+    author_email="shenggong.wang@gmail.com",
+    url="https://github.com/muyuworks/myla",
+    keywords=["AI assistant", "LLM", "Myla", "chatbot"],
+    long_description_content_type="text/markdown",
+    long_description=read("README.md"),
     packages=find_packages(),
     package_data={
         'webui': ['**/*']
