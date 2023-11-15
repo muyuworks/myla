@@ -40,25 +40,31 @@ export const Aify = (props) => {
         let name = createAssistantForm.getFieldValue("name");
         let desc = createAssistantForm.getFieldValue("desc");
         let instructions = createAssistantForm.getFieldValue("instructions");
+        let model = createAssistantForm.getFieldValue("model");
         let icon = createAssistantForm.getFieldValue("icon");
         let tools = createAssistantForm.getFieldValue("tools");
         var metadata = createAssistantForm.getFieldValue("metadata");
         metadata = metadata ? JSON.parse(metadata) : {}
         metadata.icon = icon
-        console.log(tools);
+        
+        var body = {
+            "name": name,
+            "description": desc,
+            "instructions": instructions,
+            "model": model,
+            "tools": tools ? JSON.parse(tools) : [],
+            "metadata": metadata
+        };
+        if (assistant_id == null) {
+            body.model = '';
+        }
+
         fetch(assistant_id ? `/api/v1/assistants/${assistant_id}` : "/api/v1/assistants", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                "name": name,
-                "description": desc,
-                "model": '',
-                "instructions": instructions,
-                "tools": tools ? JSON.parse(tools) : [],
-                "metadata": metadata
-            })
+            body: JSON.stringify(body)
         }).then(r => {
             loadAsistants();
             setOpenCreateAssistantModal(false);
@@ -359,14 +365,13 @@ export const Aify = (props) => {
                     afterOpenChange={() => createAssistantForm.resetFields()}
                 >
                     <Form form={createAssistantForm} layout="vertical">
-                        <Form.Item name='name' initialValue={assistantToModify ? assistantToModify.name : null}>
+                        <Form.Item label="Name" name='name' initialValue={assistantToModify ? assistantToModify.name : null}>
                             <Input
                                 type='text'
-                                style={{width: 200}}
                                 placeholder="Name"
                             />
                         </Form.Item>
-                        <Form.Item label='Name' name='desc' initialValue={assistantToModify ? assistantToModify.description : null} >
+                        <Form.Item label='Description' name='desc' initialValue={assistantToModify ? assistantToModify.description : null} >
                             <Input
                                 type='text'
                                 //style={{width: 200}}
@@ -380,6 +385,12 @@ export const Aify = (props) => {
                                 placeholder="Instructions"
                             />
                         </Form.Item>
+                        <Form.Item label="Model" name='model' initialValue={assistantToModify ? assistantToModify.model : null}>
+                            <Input
+                                type='text'
+                                placeholder="Model name"
+                            />
+                        </Form.Item>
                         <Form.Item label='Tools' name='tools' initialValue={assistantToModify ? JSON.stringify(assistantToModify.tools) : null}>
                             <TextArea
                                 autoSize
@@ -391,7 +402,7 @@ export const Aify = (props) => {
                             <TextArea
                                 autoSize
                                 //style={{width: 200}}
-                                placeholder='metadata, like: {"retrieval_collection_name": "uco"}'
+                                placeholder='metadata, like: {"retrieval_vs_name": "default"}'
                             />
                         </Form.Item>
                         <Form.Item label='Avatar' name='icon' initialValue={assistantToModify ? assistantToModify.metadata.icon : "🤖"}>
