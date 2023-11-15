@@ -2,14 +2,14 @@
 
 # Myla: Deploy AI assistants compatible with OpenAI locally
 
-Myla stands for MY Local Assistant and is designed and optimized for deploying AI assistants based on large language models (LLMs) in a private environment. Myla provides an API compatible with the OpenAI assistant API, with support for multiple LLM backends. Whether on a laptop or a production server, you can quickly develop and run an AI assistant.
+Myla stands for MY Local Assistants and is designed and optimized for deploying AI assistants based on large language models (LLMs) in a private environment. Myla provides an API compatible with the OpenAI assistants API, with support for multiple LLM backends. Whether on a laptop or a production server, you can quickly develop and run AI assistants.
 
 ## Quick Start
 ### Installation
 
-Myla can be installed from PyPI using ·pip·. It is recommended to create a new virtual environment before installation to avoid conflicts.
-
 Python version requirement: <= 3.11
+
+Myla can be installed from PyPI using `pip`. It is recommended to create a new virtual environment before installation to avoid conflicts.
 
 ```bash
 pip install myla
@@ -38,15 +38,26 @@ DEFAULT_LLM_MODEL_NAME=gpt-3.5-turbo
 myla
 ```
 
+or
+
+```bash
+python -m myla
+```
+
 For more startup options:
 ```bash
 myla --help
 ```
 
 ### WebUI
+
+Myla provides a simple web interface that makes it easy to develop and debug assistants.
+
 Access from your browser: http://localhost:2000/
 
 ### API
+
+You can directly use the OpenAI python SDK to access the assistants API.
 
 * API Docs: http://localhost:2000/api/docs
 * Swagger: http://localhost:2000/api/swagger

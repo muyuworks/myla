@@ -7,9 +7,9 @@ Myla 取 MY Local Assistant 的含义，专为私有化部署基于大语言模�
 ## 快速入门
 ### 安装
 
-Myla 可以通过 `pip` 从 PyPI 安装，推荐在安装前创建一个新的虚拟环境避免冲突。
-
 Python 版本依赖: <= 3.11
+
+Myla 可以通过 `pip` 从 PyPI 安装，推荐在安装前创建一个新的虚拟环境避免冲突。
 
 ```bash
 pip install myla
@@ -38,6 +38,12 @@ DEFAULT_LLM_MODEL_NAME=gpt-3.5-turbo
 myla
 ```
 
+或者
+
+```bash
+python -m myla
+```
+
 查看更多启动参数:
 
 ```bash
@@ -49,6 +55,8 @@ myla --help
 从浏览器访问: http://localhost:2000/
 
 ### API
+
+你可以直接使用 OpenAI 提供的 python SDK 来访问 Myla 的 API。
 
 * API Docs: http://localhost:2000/api/docs
 * Swagger: http://localhost:2000/api/swagger
