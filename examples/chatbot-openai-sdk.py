@@ -36,9 +36,9 @@ list_messages(thread=thread)
 run = openai.beta.threads.runs.create(
   thread_id=thread.id,
   assistant_id=assistant.id,
-  instructions="你是欧舒丹客服，负责回答欧舒丹客户的问题",
+  instructions="你是牧语工场的客服，负责回答牧语工场客户的问题",
   tools=[{"type": "$iur"}, {"type": "retrieval"}],
-  metadata={"retrieval_collection_name": "uco"}
+  metadata={"retrieval_vs_name": "default"}
 )
 print(f"Run created, id: {run.id}")
 

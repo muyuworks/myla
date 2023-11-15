@@ -31,12 +31,12 @@ class RetrievalTool(Tool):
             logger.debug("History is empty, skip retrieval")
             return
 
-        if "retrieval_collection_name" not in context.run_metadata:
+        if "retrieval_vs_name" not in context.run_metadata:
             logger.debug(
-                "not retrieval_collection_name in run_metadata, skip retrieval")
+                "not retrieval_vs_name in run_metadata, skip retrieval")
             return
 
-        vs_name = context.run_metadata["retrieval_collection_name"]
+        vs_name = context.run_metadata["retrieval_vs_name"]
         args = {}
         if "retrieval_top_k" in context.run_metadata:
             args["top_k"] = context.run_metadata["retrieval_top_k"]

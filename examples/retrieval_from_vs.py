@@ -6,5 +6,5 @@ if __name__ == '__main__':
 
     retrieval = Retrieval()
 
-    result = retrieval.search(vs_name="uco", query="保湿")
+    result = retrieval.search(vs_name="default", query="保湿")
     print(result)
