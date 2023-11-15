@@ -52,6 +52,8 @@ myla --help
 
 ### WebUI
 
+Myla 提供一个简易的 Web 界面, 方便开发调试 assistant。
+
 从浏览器访问: http://localhost:2000/
 
 ### API
