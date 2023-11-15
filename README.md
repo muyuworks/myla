@@ -57,6 +57,8 @@ Myla provides a simple web interface that makes it easy to develop and debug ass
 
 Access from your browser: http://localhost:2000/
 
+![Screenshot](webui/static/images/screenshot.png)
+
 ### API
 
 You can directly use the OpenAI python SDK to access the assistants API.

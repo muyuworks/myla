@@ -58,6 +58,8 @@ Myla 提供一个简易的 Web 界面, 方便开发调试 assistant。
 
 从浏览器访问: http://localhost:2000/
 
+![Screenshot](webui/static/images/screenshot.png)
+
 ### API
 
 你可以直接使用 OpenAI 提供的 python SDK 来访问 Myla 的 API。
