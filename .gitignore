@@ -1,4 +1,6 @@
 .DS_Store
+webuit/static/aify
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
