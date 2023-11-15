@@ -1,0 +1,23 @@
+# API Server
+uvicorn
+starlette
+fastapi
+python-dotenv
+
+# Web
+jinja2
+
+# HTTP Client
+aiohttp
+
+# Retrieval
+#langchain
+
+# Embeddings
+#sentence_transformers
+
+# Persistence
+sqlmodel
+
+# LLMs
+openai
