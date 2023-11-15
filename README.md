@@ -1,8 +1,10 @@
 [English](README.md) | [简体中文](README_zh_CN.md)
 
-# Myla: Deploy AI assistants compatible with OpenAI locally
+# Myla: MY Local Assistants
 
-Myla stands for MY Local Assistants and is designed and optimized for deploying AI assistants based on large language models (LLMs) in a private environment. Myla provides an API compatible with the OpenAI assistants API, with support for multiple LLM backends. Whether on a laptop or a production server, you can quickly develop and run AI assistants.
+## Self-hosting AI Assistants compatible with OpenAI
+
+Myla stands for MY Local Assistants and is designed and optimized for deploying AI assistants based on large language models (LLMs) in a private environment. Myla provides an API compatible with the **OpenAI assistants API**, with support for multiple LLM backends. Whether on a laptop or a production server, you can quickly develop and run AI assistants.
 
 ## Quick Start
 ### Installation

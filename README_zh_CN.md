@@ -1,8 +1,10 @@
 [English](README.md) | [简体中文](README_zh_CN.md)
 
-# Myla: 本地部署与 OpenAI 兼容的 AI 助手
+# Myla: 私有化部署的 AI 助手 
 
-Myla 取 MY Local Assistant 的含义，专为私有化部署基于大语言模型（LLM）的人工智能助手而设计和优化。Myla 提供与 OpenAI assistant API 兼容的 API，后端支持多种 LLM。无论是在笔记本上还是生产服务器上，都可以快速开发和运行人工智能助手。
+## 私有化部署与 OpenAI 兼容的 AI 助手
+
+Myla 取 MY Local Assistants 的含义，专为私有化部署基于大语言模型（LLM）的人工智能助手而设计和优化。Myla 提供与 **OpenAI assistants API** 兼容的 API，后端支持多种 LLM。无论是在笔记本上还是生产服务器上，都可以快速开发和运行人工智能助手。
 
 ## 快速入门
 ### 安装
