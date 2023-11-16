@@ -1,3 +1,4 @@
+import asyncio
 from myla.retrieval import Retrieval
 
 if __name__ == '__main__':
@@ -6,5 +7,6 @@ if __name__ == '__main__':
 
     retrieval = Retrieval()
 
-    result = retrieval.search(vs_name="default", query="保湿")
+    coro = retrieval.search(vs_name="default", query="保湿")
+    result = asyncio.run(coro)
     print(result)
