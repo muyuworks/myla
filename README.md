@@ -24,14 +24,22 @@ Myla supports using an OpenAI API-compatible LLM service as the backend. You can
 Create a `.env` file in the current directory with the following content:
 
 ```
-# Database configuration
-DATABASE_URL=sqlite:///myla.db
-DATABASE_CONNECT_ARGS={"check_same_thread": false}
-
 # LLM configuration
 LLM_ENDPOINT=https://api.openai.com/v1/
 LLM_API_KEY=sk-xx
 DEFAULT_LLM_MODEL_NAME=gpt-3.5-turbo
+```
+
+More configurations can be found in: [env-example.txt](env-example.txt)
+
+#### ChatGLM as backend for your MacBook
+
+Myla supports running ChatGLM locally using `chatglm.cpp` as the backend. To install the Python Binding, refer to:: https://github.com/li-plus/chatglm.cpp#python-binding 
+
+`.env` configuration example:
+
+```
+DEFAULT_LLM_MODEL_NAME=chatglm@/Users/shellc/Workspaces/chatglm.cpp/chatglm-ggml.bin
 ```
 
 ### Start

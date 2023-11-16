@@ -24,14 +24,22 @@ Myla 支持与 OpenAI API 兼容的 LLM 服务作为后端。你可以直接使�
 在当前目录创建 `.env` 文件，内容如下：
 
 ```
-# 数据库配置
-DATABASE_URL=sqlite:///myla.db
-DATABASE_CONNECT_ARGS={"check_same_thread": false}
-
 # LLM 配置
 LLM_ENDPOINT=https://api.openai.com/v1/
 LLM_API_KEY=sk-xx
 DEFAULT_LLM_MODEL_NAME=gpt-3.5-turbo
+```
+
+更多配置请参考: [env-example.txt](env-example.txt)
+
+#### 在本地运行 ChatGLM
+
+Myla 支持以 `chatglm.cpp` 作为后端来运行 ChatGLM。需要安装 `chatglm.cpp` 的 Python Binding, 参考: https://github.com/li-plus/chatglm.cpp#python-binding 
+
+`.env` 配置示例:
+
+```
+DEFAULT_LLM_MODEL_NAME=chatglm@/Users/shellc/Workspaces/chatglm.cpp/chatglm-ggml.bin
 ```
 
 ### 启动服务
