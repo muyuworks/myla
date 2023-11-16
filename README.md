@@ -34,7 +34,7 @@ More configurations can be found in: [env-example.txt](env-example.txt)
 
 #### ChatGLM as backend for your MacBook
 
-Myla supports running ChatGLM locally using `chatglm.cpp` as the backend. To install the Python Binding, refer to:: https://github.com/li-plus/chatglm.cpp#python-binding 
+Myla supports running ChatGLM locally using `chatglm.cpp` as the backend. To install the Python Binding, refer to: https://github.com/li-plus/chatglm.cpp#python-binding 
 
 `.env` configuration example:
 
