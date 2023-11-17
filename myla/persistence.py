@@ -6,7 +6,7 @@ from sqlmodel import SQLModel, create_engine, Session
 from ._logging import logger
 
 class Persistence:
-    _default = None
+    _instance = None
 
     def __init__(self, database_url: Optional[str] = None, connect_args: Optional[Dict[str, Any]] = None) -> None:
         self._database_url = database_url
@@ -38,7 +38,7 @@ class Persistence:
 
     @staticmethod
     def default():
-        if not Persistence._default:
-            Persistence._default = Persistence()
-        return Persistence._default
+        if not Persistence._instance:
+            Persistence._instance = Persistence()
+        return Persistence._instance
     
