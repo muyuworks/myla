@@ -81,7 +81,7 @@ class FAISS(VectorStore):
                 self.embed = embed
 
             def embed_documents(self, texts: List[str]) -> List[List[float]]:
-                return self.embed.embed(texts)
+                return self.embed.embed_batch(texts)
             def embed_query(self, text: str) -> List[float]:
                 return self.embed.embed(text)
 
