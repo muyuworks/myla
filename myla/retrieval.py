@@ -1,12 +1,12 @@
 import os
 import json
 from typing import Optional, Dict, Any
-import langchain.vectorstores as vectorstores
+from .vectorstores import get_default_embeddings, LanceDB, FAISS
 from .tools import Tool, Context
 from ._logging import logger
 from . import llms
 
-RETRIEVAL_INSTRUCTIONS_EN="""
+RETRIEVAL_INSTRUCTIONS_EN = """
 You should refer to the content below to generate your response. 
 The reference content is an array in JSON format, where each record represents a reference content record. 
 The `doc` attribute of a reference content record represents the reference content, 
@@ -16,15 +16,33 @@ The higher the score, the higher the relevance.
 The reference content is enclosed in the <DOCS> tag.
 """
 
-RETRIEVAL_INSTRUCTIONS_ZH="""
+RETRIEVAL_INSTRUCTIONS_ZH = """
 优先参考<DOCS>标签中的内容对最新的问题进行回答。
 """
 
-class RetrievalTool(Tool):
-    def __init__(self) -> None:
-        super().__init__()
 
-        self.retrieval = Retrieval()
+class RetrievalTool(Tool):
+    def __init__(self, vector_store_impl=None) -> None:
+        super().__init__()
+        self._embeddings = get_default_embeddings()
+        self._vecotr_store_impl = vector_store_impl
+
+        if not self._vecotr_store_impl:
+            self._vecotr_store_impl = os.environ.get("VECTOR_STORE_IMPL")
+
+        if not self._vecotr_store_impl:
+            raise ValueError("VECTOR_STORE_IMPL is required.")
+
+        self._vector_store_dir = os.environ.get("VECTORSTORE_DIR")
+        if not self._vector_store_dir:
+            raise ValueError("VECTORSTORE_DIR is required.")
+
+        if self._vecotr_store_impl == 'faiss':
+            self._vs = FAISS(db_path=self._vector_store_dir, embeddings=self._embeddings)
+        elif self._vecotr_store_impl == 'lancedb':
+            self._vs = LanceDB(db_uri=self._vector_store_dir, embeddings=self._embeddings)
+        else:
+            raise ValueError(f"VectorStore not suported: {self._vecotr_store_impl}")
 
     async def execute(self, context: Context) -> None:
         if len(context.messages) == 0:
@@ -43,7 +61,7 @@ class RetrievalTool(Tool):
 
         query = context.messages[-1]["content"]
 
-        docs = await self.retrieval.search(vs_name=vs_name, query=query, **args)
+        docs = await self._vs.asearch(collection=vs_name, query=query)
         logger.debug(json.dumps(docs, ensure_ascii=False))
         if docs and len(docs) > 0:
             messages = context.messages
@@ -70,6 +88,7 @@ class RetrievalTool(Tool):
             messages.append(last_message)
             context.messages = messages
 
+
 DOC_SUMMARY_INSTRUCTIONS_ZH = """
 你是专业的问答分析助手。下面是JSON格式的问答记录。
 <问答记录开始>
@@ -80,11 +99,13 @@ DOC_SUMMARY_INSTRUCTIONS_ZH = """
 新问题: {query}
 候选回答:
 """
+
+
 class DocSummaryTool(Tool):
     async def execute(self, context: Context) -> None:
         if len(context.messages) == 0:
             return
-        
+
         last_message = context.messages[-1]['content']
 
         docs = None
@@ -92,7 +113,7 @@ class DocSummaryTool(Tool):
         for msg in context.messages:
             if msg.get('type') == 'docs':
                 docs = msg
-        
+
         if docs:
             summary = await llms.get().chat(messages=[{
                 "role": "system",
@@ -100,69 +121,3 @@ class DocSummaryTool(Tool):
             }], stream=False, temperature=0)
             if summary:
                 docs['content'] = summary
-
-
-class Retrieval:
-    def __init__(self) -> None:
-        self._embeddings = None
-        self._vectorstores = {}
-
-    async def search(
-        self,
-        vs_name,
-        query: str,
-        k: int = 4,
-        filter: Optional[Dict[str, Any]] = None,
-        fetch_k: int = 20,
-        **kwargs: Any
-    ) -> Dict:
-        vs = self._get_vectorstore(name=vs_name)
-        docs = await vs.asimilarity_search_with_score(
-            query=query,
-            k=k,
-            filter=filter,
-            fetch_k=fetch_k,
-            **kwargs
-        )
-        d = []
-        for doc in docs:
-            d.append({
-                "doc": doc[0].dict(),
-                "score": float(doc[1])
-            })
-        return d
-
-    def _get_vectorstore_path(self, name):
-        root = os.environ.get("VECTORSTORE_DIR")
-        if not root:
-            logger.warn("VECTORSTORE_DIR required")
-            return None
-
-        fname = os.path.join(root, name)
-        return fname
-
-    def _get_vectorstore(self, name):
-        if name not in self._vectorstores:
-            vs_path = self._get_vectorstore_path(name=name)
-            vs = vectorstores.FAISS.load_local(
-                vs_path, self.get_embeddings(), normalize_L2=True)
-            self._vectorstores[name] = vs
-        return self._vectorstores[name]
-
-    def get_embeddings(self):
-        if not self._embeddings:
-            impl = os.environ.get("EMBEDDINGS_IMPL")
-            model_name = os.environ.get("EMBEDDINGS_MODEL_NAME")
-            device = os.environ.get("EMBEDDINGS_DEVICE")
-            instruction = os.environ.get("EMBEDDINGS_INSTRUCTION")
-
-            if impl == 'bge':
-                from langchain.embeddings import HuggingFaceBgeEmbeddings
-                from langchain.embeddings.huggingface import DEFAULT_QUERY_BGE_INSTRUCTION_ZH
-
-                self._embeddings = HuggingFaceBgeEmbeddings(
-                    model_name=model_name,
-                    model_kwargs={'device': device if device else "cpu"},
-                    query_instruction=instruction if instruction else DEFAULT_QUERY_BGE_INSTRUCTION_ZH
-                )
-        return self._embeddings
