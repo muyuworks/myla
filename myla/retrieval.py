@@ -49,20 +49,20 @@ class RetrievalTool(Tool):
             logger.debug("History is empty, skip retrieval")
             return
 
-        if "retrieval_vs_name" not in context.run_metadata:
+        if "retrieval_collection" not in context.run_metadata:
             logger.debug(
-                "not retrieval_vs_name in run_metadata, skip retrieval")
+                "no retrieval_collection in run_metadata, skip retrieval")
             return
 
-        vs_name = context.run_metadata["retrieval_vs_name"]
+        collection = context.run_metadata["retrieval_collection"]
         args = {}
         if "retrieval_limit" in context.run_metadata:
             args["limit"] = context.run_metadata["retrieval_limit"]
 
         query = context.messages[-1]["content"]
 
-        docs = await self._vs.asearch(collection=vs_name, query=query)
-        logger.debug("Retrieval docs:" + json.dumps(docs, ensure_ascii=False))
+        docs = await self._vs.asearch(collection=collection, query=query)
+        #logger.debug("Retrieval docs:" + json.dumps(docs, ensure_ascii=False))
         if docs and len(docs) > 0:
             messages = context.messages
             last_message = messages[-1]

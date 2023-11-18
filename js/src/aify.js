@@ -55,7 +55,7 @@ export const Aify = (props) => {
             "tools": tools ? JSON.parse(tools) : [],
             "metadata": metadata
         };
-        if (assistant_id == null) {
+        if (model == null) {
             body.model = '';
         }
 
@@ -402,7 +402,7 @@ export const Aify = (props) => {
                             <TextArea
                                 autoSize
                                 //style={{width: 200}}
-                                placeholder='metadata, like: {"retrieval_vs_name": "default"}'
+                                placeholder='metadata, like: {"retrieval_collection": "default"}'
                             />
                         </Form.Item>
                         <Form.Item label='Avatar' name='icon' initialValue={assistantToModify ? assistantToModify.metadata.icon : "🤖"}>
