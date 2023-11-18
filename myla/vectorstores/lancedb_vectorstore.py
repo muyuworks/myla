@@ -20,6 +20,9 @@ class LanceDB(VectorStore):
 
         try:
             import lancedb as lancedb
+
+            # disable diagnostics
+            lancedb.utils.CONFIG['diagnostics'] = False
         except ImportError as exc:
             raise ImportError(
                 "Could not import lancedb python package. "
@@ -34,6 +37,13 @@ class LanceDB(VectorStore):
         self.tables = {}
 
     def create_collection(self, collection: str, schema: Any = None, mode="create"):
+        try:
+            import pyarrow as pa
+        except ImportError as exc:
+            raise ImportError(
+                "Could not import pyarrow python package. "
+                "Please install it with `pip install pyarrow`."
+            ) from exc
         if schema is None or not isinstance(schema, pa.Schema):
             raise ValueError("Invalid schema to create LanceDB table.")
 

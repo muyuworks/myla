@@ -56,13 +56,13 @@ class RetrievalTool(Tool):
 
         vs_name = context.run_metadata["retrieval_vs_name"]
         args = {}
-        if "retrieval_top_k" in context.run_metadata:
-            args["top_k"] = context.run_metadata["retrieval_top_k"]
+        if "retrieval_limit" in context.run_metadata:
+            args["limit"] = context.run_metadata["retrieval_limit"]
 
         query = context.messages[-1]["content"]
 
         docs = await self._vs.asearch(collection=vs_name, query=query)
-        logger.debug(json.dumps(docs, ensure_ascii=False))
+        logger.debug("Retrieval docs:" + json.dumps(docs, ensure_ascii=False))
         if docs and len(docs) > 0:
             messages = context.messages
             last_message = messages[-1]
