@@ -85,10 +85,6 @@ export const Aify = (props) => {
         })
     }
 
-    const modifyAssistant = (assistant_id) => {
-
-    }
-
     const loadAsistants = () => {
         fetch('/api/v1/assistants')
             .then(r => r.json())
@@ -133,7 +129,7 @@ export const Aify = (props) => {
             })
             .then(data => setWelcomeMessage(data))
     }
-
+    
     const loadUser = () => {
         fetch('/api/user')
             .then(r => r.json())
@@ -178,7 +174,7 @@ export const Aify = (props) => {
         .then(r => r.json())
         .then(thread => {
             loadThreads();
-            if (currentThreadId == thread_id) {
+            if (currentThreadId === thread_id) {
                 setCurrentThreadId(null);
             }
         })
@@ -224,7 +220,7 @@ export const Aify = (props) => {
                     dataSource={threads}
                     renderItem={(thread => (
                         assistantMap[thread.metadata.assistant_id] != null? (
-                        <List.Item style={currentThreadId == thread.id ? {backgroundColor: 'whitesmoke'} : {}}>
+                        <List.Item style={currentThreadId === thread.id ? {backgroundColor: 'whitesmoke'} : {}}>
                             <Space>
                                 <Link
                                     onClick={() => switchThread(thread.metadata.assistant_id, thread.id)}
