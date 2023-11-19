@@ -64,7 +64,8 @@ export const Chat = (props) => {
         }
 
         createMesage(props.thread_id, values.prompt);
-        createRun(props.name, props.thread_id)
+        //createRun(props.name, props.thread_id)
+        createRunStream(props.name, props.thread_id);
 
         //let req = {}
         //req[prompt_variable] = values.prompt;
@@ -100,7 +101,7 @@ export const Chat = (props) => {
         })
         .then(r => r.json())
         .then(run => {
-            getReply(thread_id, run.id);
+            //getReply(thread_id, run.id);
         });
     }
 
@@ -133,13 +134,15 @@ export const Chat = (props) => {
         }
     }
 
-    const getReply = (thread_id, run_id) => {
+    const createRunStream = (assistant_id, thread_id) => {
         var reply = '';
-        var variable_name = '';
 
-        fetchEventSource(`/api/v1/threads/${thread_id}/runs/${run_id}/stream`, {
-            method: 'GET',
+        fetchEventSource(`/api/v1/threads/${thread_id}/runs?stream=true`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                'assistant_id': assistant_id
+            }),
             signal: abortController.signal,
             onopen(response) {
                 if (response.ok /*&& response.headers.get('content-type') === EventStreamContentType*/) {

@@ -20,9 +20,11 @@ class RunScheduler:
             while True:
                 try:
                     run = await get_run_task()
-                    logger.debug("RunScheduler received new task.")
+                    logger.debug(f"RunScheduler received new task, run_id={run.id}")
+                    iter = await create_run_iter(run.id)
+
                     task = asyncio.create_task(
-                        chat_complete(run=run, iter=await create_run_iter(run.id))
+                        chat_complete(run=run, iter=iter)
                     )
                     self.tasks.add(task)
 

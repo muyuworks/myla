@@ -1,5 +1,6 @@
 import json
-from typing import List
+import asyncio
+from datetime import datetime
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -7,8 +8,9 @@ from fastapi.responses import StreamingResponse
 from ._models import ListModel
 from . import _tools, assistants, threads, messages, runs
 from ._run_queue import get_run_iter
-
 from . import tools
+from ._logging import logger
+
 
 API_VERSION = "v1"
 
@@ -140,9 +142,13 @@ async def list_messages(thread_id: str, limit: int = 20, order: str = "desc", af
 # Runs
 
 
-@api.post("/v1/threads/{thread_id}/runs", response_model=runs.RunRead, tags=['Runs'])
-async def create_run(thread_id: str, run: runs.RunCreate):
+@api.post("/v1/threads/{thread_id}/runs", tags=['Runs'])
+async def create_run(thread_id: str, run: runs.RunCreate, stream: bool = False, timeout: int = 30):
     r = runs.create(thread_id=thread_id, run=run)
+
+    if stream:
+        r = await create_run_stream(thread_id=thread_id, run_id=r.id, timeout=timeout)
+
     return r
 
 
@@ -184,16 +190,22 @@ async def retrieve_run_step(thread_id: str, run_id: str, step_id: str):
 async def list_run_steps(thread_id: str, run_id: str):
     return runs.list_steps(thread_id=thread_id, run_id=run_id)
 
-@api.get("/v1/threads/{thread_id}/runs/{run_id}/stream", tags=['Runs'])
-async def get_message_stream(thread_id:str, run_id:str):
-    iter = await get_run_iter(run_id=run_id)
-    #iter = create_run_iter(run_id=run_id)
-    #for i in range(10):
-    #    await iter.put(str(i))
+
+async def create_run_stream(thread_id:str, run_id: str, timeout=30):
+    # waiting for scheduler
+    begin = datetime.now().timestamp()
+    while True:
+        iter = await get_run_iter(run_id=run_id)
+        if not iter and datetime.now().timestamp() < begin + timeout:
+            await asyncio.sleep(1)
+            continue
+        else:
+            break
 
     async def aiter():
         if not iter:
-            return
+            logger.debug(f"Scheduler timeout: thread_id={thread_id}, run_id={run_id}")
+            raise HTTPException(status_code=404, detail="Scheduler timetout")
     
         async for c in iter:
             if isinstance(c, str):

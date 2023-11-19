@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from ._logging import logger
 
 class AsyncIterator:
     def __init__(self):
@@ -20,7 +21,7 @@ class AsyncIterator:
         await self.queue.put(item)
 
 _run_tasks = asyncio.Queue()
-_run_iters = {}
+_run_iters = dict()
 _lock = asyncio.Lock()
 
 def submit_run_task(run):
@@ -32,14 +33,18 @@ async def get_run_task():
 async def create_run_iter(run_id):
     async with _lock:
         _run_iters[run_id] = AsyncIterator()
+        logger.debug(f"Run iters: {_run_iters.keys()}")
         return _run_iters[run_id]
 
 async def get_run_iter(run_id):
     async with _lock:
+        logger.debug(f"Run iters: {_run_iters.keys()}")
         return _run_iters.get(run_id)
 
 _last_clear_at = datetime.now().timestamp()
 async def clear_iters():
+    global _last_clear_at
+
     expires = 60*10
     now = datetime.now().timestamp()
     if _last_clear_at + expires > now:
@@ -52,3 +57,6 @@ async def clear_iters():
 
         for run_id in expired:
             _run_iters.pop(run_id)
+
+        logger.info(f"Run iters cleared: {expired}")
+    _last_clear_at = now
