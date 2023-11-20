@@ -134,7 +134,7 @@ async def run_tools(tools, messages, run_metadata):
         tool_instance: Tool = get_tool(tool_name)
 
         if not isinstance(tool_instance, Tool):
-            log.warn(f"tool instance is not a Tool: {tool_name}")
+            log.warn(f"tool instance is not a Tool: name={tool_name}, instance={tool_instance}")
             continue
 
         await tool_instance.execute(context=context)

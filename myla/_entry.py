@@ -12,22 +12,26 @@ from . import _tools
 from . import _env
 from ._api import api
 from ._web_template import render
+from ._logging import logger
 
 @asynccontextmanager
 async def lifespan(api: FastAPI):
-    ext_dir = os.environ.get("EXT_DIR")
-    if ext_dir:
-        sys.path.append(ext_dir)
-    
-    _tools.load_tools()
+    try:
+        ext_dir = os.environ.get("EXT_DIR")
+        if ext_dir:
+            sys.path.append(ext_dir)
 
-    # on startup
-    Persistence.default().initialize_database()
-    await RunScheduler.default().start()
+        _tools.load_tools()
 
-    yield
-    # on shutdown
-    pass
+        # on startup
+        Persistence.default().initialize_database()
+        await RunScheduler.default().start()
+    except Exception as e:
+        logger.error(f"Lifespan error: {e}", exc_info=e)
+    finally:
+        yield
+        # on shutdown
+        pass
 
 # Routes
 routes = [
