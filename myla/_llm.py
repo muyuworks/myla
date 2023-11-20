@@ -78,7 +78,7 @@ async def chat_complete(run: runs.RunRead, iter):
         if context.is_completed:
             completed_msg = context.messages[-1]["content"]
             genereated.append(completed_msg)
-            iter.put(completed_msg)
+            await iter.put(completed_msg)
         else:
             combined_messages = combine_system_messages(messages=context.messages)
             llm = llms.get(model_name=model)

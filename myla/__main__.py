@@ -16,22 +16,26 @@ def runserver(args):
     LOGGING_CONFIG['loggers'][''] = logger
     LOGGING_CONFIG['loggers']['myla'] = logger
 
+    reload_dirs = []
+    ext_dir = None
+
     if args.extentions:
         ext_dir = os.path.abspath(args.extentions)
         os.environ['EXT_DIR'] = ext_dir
 
-        if args.reload:
-            if not args.reload_dirs:
-                args.reload_dirs = []
-                args.reload_dirs.append(MYLA_LIB_DIR)
-            args.reload_dirs.append(ext_dir)
+    if args.reload:
+        reload_dirs.append(MYLA_LIB_DIR)
+        if ext_dir:
+            reload_dirs.append(ext_dir)
+        if args.reload_dirs:
+            reload_dirs.append(args.relead_dirs)
 
     if args.vectorstore:
         os.environ['VECTORSTORE_DIR'] = args.vectorstore
 
     uvicorn.run('myla:entry', host=args.host, port=args.port,
                 workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,
-                log_config=LOGGING_CONFIG, reload_dirs=args.reload_dirs)
+                log_config=LOGGING_CONFIG, reload_dirs=reload_dirs)
 
 
 parser = argparse.ArgumentParser()
