@@ -13,7 +13,7 @@ Myla stands for MY Local Assistants and is designed and optimized for deploying 
 * Vector retrieval (FAISS/LanceDB)
 * sentence_transformers
 * WebUI
-* Custom Tool
+* Tool extensions
 * Document Q&A (in progress)
 
 ## Quick Start
