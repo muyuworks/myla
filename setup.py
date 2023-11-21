@@ -32,7 +32,17 @@ with open(os.path.join(here, 'requirements.txt')) as f:
         if r != '':
             install_requires.append(r)
 
+extras_require = {
+    'all': [
+        'sentence_transformers',
+        'lancedb',
+        'faiss-cpu',
+        'chatglm_cpp'
+    ]
+}
+
 setup(
+    python_requires=">=3.9",
     name='myla',
     version=version,
     description="A local implementation of OpenAI Assistants API: Myla stands for MY Local Assistant",
@@ -47,5 +57,6 @@ setup(
         '': ['webui/**']
     },
     install_requires = install_requires,
+    extras_require=extras_require,
     scripts=['./scripts/myla'],
 )
