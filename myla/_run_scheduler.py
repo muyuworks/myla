@@ -16,28 +16,24 @@ class RunScheduler:
         return RunScheduler._instance
 
     async def start(self):
-        async def consume():
-            while True:
-                try:
-                    run = await get_run_task()
-                    logger.debug(f"RunScheduler received new task, run_id={run.id}")
-                    iter = await create_run_iter(run.id)
+        while True:
+            try:
+                run = await get_run_task()
+                logger.debug(f"RunScheduler received new task, run_id={run.id}")
+                iter = await create_run_iter(run.id)
 
-                    task = asyncio.create_task(
-                        chat_complete(run=run, iter=iter)
-                    )
-                    self.tasks.add(task)
+                task = asyncio.create_task(
+                    chat_complete(run=run, iter=iter)
+                )
+                self.tasks.add(task)
 
-                    await clear_iters()
+                await clear_iters()
 
-                    done = []
-                    for t in self.tasks:
-                        if t.done():
-                            done.append(t)
-                    for t in done:
-                        self.tasks.remove(t)
-                        
-                except Exception as e:
-                    logger.error(f"RunScheduler error: {e}")  
-
-        return asyncio.ensure_future(consume())
+                done = []
+                for t in self.tasks:
+                    if t.done():
+                        done.append(t)
+                for t in done:
+                    self.tasks.remove(t) 
+            except Exception as e:
+                logger.error(f"RunScheduler error: {e}")

@@ -14,7 +14,8 @@ from ._api import api
 from ._web_template import render
 
 @asynccontextmanager
-async def lifespan(api: FastAPI):
+async def lifespan(app: Starlette):
+    # Load tools
     ext_dir = os.environ.get("EXT_DIR")
     if ext_dir:
         sys.path.append(ext_dir)
