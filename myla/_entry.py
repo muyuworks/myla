@@ -24,7 +24,7 @@ async def lifespan(app: Starlette):
 
     # on startup
     Persistence.default().initialize_database()
-    await RunScheduler.default().start()
+    RunScheduler.default().start()
 
     yield
     # on shutdown
