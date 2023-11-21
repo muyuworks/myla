@@ -42,9 +42,10 @@ setup(
     long_description_content_type="text/markdown",
     long_description=read("README.md"),
     packages=find_packages(),
+    include_package_data=True,
     package_data={
-        'webui': ['**/*']
+        '': ['webui/**']
     },
     install_requires = install_requires,
-    scripts=['setup.py', './scripts/myla', 'requirements.txt'],
+    scripts=['./scripts/myla'],
 )

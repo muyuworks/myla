@@ -1,5 +1,5 @@
 .DS_Store
-webui/static/aify
+myla/webui/static/aify
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

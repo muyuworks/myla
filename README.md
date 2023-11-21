@@ -65,7 +65,7 @@ Myla provides a simple web interface that makes it easy to develop and debug ass
 
 Access from your browser: http://localhost:2000/
 
-![Screenshot](webui/static/images/screenshot.png)
+![Screenshot](myla/webui/static/images/screenshot.png)
 
 ### API
 

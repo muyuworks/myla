@@ -52,7 +52,7 @@ parser.add_argument('--reload-dirs', default=None,
                     help="set reload directories explicitly, default is applications directory")
 parser.add_argument('--env-file', default='.env',
                     help="environment configuration file")
-parser.add_argument("--extentions", default=None, help="extentions directory")
+parser.add_argument("--extensions", default=None, help="extensions directory")
 parser.add_argument("--vectorstore", default=None,
                     help="vectorstore directory")
 parser.add_argument("--debug", default=False,

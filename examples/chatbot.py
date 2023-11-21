@@ -1,19 +1,22 @@
-"""
 import time
 import asyncio
 from dotenv import load_dotenv
 import myla
+#import logging
+#logging.basicConfig(level=logging.DEBUG)
 
 # Load settings
 load_dotenv(".env")
 
 async def main():
+    myla.RunScheduler.default().start()
+
     # Create an assistant
     assistant_create = myla.assistants.AssistantCreate(
         name="Chatbot",
         instructions="Your are a usefull assistant.",
         tools=[],
-        model="Qwen-14B-Chat-Int4"
+        model="chatglm@/Users/shellc/Workspaces/chatglm.cpp/chatglm-ggml.bin"
     )
     assistant = myla.assistants.create(assistant_create)
     print(f"Assistant created: {assistant.name} {assistant.id}")
@@ -42,18 +45,16 @@ async def main():
     )
     run = myla.runs.create(thread_id=thread.id, run=run_create)
     print(f"Run created: {run.id}")
-
+    myla.RunScheduler.default().submit_run(run=run)
+    await asyncio.sleep(3)
     while True:
-
         r = myla.runs.get(thread_id=thread.id, run_id=run.id)
         print(f"Run status: {r.status}, id={run.id}")
         if r.status == "completed" or r.status == "failed":
             msgs = myla.messages.list(thread_id=thread.id)
-            print(f"Thread messages: {msgs}")
+            print(f"Thread messages: \n{[m.role + ': ' + m.content[0].text[0].value for m in msgs.data]}")
+            break
         else:
             time.sleep(2)
 
-loop = asyncio.get_event_loop()
-
-loop.run_until_complete(main())
-"""
+asyncio.run(main())
