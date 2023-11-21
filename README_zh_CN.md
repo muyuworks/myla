@@ -4,7 +4,17 @@
 
 ## 私有化部署与 OpenAI 兼容的 AI 助手
 
-Myla 取 MY Local Assistants 的含义，专为私有化部署基于大语言模型（LLM）的人工智能助手而设计和优化。Myla 提供与 **OpenAI assistants API** 兼容的 API，后端支持多种 LLM。无论是在笔记本上还是生产服务器上，都可以快速开发和运行人工智能助手。
+Myla 取 MY Local Assistants 的含义，专为私有化部署基于大语言模型（LLM）的人工智能助手而设计和优化。Myla 提供与 **OpenAI Assistants API** 兼容的 API，后端支持多种 LLM。无论是在笔记本上还是生产服务器上，都可以快速开发和运行人工智能助手。
+
+## 关键功能
+
+* 支持 OpenAI API 和兼容 LLM 服务
+* 提供与 OpenAI 兼容的 Assistant API
+* 支持向量库检索 (FAISS/LanceDB)
+* 支持 sentence_transformers
+* 提供 WebUI
+* 支持自定义 Tool
+* 支持文档问答(进行中)
 
 ## 快速入门
 ### 安装
@@ -15,6 +25,12 @@ Myla 可以通过 `pip` 从 PyPI 安装，推荐在安装前创建一个新的�
 
 ```bash
 pip install myla
+```
+
+如果需要 Retrieval 请安装所有依赖：
+
+```bash
+pip install "myla[all]"
 ```
 
 ### 配置

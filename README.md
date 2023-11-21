@@ -6,6 +6,16 @@
 
 Myla stands for MY Local Assistants and is designed and optimized for deploying AI assistants based on large language models (LLMs) in a private environment. Myla provides an API compatible with the **OpenAI assistants API**, with support for multiple LLM backends. Whether on a laptop or a production server, you can quickly develop and run AI assistants.
 
+## Key Features:
+
+* Support for OpenAI API and compatible LLM services
+* Assistant API compatible with OpenAI
+* Vector retrieval (FAISS/LanceDB)
+* sentence_transformers
+* WebUI
+* Custom Tool
+* Document Q&A (in progress)
+
 ## Quick Start
 ### Installation
 
@@ -15,6 +25,11 @@ Myla can be installed from PyPI using `pip`. It is recommended to create a new v
 
 ```bash
 pip install myla
+```
+
+If you need Retrieval, please install all dependencies:
+```bash
+pip install "myla[all]"
 ```
 
 ### Configuration

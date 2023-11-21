@@ -1,5 +1,5 @@
 # Persistence
-DATABASE_URL=sqlite:///muyu.db
+DATABASE_URL=sqlite:///myla.db
 DATABASE_CONNECT_ARGS={"check_same_thread": false}
 
 # LLMs
@@ -23,15 +23,6 @@ TOOLS='
     {
         "name": "$retrieval",
         "impl": "myla.retrieval.RetrievalTool"
-    },
-    {
-        "name": "$doc_summary",
-        "impl": "myla.retrieval.DocSummaryTool"
-    },
-    {
-        "name": "$ec",
-        "impl": "ec.ECTool",
-        "args": {"device": "cpu"}
     }
 ]
 '
