@@ -9,7 +9,7 @@ Myla 取 MY Local Assistants 的含义，专为私有化部署基于大语言模
 ## 快速入门
 ### 安装
 
-Python 版本依赖: <= 3.11
+Python 版本依赖: >= 3.9
 
 Myla 可以通过 `pip` 从 PyPI 安装，推荐在安装前创建一个新的虚拟环境避免冲突。
 

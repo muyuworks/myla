@@ -9,7 +9,7 @@ Myla stands for MY Local Assistants and is designed and optimized for deploying 
 ## Quick Start
 ### Installation
 
-Python version requirement: <= 3.11
+Python version requirement: >= 3.9
 
 Myla can be installed from PyPI using `pip`. It is recommended to create a new virtual environment before installation to avoid conflicts.
 

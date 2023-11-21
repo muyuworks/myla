@@ -19,7 +19,7 @@ class FAISS(VectorStore):
     def delete(self, collection: str, query: str):
         return super().delete(collection, query)
     
-    def search(self, collection: str = None, query: str = None, vector: List = None, filter: Any = None, limit: int = 20, columns: List[str] | None = None, with_vector: bool = False, with_distance: bool = False, **kwargs) -> List[Record] | None:
+    def search(self, collection: str = None, query: str = None, vector: List = None, filter: Any = None, limit: int = 20, columns: List[str] = None, with_vector: bool = False, with_distance: bool = False, **kwargs) -> List[Record]:
         return self._faiss_search(collection_name=collection, query=query, k=limit, fetch_k=limit*10)
 
     def _faiss_search(
