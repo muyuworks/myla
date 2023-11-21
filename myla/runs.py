@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBModel, ListModel
 from ._models import create as create_model
 from . import assistants
-from ._run_queue import submit_run_task
 
 class RunEdit(MetadataModel):
     pass
@@ -74,9 +73,6 @@ def create(thread_id: str, run: RunCreate, session: Session = None) -> RunRead:
 
     r = RunRead(**dbo.dict())
     r.metadata = dbo.metadata_
-
-    # Submit run to run
-    submit_run_task(r)
 
     return r
 

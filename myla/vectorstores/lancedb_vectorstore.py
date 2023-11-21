@@ -68,7 +68,7 @@ class LanceDB(VectorStore):
             with_vector: bool = False,
             with_distance: bool = False,
             **kwargs
-    ) -> List[Record] | None:
+    ) -> List[Record]:
         if not query and not vector:
             raise ValueError("LanceDB search must provide query or vector.")
 

@@ -17,15 +17,17 @@ from ._logging import logger
 @asynccontextmanager
 async def lifespan(api: FastAPI):
     try:
+        # Load tools
         ext_dir = os.environ.get("EXT_DIR")
         if ext_dir:
             sys.path.append(ext_dir)
-
+        
         _tools.load_tools()
 
         # on startup
         Persistence.default().initialize_database()
-        await RunScheduler.default().start()
+        RunScheduler.default().start()
+
     except Exception as e:
         logger.error(f"Lifespan error: {e}", exc_info=e)
     finally:

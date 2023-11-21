@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 
 from ._models import ListModel
 from . import _tools, assistants, threads, messages, runs
-from ._run_queue import get_run_iter
+from ._run_scheduler import RunScheduler
 from . import tools
 from ._logging import logger
 
@@ -146,6 +146,9 @@ async def list_messages(thread_id: str, limit: int = 20, order: str = "desc", af
 async def create_run(thread_id: str, run: runs.RunCreate, stream: bool = False, timeout: int = 30):
     r = runs.create(thread_id=thread_id, run=run)
 
+    # Submit run to run
+    RunScheduler.default().submit_run(r)
+
     if stream:
         r = await create_run_stream(thread_id=thread_id, run_id=r.id, timeout=timeout)
 
@@ -195,7 +198,7 @@ async def create_run_stream(thread_id:str, run_id: str, timeout=30):
     # waiting for scheduler
     begin = datetime.now().timestamp()
     while True:
-        iter = await get_run_iter(run_id=run_id)
+        iter = await RunScheduler.default().get_run_iter(run_id=run_id)
         if not iter and datetime.now().timestamp() < begin + timeout:
             await asyncio.sleep(1)
             continue
@@ -205,7 +208,8 @@ async def create_run_stream(thread_id:str, run_id: str, timeout=30):
     async def aiter():
         if not iter:
             logger.debug(f"Scheduler timeout: thread_id={thread_id}, run_id={run_id}")
-            raise HTTPException(status_code=404, detail="Scheduler timetout")
+            yield "event: error\ndata: %s\n\n" % json.dumps({"e": "Timeout."})
+            return
     
         async for c in iter:
             if isinstance(c, str):

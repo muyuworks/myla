@@ -47,7 +47,10 @@ async def chat_complete(run: runs.RunRead, iter):
         llm_args = run_metadata['llm_args'] if 'llm_args' in run_metadata else {"temperature": 0.0}
 
         # Laod history
-        history = list_messages(thread_id=thread_id, order="desc", limit=4).data
+        history_limit = run_metadata['history_limit'] if 'history_limit' in run_metadata else 4
+        if not isinstance(history_limit, int):
+            history_limit = 0
+        history = list_messages(thread_id=thread_id, order="desc", limit=history_limit).data
         history = history[::-1]
 
         # append history to messages
@@ -58,7 +61,8 @@ async def chat_complete(run: runs.RunRead, iter):
                 content = content.text[0].value
             messages.append({
                 "role": role,
-                "content": content
+                "content": content,
+                "metadata": h.metadata
             })
 
         runs.update(
@@ -78,7 +82,7 @@ async def chat_complete(run: runs.RunRead, iter):
         if context.is_completed:
             completed_msg = context.messages[-1]["content"]
             genereated.append(completed_msg)
-            iter.put(completed_msg)
+            await iter.put(completed_msg)
         else:
             combined_messages = combine_system_messages(messages=context.messages)
             llm = llms.get(model_name=model)
@@ -151,7 +155,10 @@ def combine_system_messages(messages):
         if msg["role"] == "system":
             system_message.append(msg["content"])
         else:
-            normal_messages.append(msg)
+            normal_messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
     r_messages = [
         {
             "role": "system",

@@ -24,7 +24,11 @@ class Persistence:
         if not self._connect_args:
             self._connect_args = {}
         
-        self._engine = create_engine(self._database_url, connect_args=self._connect_args)
+        self._engine = create_engine(
+            self._database_url,
+            connect_args=self._connect_args,
+            json_serializer=lambda obj: json.dumps(obj, ensure_ascii=False)
+        )
 
     @property
     def engine(self):
