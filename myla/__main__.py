@@ -19,8 +19,8 @@ def runserver(args):
     reload_dirs = []
     ext_dir = None
 
-    if args.extentions:
-        ext_dir = os.path.abspath(args.extentions)
+    if args.extensions:
+        ext_dir = os.path.abspath(args.extensions)
         os.environ['EXT_DIR'] = ext_dir
 
     if args.reload:
