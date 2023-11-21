@@ -58,7 +58,8 @@ async def chat_complete(run: runs.RunRead, iter):
                 content = content.text[0].value
             messages.append({
                 "role": role,
-                "content": content
+                "content": content,
+                "metadata": h.metadata
             })
 
         runs.update(

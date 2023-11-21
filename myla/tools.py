@@ -23,6 +23,17 @@ class Context(BaseModel):
     # 最后一条消息必须 role 为 assistant, 否则忽略
     is_completed: bool = False
 
+    def get_last_message(self):
+        """
+        Get the last message
+
+        return: None if messages is empty else the last messsage
+        """
+        if len(self.messages) == 0:
+            return None
+        else:
+            return self.messages[-1]
+
 class Tool:
     """
     Tool 被设置在 Assistant 或 Run 中, 会在 Run 执行过程中被调用。
