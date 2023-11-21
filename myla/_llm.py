@@ -152,7 +152,10 @@ def combine_system_messages(messages):
         if msg["role"] == "system":
             system_message.append(msg["content"])
         else:
-            normal_messages.append(msg)
+            normal_messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
     r_messages = [
         {
             "role": "system",
