@@ -289,6 +289,7 @@ async def upload_file(request: Request, file: UploadFile):
         try:
             await _vs_load_task()
         except Exception as e:
+            logger.debug(f"Build vectorstore failed", exc_info=e)
             raise HTTPException(status_code=500, detail=f"Can't build vectorstore.")
 
     return _files.create(id=id, file=file_upload, bytes=bytes, filename=filename)

@@ -1,8 +1,20 @@
 import os
+import json
 from typing import List, Optional, Dict, Any
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
 from .._logging import logger
+from operator import itemgetter
+
+def _import_langchain_vectorstores():
+    try:
+        import langchain.vectorstores as vectorstores
+    except ImportError as exc:
+        raise ImportError(
+            "Could not import langchain.vectorstores python package. "
+            "Please install it with `pip install langchain`."
+        ) from exc
+    return vectorstores
 
 class FAISS(VectorStore):
     def __init__(self, db_path: str = None, embeddings: Embeddings = None) -> None:
@@ -11,13 +23,26 @@ class FAISS(VectorStore):
         self._collections = {}
 
     def create_collection(self, collection: str, schema: Dict[str, type] = None, mode="create"):
-        return super().create_collection(collection, schema = schema, mode=mode)
+        vectorstores = _import_langchain_vectorstores()
+        vs = vectorstores.FAISS.from_texts(texts=[''], embedding=self.get_embeddings())
+        vs.save_local(os.path.join(self._db_path, collection))
     
     def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None):
-        return super().add(collection, records)
+        vs = self._get_vectorstore(collection)
+
+        text_to_embed = []
+        for r in records:
+            if embeddings_columns:
+                v = itemgetter(*embeddings_columns, r)
+            else:
+                v = r
+            text_to_embed.append(json.dumps(v, ensure_ascii=False))
+
+        vs.add_texts(texts=text_to_embed, metadatas=records)
+        vs.save_local(os.path.join(self._db_path, collection))
     
     def delete(self, collection: str, query: str):
-        return super().delete(collection, query)
+        raise RuntimeError("Not implemented.")
     
     def search(self, collection: str = None, query: str = None, vector: List = None, filter: Any = None, limit: int = 20, columns: List[str] = None, with_vector: bool = False, with_distance: bool = False, **kwargs) -> List[Record]:
         return self._faiss_search(collection_name=collection, query=query, k=limit, fetch_k=limit*10)
@@ -57,13 +82,7 @@ class FAISS(VectorStore):
 
     def _get_vectorstore(self, name):
         if name not in self._collections:
-            try:
-                import langchain.vectorstores as vectorstores
-            except ImportError as exc:
-                raise ImportError(
-                    "Could not import langchain.vectorstores python package. "
-                    "Please install it with `pip install langchain`."
-                ) from exc
+            vectorstores = _import_langchain_vectorstores()
 
             vs_path = self._get_vectorstore_path(name=name)
             vs = vectorstores.FAISS.load_local(
