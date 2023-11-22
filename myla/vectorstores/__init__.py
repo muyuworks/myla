@@ -46,8 +46,8 @@ def get_default_vectorstore():
 def load_vectorstore_from_file(collection: str, fname: str, ftype: str):
     vs = get_default_vectorstore()
 
-    if ftype == 'csv':
-        records = list(pandas_loader.PandasLoader().load(fname))
+    if ftype in ['csv', 'xls', 'xlsx', 'json']:
+        records = list(pandas_loader.PandasLoader(ftype=ftype).load(fname))
     else:
         raise ValueError("Invalid file type.")
 

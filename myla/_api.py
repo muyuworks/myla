@@ -281,8 +281,8 @@ async def upload_file(request: Request, file: UploadFile):
     # Create a vectorstore loading task
     # TODO: background task and failover
     ftype = filename.split(".")[-1]
-    print(ftype)
-    if ftype in ['csv']:
+
+    if purpose == "assistants":
         logger.info(f"Build vectorstore: id={id}, ftype={ftype}")
         async def _vs_load_task():
             load_vectorstore_from_file(collection=id, fname=fname, ftype=ftype)
@@ -290,7 +290,7 @@ async def upload_file(request: Request, file: UploadFile):
             await _vs_load_task()
         except Exception as e:
             logger.debug(f"Build vectorstore failed", exc_info=e)
-            raise HTTPException(status_code=500, detail=f"Can't build vectorstore.")
+            raise HTTPException(status_code=400, detail=f"Can't build vectorstore. {e}")
 
     return _files.create(id=id, file=file_upload, bytes=bytes, filename=filename)
 
