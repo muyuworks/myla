@@ -18,3 +18,5 @@ openai
 
 # File upload
 python-multipart
+
+pandas
