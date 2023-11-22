@@ -250,7 +250,7 @@ export const Chat = (props) => {
                             name="prompt"
                             style={{ marginBottom: 0 }}
                         >
-                            <TextArea autoSize onKeyDown={onKeyDown} placeholder="" />
+                            <TextArea autoSize onKeyDown={onKeyDown} placeholder="" disabled={generating} />
                         </Form.Item>
                     </Col>
                     <Col flex='none'>
