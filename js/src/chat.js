@@ -11,6 +11,7 @@ import {
     Col,
     Avatar,
     Alert,
+    Spin
 } from 'antd';
 
 import { BulbOutlined } from '@ant-design/icons'
@@ -30,6 +31,7 @@ export const Chat = (props) => {
     const [generating, setGenerating] = useState(false);
     const [currentReply, setCurrentReply] = useState(null);
     const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const onKeyDown = (e) => {
         if (e.keyCode === 13/*enter*/ && (e.ctrlKey || e.metaKey)) {
@@ -110,9 +112,11 @@ export const Chat = (props) => {
         let thread_id = props.thread_id;
 
         if (name && thread_id) {
+            setLoading(true);
             fetch(`/api/v1/threads/${thread_id}/messages`)
                 .then(r => r.json())
                 .then(messages => {
+                    setLoading(false);
                     let t_history = [];
                     for (let i = messages.data.length - 1; i >= 0; i--) {
                         let msg = messages.data[i];
@@ -220,6 +224,7 @@ export const Chat = (props) => {
             className="p-0 bg-white"
         >
             <div id="history" className='mb-auto overflow-auto px-3'>
+                {loading ? <div className='text-center'><Spin size="small" /></div> : null}
                 <MessageHistory history={history} icon={props.icon} user={props.user}/>
                 <div>
                     {currentReply ? (
@@ -284,7 +289,7 @@ const Message = (props) => {
                 </div>
                 <div className='card mx-3 border-0'
                     style={{
-                        backgroundColor: props.role === 'user' ? '#d1e7dd' : '#f8f9fa'
+                        backgroundColor: props.role === 'user' ? '#D6EAF8' : '#f8f9fa'
                     }}
                 >
                     <div className='card-body px-3 pt-3 pb-0'>

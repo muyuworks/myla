@@ -210,9 +210,9 @@ export const Aify = (props) => {
                 style={{
                     overflow: 'auto',
                     height: '100vh',
-                    backgroundColor: '#eee'
+                    backgroundColor: 'whitesmoke'
                 }}
-                width={300}
+                width={250}
                 collapsedWidth={65}
                 trigger={null}
             >
@@ -222,7 +222,7 @@ export const Aify = (props) => {
                     dataSource={threads}
                     renderItem={(thread => (
                         assistantMap[thread.metadata.assistant_id] != null? (
-                        <List.Item style={currentThreadId === thread.id ? {backgroundColor: 'whitesmoke'} : {}}>
+                        <List.Item style={currentThreadId === thread.id ? {backgroundColor: 'white'} : {}}>
                             <Space>
                                 <Link
                                     onClick={() => switchThread(thread.metadata.assistant_id, thread.id)}
@@ -235,7 +235,7 @@ export const Aify = (props) => {
                                                     ellipsis={{
                                                         rows: 1,
                                                     }}
-                                                    style={{ width: '220px' }}
+                                                    style={{ width: '160px' }}
                                                 >
                                                     <div id={`last-msg-${thread.id}`}>{assistantMap[thread.metadata.assistant_id].name}</div>
                                                 </Text>
@@ -283,6 +283,7 @@ export const Aify = (props) => {
                 </div>
                 {(currentAssistantId != null && currentThreadId != null) ? (
                     <Chat
+                        key={currentThreadId}
                         name={currentAssistantId}
                         thread_id={currentThreadId}
                         width="100%"
@@ -309,9 +310,9 @@ export const Aify = (props) => {
                 style={{
                     overflow: 'auto',
                     height: '100vh',
-                    backgroundColor: '#eee'
+                    backgroundColor: 'whitesmoke'
                 }}
-                width={300}
+                width={250}
                 collapsedWidth={0}
                 trigger={null}
                 reverseArrow
