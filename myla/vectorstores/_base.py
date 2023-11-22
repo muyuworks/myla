@@ -13,11 +13,11 @@ class VectorStore(ABC):
         pass
 
     @abstractmethod
-    def create_collection(self, collection: str, schema: Any = None, mode="create"):
+    def create_collection(self, collection: str, schema: Dict[str, type] = None, mode="create"):
         """Create a new collection"""
 
     @abstractmethod
-    def add(self, collection: str, records: List[Record]):
+    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None):
         """Add record to the vectorsotre"""
 
     @abstractmethod

@@ -37,7 +37,8 @@ extras_require = {
         'sentence_transformers',
         'lancedb',
         'faiss-cpu',
-        'chatglm_cpp'
+        'chatglm_cpp',
+        'pandas'
     ]
 }
 

@@ -1,9 +1,10 @@
+import json
 from typing import Any, List, Optional, Dict
+from operator import itemgetter
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
 
-
-VECTOR_COLUMN_NAME = "vector"
+VECTOR_COLUMN_NAME = "_vector"
 
 
 class LanceDB(VectorStore):
@@ -29,32 +30,40 @@ class LanceDB(VectorStore):
                 "Please install it with `pip install lancedb`."
             ) from exc
 
-        self.db_uri = db_uri
-        self.embeddings = embeddings
+        self._db_uri = db_uri
+        self._embeddings = embeddings
 
-        self.db = lancedb.connect(self.db_uri)
+        self._db = lancedb.connect(self._db_uri)
 
-        self.tables = {}
+        self._tables = {}
 
-    def create_collection(self, collection: str, schema: Any = None, mode="create"):
-        try:
-            import pyarrow as pa
-        except ImportError as exc:
-            raise ImportError(
-                "Could not import pyarrow python package. "
-                "Please install it with `pip install pyarrow`."
-            ) from exc
-        if schema is None or not isinstance(schema, pa.Schema):
+    def create_collection(self, collection: str, schema: Dict[str, type] = None, mode="create"):
+        if schema is None:
             raise ValueError("Invalid schema to create LanceDB table.")
 
-        self.db.create_table(collection, schema=schema, mode=mode)
+        s = self._convert_schema(schema=schema)
 
-    def add(self, collection: str, records: List[Record]):
-        tbl = self.db.open_table(collection)
+        self._db.create_table(collection, schema=s, mode=mode)
+
+    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None):
+        tbl = self._db.open_table(collection)
+
+        text_to_embed = []
+        for r in records:
+            if embeddings_columns:
+                v = itemgetter(*embeddings_columns, r)
+            else:
+                v = r
+            text_to_embed.append(json.dumps(v, ensure_ascii=False))
+
+        embeds = self._embeddings.embed_batch(texts=text_to_embed)
+        for i in range(len(records)):
+            records[i][VECTOR_COLUMN_NAME] = embeds[i]
+
         tbl.add(records)
 
     def delete(self, collection: str, query: str):
-        tbl = self.db.open_table(collection)
+        tbl = self._db.open_table(collection)
         tbl.delete(query)
 
     def search(
@@ -72,15 +81,15 @@ class LanceDB(VectorStore):
         if not query and not vector:
             raise ValueError("LanceDB search must provide query or vector.")
 
-        if query and not vector and self.embeddings:
-            vector = self.embeddings.embed(text=query)
+        if query and not vector and self._embeddings:
+            vector = self._embeddings.embed(text=query)
         if not vector:
             raise ValueError(
                 "LanceDB search must provide Embeddings function.")
 
-        tbl = self.db.open_table(collection)
+        tbl = self._db.open_table(collection)
 
-        query = tbl.search(vector)
+        query = tbl.search(vector, vector_column_name=VECTOR_COLUMN_NAME)
         if filter:
             query = query.where(filter)
 
@@ -95,3 +104,35 @@ class LanceDB(VectorStore):
                 del v['_distance']
 
         return results
+
+    def _convert_schema(self, schema: Dict[str, type]):
+        try:
+            import pyarrow as pa
+        except ImportError as exc:
+            raise ImportError(
+                "Could not import pyarrow python package. "
+                "Please install it with `pip install pyarrow`."
+            ) from exc
+        
+        dims = len(self._embeddings.embed(""))
+        columns = [
+            pa.field(VECTOR_COLUMN_NAME, pa.list_(pa.float32(), dims)),
+        ]
+
+        for k, v in schema.items():
+            t = pa.string()
+
+            if isinstance(v, float):
+                t = pa.float64()
+            if isinstance(v, int):
+                t = pa.int64
+            if isinstance(v, bool):
+                t = pa.bool_()
+
+            columns.append(
+                pa.field(k, t)
+            )
+
+        s = pa.schema(columns)
+
+        return s

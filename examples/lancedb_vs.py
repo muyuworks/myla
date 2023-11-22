@@ -1,6 +1,7 @@
 from myla.vectorstores.lancedb_vectorstore import LanceDB
 import pyarrow as pa
 from myla.vectorstores.sentence_transformers_embeddings import SentenceTransformerEmbeddings
+from myla.vectorstores.pandas_loader import PandasLoader
 
 embeddings = SentenceTransformerEmbeddings(model_name="/Users/shellc/Downloads/bge-large-zh-v1.5")
 
@@ -8,18 +9,12 @@ vs = LanceDB(db_uri="/tmp/lancedb", embeddings=embeddings)
 
 collection = "default"
 
-schema = pa.schema(
-    [
-        pa.field("vector", pa.list_(pa.float32(), 1024)),
-        pa.field("text", pa.string())
-    ]
-)
-vs.create_collection(collection=collection, schema=schema, mode='overwrite')
+records = list(PandasLoader().load("./data/202101.csv"))
 
-embds = embeddings.embed("hello")
+vs.create_collection(collection=collection, schema=records[0], mode='overwrite')
 
-vs.add(collection=collection, records=[{"vector": embds, "text": "hello"}])
+vs.add(collection=collection, records=records)
 
-print(vs.search(collection=collection, query="hello", columns=['text']))
+print(vs.search(collection=collection, query="新疆"))
 
-vs.delete(collection=collection, query="text = 'hello'")
+#vs.delete(collection=collection, query="text = 'hello'")

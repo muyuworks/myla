@@ -19,6 +19,9 @@ class Context(BaseModel):
     # 设置生成 Message 的 metadata
     message_metadata: Dict = {}
 
+    # 可以使用的 Files
+    file_ids: List[str] = []
+
     # 是否完成当前 Run, 如果是则会忽略后续所有 Tools 和 LLM 执行，直接将最后一条消息作为生成消息返回
     # 最后一条消息必须 role 为 assistant, 否则忽略
     is_completed: bool = False

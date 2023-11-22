@@ -18,6 +18,7 @@ async def chat_complete(run: runs.RunRead, iter):
         instructions = run.instructions
         tools = run.tools
         run_metadata = run.metadata if run.metadata else {}
+        file_ids = []
 
         # Get Assistant
         assistant = assistants.get(id=run.assistant_id)
@@ -35,6 +36,9 @@ async def chat_complete(run: runs.RunRead, iter):
             a_metadata = assistant.metadata if assistant.metadata else {}
             a_metadata.update(run_metadata)
             run_metadata = a_metadata
+
+            if assistant.file_ids:
+                file_ids.extend(assistant.file_ids)
 
         # set instructions
         if instructions is not None:
@@ -65,6 +69,14 @@ async def chat_complete(run: runs.RunRead, iter):
                 "metadata": h.metadata
             })
 
+        # Message file_ids
+        if len(history) > 0:
+            last = history[-1]
+            if last.role == "user" and last.file_ids:
+                file_ids.extend(last.file_ids)
+
+        file_ids = list(set(file_ids))
+
         runs.update(
             id=run.id,
             status="in_progress",
@@ -72,7 +84,7 @@ async def chat_complete(run: runs.RunRead, iter):
         )
 
         # Run tools
-        context: Context = await run_tools(tools=tools, messages=messages, run_metadata=run_metadata)
+        context: Context = await run_tools(tools=tools, messages=messages, run_metadata=run_metadata, file_ids=file_ids)
         llm_args.update(context.llm_args)
 
         log.debug(f"Context after tools: {context}")
@@ -121,10 +133,10 @@ async def chat_complete(run: runs.RunRead, iter):
         await iter.put(e)
         await iter.put(None) #DONE
 
-async def run_tools(tools, messages, run_metadata):
+async def run_tools(tools, messages, run_metadata, file_ids = []):
     run_metadata = run_metadata if run_metadata else {}
 
-    context = Context(messages=messages, run_metadata=run_metadata)
+    context = Context(messages=messages, run_metadata=run_metadata, file_ids=file_ids)
 
     if not tools:
         tools = []

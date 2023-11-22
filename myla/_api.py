@@ -12,7 +12,7 @@ from ._run_scheduler import RunScheduler
 from . import tools
 from ._logging import logger
 from . import utils
-
+from .vectorstores import load_vectorstore_from_file
 
 API_VERSION = "v1"
 
@@ -277,6 +277,19 @@ async def upload_file(request: Request, file: UploadFile):
                 f.write(read_bytes)
             else:
                 break
+
+    # Create a vectorstore loading task
+    # TODO: background task and failover
+    ftype = filename.split(".")[-1]
+    print(ftype)
+    if ftype in ['csv']:
+        logger.info(f"Build vectorstore: id={id}, ftype={ftype}")
+        async def _vs_load_task():
+            load_vectorstore_from_file(collection=id, fname=fname, ftype=ftype)
+        try:
+            await _vs_load_task()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Can't build vectorstore.")
 
     return _files.create(id=id, file=file_upload, bytes=bytes, filename=filename)
 

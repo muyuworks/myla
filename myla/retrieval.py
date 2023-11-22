@@ -1,7 +1,5 @@
-import os
 import json
-from typing import Optional, Dict, Any
-from .vectorstores import get_default_embeddings, LanceDB, FAISS
+from .vectorstores import get_default_vectorstore
 from .tools import Tool, Context
 from ._logging import logger
 from . import llms
@@ -22,46 +20,36 @@ RETRIEVAL_INSTRUCTIONS_ZH = """
 
 
 class RetrievalTool(Tool):
-    def __init__(self, vector_store_impl=None) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self._embeddings = get_default_embeddings()
-        self._vecotr_store_impl = vector_store_impl
-
-        if not self._vecotr_store_impl:
-            self._vecotr_store_impl = os.environ.get("VECTOR_STORE_IMPL")
-
-        if not self._vecotr_store_impl:
-            raise ValueError("VECTOR_STORE_IMPL is required.")
-
-        self._vector_store_dir = os.environ.get("VECTORSTORE_DIR")
-        if not self._vector_store_dir:
-            raise ValueError("VECTORSTORE_DIR is required.")
-
-        if self._vecotr_store_impl == 'faiss':
-            self._vs = FAISS(db_path=self._vector_store_dir, embeddings=self._embeddings)
-        elif self._vecotr_store_impl == 'lancedb':
-            self._vs = LanceDB(db_uri=self._vector_store_dir, embeddings=self._embeddings)
-        else:
-            raise ValueError(f"VectorStore not suported: {self._vecotr_store_impl}")
+        self._vs = get_default_vectorstore()
 
     async def execute(self, context: Context) -> None:
         if len(context.messages) == 0:
             logger.debug("History is empty, skip retrieval")
             return
 
-        if "retrieval_collection" not in context.run_metadata:
+        collections = context.file_ids if context.file_ids else []
+
+        if 'retrieval_collection' in context.run_metadata:
+            collections.append(context.run_metadata["retrieval_collection"])
+
+        if len(collections) == 0:
             logger.debug(
-                "no retrieval_collection in run_metadata, skip retrieval")
+                "no retrieval collections specified, skip retrieval")
             return
 
-        collection = context.run_metadata["retrieval_collection"]
         args = {}
         if "retrieval_limit" in context.run_metadata:
             args["limit"] = context.run_metadata["retrieval_limit"]
 
         query = context.messages[-1]["content"]
 
-        docs = await self._vs.asearch(collection=collection, query=query)
+        docs = []
+        for c in collections:
+            r_docs = await self._vs.asearch(collection=c, query=query)
+            docs.extend(r_docs)
+
         #logger.debug("Retrieval docs:" + json.dumps(docs, ensure_ascii=False))
         if docs and len(docs) > 0:
             messages = context.messages

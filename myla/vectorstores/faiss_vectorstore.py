@@ -10,10 +10,10 @@ class FAISS(VectorStore):
         self._embeddings = embeddings
         self._collections = {}
 
-    def create_collection(self, collection: str, schema: Any = None, mode="create"):
+    def create_collection(self, collection: str, schema: Dict[str, type] = None, mode="create"):
         return super().create_collection(collection, schema = schema, mode=mode)
     
-    def add(self, collection: str, records: List[Record]):
+    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None):
         return super().add(collection, records)
     
     def delete(self, collection: str, query: str):

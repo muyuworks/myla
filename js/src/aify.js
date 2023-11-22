@@ -43,6 +43,7 @@ export const Aify = (props) => {
         let model = createAssistantForm.getFieldValue("model");
         let icon = createAssistantForm.getFieldValue("icon");
         let tools = createAssistantForm.getFieldValue("tools");
+        let file_ids = createAssistantForm.getFieldValue("file_ids");
         var metadata = createAssistantForm.getFieldValue("metadata");
         metadata = metadata ? JSON.parse(metadata) : {}
         metadata.icon = icon
@@ -53,6 +54,7 @@ export const Aify = (props) => {
             "instructions": instructions,
             "model": model,
             "tools": tools ? JSON.parse(tools) : [],
+            "file_ids": file_ids ? JSON.parse(file_ids) : [],
             "metadata": metadata
         };
         if (model == null) {
@@ -392,6 +394,12 @@ export const Aify = (props) => {
                                 autoSize
                                 //style={{width: 200}}
                                 placeholder='tools settings, like: [{"type": "$iur"}, {"type": "retrieval"}]'
+                            />
+                        </Form.Item>
+                        <Form.Item label='Files' name='file_ids' initialValue={assistantToModify ? JSON.stringify(assistantToModify.file_ids) : null}>
+                            <TextArea
+                                autoSize
+                                placeholder='file_ids, like: ["file_1", "file_2"]'
                             />
                         </Form.Item>
                         <Form.Item label='Metadata' name='metadata' initialValue={assistantToModify ? JSON.stringify(assistantToModify.metadata) : null}>
