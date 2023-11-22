@@ -1,15 +1,17 @@
+import os
 import json
 import asyncio
 from datetime import datetime
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
 
 from ._models import ListModel
-from . import _tools, assistants, threads, messages, runs
+from . import _tools, assistants, threads, messages, runs, _files
 from ._run_scheduler import RunScheduler
 from . import tools
 from ._logging import logger
+from . import utils
 
 
 API_VERSION = "v1"
@@ -230,3 +232,54 @@ async def execute_tool(tool_name:str, context: tools.Context):
     await tool_instance.execute(context=context)
 
     return context
+
+# Files
+@api.post("/v1/files", response_model=_files.FileRead, tags=['Files'])
+async def upload_file(request: Request, file: UploadFile):
+    form = await request.form()
+    purpose = form.get("purpose")
+    if purpose != "assistants":
+        raise HTTPException(status_code=400, detail="Invalid purpose. [assistants]")
+
+    metadata = {}
+    for k, v in form.items():
+        if k != "purpose" and k != "file":
+            metadata[k] = v
+
+    file_upload = _files.FileUpload(
+        purpose=purpose,
+        metadata=metadata
+    )
+
+    bytes = file.size
+    filename = file.filename
+
+    # Write file to disk
+    data_dir = os.environ.get("DATA_DIR")
+    if not data_dir:
+        raise HTTPException(status_code=500, detail="DATA_DIR required.")
+    if not os.path.exists(data_dir):
+        os.mkdir(data_dir)
+
+    files_dir = os.path.join(data_dir, "files")
+
+    if not os.path.exists(files_dir):
+        os.mkdir(files_dir)
+
+    id = utils.sha1(utils.uuid())
+    fname = os.path.join(files_dir, id)
+
+    with open(fname, "wb") as f:
+        read_bytes = None
+        while True:
+            read_bytes = await file.read(512)
+            if read_bytes:
+                f.write(read_bytes)
+            else:
+                break
+
+    return _files.create(id=id, file=file_upload, bytes=bytes, filename=filename)
+
+@api.get("/v1/files", response_model=_files.FileList, tags=["Files"])
+async def list_files(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> _files.FileList:
+    return _files.list(purpose=purpose, limit=limit, order=order, after=after, before=before)

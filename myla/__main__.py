@@ -30,8 +30,13 @@ def runserver(args):
         if args.reload_dirs:
             reload_dirs.append(args.relead_dirs)
 
+    if args.data:
+        os.environ['DATA_DIR'] = args.data
+
     if args.vectorstore:
         os.environ['VECTORSTORE_DIR'] = args.vectorstore
+    elif 'DATA_DIR' in os.environ:
+        os.environ['VECTORSTORE_DIR'] = os.path.join(os.environ['DATA_DIR'], 'vectorstore')
 
     uvicorn.run('myla:entry', host=args.host, port=args.port,
                 workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,
@@ -55,6 +60,8 @@ parser.add_argument('--env-file', default='.env',
 parser.add_argument("--extensions", default=None, help="extensions directory")
 parser.add_argument("--vectorstore", default=None,
                     help="vectorstore directory")
+parser.add_argument("--data", default='data',
+                    help="data directory")
 parser.add_argument("--debug", default=False,
                     action='store_true', help="enable debug")
 

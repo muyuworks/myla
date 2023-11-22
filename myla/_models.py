@@ -47,8 +47,8 @@ def auto_session(func):
 
 
 @auto_session
-def create(object: str, meta_model: MetadataModel, db_model: DBModel, session: Session = None) -> ReadModel:
-    db_model.id = utils.sha1(utils.uuid())
+def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = None, session: Session = None) -> ReadModel:
+    db_model.id = id if id else utils.sha1(utils.uuid())
     db_model.created_at = int(round(datetime.now().timestamp()))
     db_model.object = object
     db_model.metadata_ = meta_model.metadata
