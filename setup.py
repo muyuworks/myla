@@ -38,7 +38,23 @@ extras_require = {
         'lancedb',
         'faiss-cpu',
         'chatglm_cpp',
-        'pandas'
+    ],
+    'lancedb': [
+        'sentence_transformers',
+        'lancedb',
+    ],
+    'faiss-cpu': [
+        'sentence_transformers',
+        'faiss-cpu',
+        'langchain'
+    ],
+    'faiss-gpu': [
+        'sentence_transformers',
+        'faiss-gpu',
+        'langchain'
+    ],
+    'chatglm': [
+        'chatglm_cpp'
     ]
 }
 

@@ -1,31 +1,26 @@
 # Persistence
-DATABASE_URL=sqlite:///myla.db
-DATABASE_CONNECT_ARGS={"check_same_thread": false}
+#DATABASE_URL=sqlite:///myla.db
+#DATABASE_CONNECT_ARGS={"check_same_thread": false}
 
 # LLMs
-LLM_ENDPOINT=http://172.88.0.20:8888/v1/
-LLM_API_KEY=sk-xx
-DEFAULT_LLM_MODEL_NAME=Qwen-14B-Chat-Int4
+#LLM_ENDPOINT=http://172.88.0.20:8888/v1/
+#LLM_API_KEY=sk-xx
+#DEFAULT_LLM_MODEL_NAME=Qwen-14B-Chat-Int4
 
 # Ebeddings
-EMBEDDINGS_IMPL=bge
-EMBEDDINGS_MODEL_NAME=/Users/shellc/Downloads/bge-large-zh-v1.5
-EMBEDDINGS_DEVICE=cpu
+#EMBEDDINGS_IMPL=sentence_transformers
+#EMBEDDINGS_MODEL_NAME=/Users/shellc/Downloads/bge-large-zh-v1.5
+#EMBEDDINGS_DEVICE=cpu
 #EMBEDDINGS_INSTRUCTION=
 
-TOOLS='
-[
-    {
-        "name": "$iur",
-        "impl": "myla.iur.IURTool",
-        "args": {}
-    },
-    {
-        "name": "$retrieval",
-        "impl": "myla.retrieval.RetrievalTool"
-    }
-]
-'
+#TOOLS='
+#[
+#    {
+#        "name": "retrieval",
+#        "impl": "myla.retrieval.RetrievalTool"
+#    }
+#]
+#'
 
 # HuggingFace
-TOKENIZERS_PARALLELISM=4
+#TOKENIZERS_PARALLELISM=4
