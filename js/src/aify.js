@@ -264,22 +264,26 @@ export const Aify = (props) => {
                 <div className='d-flex p-2'>
                     <Button
                         type="text"
-                        icon={leftCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                         onClick={() => setLeftCollapsed(!leftCollapsed)}
                         style={{
                             fontSize: '14px',
+                            padding: 5
                         }}
                         className='me-auto'
-                    />
+                    >
+                        {leftCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                    </Button>
                     <Button
                         type="text"
-                        icon={rightCollapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
                         onClick={() => setRightCollapsed(!rightCollapsed)}
                         style={{
                             fontSize: '14px',
+                            padding: 5
                         }}
                         className='ms-auto'
-                    />
+                    >
+                        {rightCollapsed ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
+                    </Button>
                 </div>
                 {(currentAssistantId != null && currentThreadId != null) ? (
                     <Chat
