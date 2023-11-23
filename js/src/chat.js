@@ -232,7 +232,7 @@ export const Chat = (props) => {
                     ) : null}
                     {generating ? (
                         <div className="text-center mt-2 mb-3">
-                            <Button onClick={abort}><i className="fa-solid fa-stop me-2"></i> 停止</Button>
+                            <Button onClick={abort}><Spin size="small" style={{marginRight: 10}}/> <strong>Cancel</strong></Button>
                         </div>
                     ) : null}
                 </div>

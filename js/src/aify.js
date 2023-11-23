@@ -21,8 +21,8 @@ let welcome_message = `
 `
 
 export const Aify = (props) => {
-    const [leftCollapsed, setLeftCollapsed] = useState(false);
-    const [rightCollapsed, setRightCollapsed] = useState(false);
+    const [leftCollapsed, setLeftCollapsed] = useState(true);
+    const [rightCollapsed, setRightCollapsed] = useState(true);
     const [assistants, setAssistants] = useState();
     const [assistantMap, setAssistantMap] = useState({});
     const [currentAssistantId, setCurrentAsistantId] = useState(null);
@@ -205,7 +205,7 @@ export const Aify = (props) => {
                 collapsible
                 collapsed={leftCollapsed}
                 onCollapse={(value) => setLeftCollapsed(value)}
-                breakpoint="lg"
+                //breakpoint="lg"
                 theme="light"
                 style={{
                     overflow: 'auto',
@@ -309,7 +309,7 @@ export const Aify = (props) => {
                 collapsible
                 collapsed={rightCollapsed}
                 onCollapse={(value) => setRightCollapsed(value)}
-                breakpoint="lg"
+                //breakpoint="lg"
                 theme="light"
                 style={{
                     overflow: 'auto',
