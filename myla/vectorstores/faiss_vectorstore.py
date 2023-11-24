@@ -33,7 +33,8 @@ class FAISS(VectorStore):
         text_to_embed = []
         for r in records:
             if embeddings_columns:
-                v = itemgetter(*embeddings_columns, r)
+                o = itemgetter(*embeddings_columns)
+                v = o(r)
             else:
                 v = r
             text_to_embed.append(json.dumps(v, ensure_ascii=False))

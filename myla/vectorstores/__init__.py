@@ -43,7 +43,7 @@ def get_default_vectorstore():
     
     return vs
 
-def load_vectorstore_from_file(collection: str, fname: str, ftype: str):
+def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns = None):
     vs = get_default_vectorstore()
 
     if ftype in ['csv', 'xls', 'xlsx', 'json']:
@@ -56,4 +56,4 @@ def load_vectorstore_from_file(collection: str, fname: str, ftype: str):
 
     vs.create_collection(collection=collection, schema=records[0], mode='overwrite')
 
-    vs.add(collection=collection, records=records)
+    vs.add(collection=collection, records=records, embeddings_columns=embeddings_columns)
