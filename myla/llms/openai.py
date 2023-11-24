@@ -49,7 +49,7 @@ async def chat(messages: List[Dict], model=None, stream=False, api_key=None, bas
         if stream:
             async def iter():
                 async for r in resp:
-                    yield r.choices[0].delta.content
+                    yield r.choices[0].delta.content if r.choices else 'Unexpected LLM error, possibly due to context being too long.'
             return iter()
         else:
             genereated = resp.choices[0].message.content

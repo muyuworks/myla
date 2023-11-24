@@ -5,17 +5,11 @@ from ._logging import logger
 from . import llms
 
 RETRIEVAL_INSTRUCTIONS_EN = """
-You should refer to the content below to generate your response. 
-The reference content is an array in JSON format, where each record represents a reference content record. 
-The `doc` attribute of a reference content record represents the reference content, 
-while the `score` attribute represents the relevance score between the reference content and the question.
-The higher the score, the higher the relevance. 
-
-The reference content is enclosed in the <DOCS> tag.
+Refer to the retrievals to generate your answer.
 """
 
 RETRIEVAL_INSTRUCTIONS_ZH = """
-优先参考<DOCS>标签中的内容对最新的问题进行回答。
+参考 Retrievals 信息生成你的回答。
 """
 
 
@@ -39,16 +33,21 @@ class RetrievalTool(Tool):
                 "no retrieval collections specified, skip retrieval")
             return
 
-        args = {}
+        args = {"limit": 20, "with_distance": True}
         if "retrieval_limit" in context.run_metadata:
             args["limit"] = context.run_metadata["retrieval_limit"]
+        distance = 1
+        if "retrieval_distance" in context.run_metadata:
+            distance = context.run_metadata['retrieval_distance']
 
         query = context.messages[-1]["content"]
 
         docs = []
         for c in collections:
-            r_docs = await self._vs.asearch(collection=c, query=query)
-            docs.extend(r_docs)
+            r_docs = await self._vs.asearch(collection=c, query=query, **args)
+            for doc in r_docs:
+                if doc['_distance'] < distance:
+                    docs.append(doc)
 
         #logger.debug("Retrieval docs:" + json.dumps(docs, ensure_ascii=False))
         if docs and len(docs) > 0:
@@ -62,7 +61,7 @@ class RetrievalTool(Tool):
             })
             messages.append({
                 "role": "system",
-                "content": "<DOCS>"
+                "content": "<Retrievals Begin>"
             })
             messages.append({
                 "role": "system",
@@ -71,7 +70,7 @@ class RetrievalTool(Tool):
             })
             messages.append({
                 "role": "system",
-                "content": "</DOCS>"
+                "content": "<Retrievals End>"
             })
             messages.append(last_message)
             context.messages = messages

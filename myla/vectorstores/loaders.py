@@ -5,5 +5,5 @@ from ._base import Record
 class Loader(ABC):
 
     @abstractmethod
-    def load(file) -> Iterator[Record]:
+    def load(self, file) -> Iterator[Record]:
         """Load data from a file"""

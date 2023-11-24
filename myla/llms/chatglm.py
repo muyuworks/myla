@@ -26,9 +26,9 @@ async def chat(messages: List[Dict], model=None, stream=False, **kwargs):
     pipeline = Pipeline(model)
     history = []
     for m in messages:
-        history.append(f"{m['content']}")
-    #history.append("assistant: ")
-    
+        history.append(f"{m['role']}: {m['content']}")
+    history.append("assistant: ")
+
     g = pipeline.chat(
         history=history,
         stream=True,

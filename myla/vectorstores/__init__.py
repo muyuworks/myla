@@ -4,7 +4,7 @@ from ._embeddings import Embeddings
 from .sentence_transformers_embeddings import SentenceTransformerEmbeddings
 from .lancedb_vectorstore import LanceDB
 from .faiss_vectorstore import FAISS
-from . import pandas_loader
+from . import pandas_loader, pdf_loader
 
 def get_default_embeddings():
     impl = os.environ.get("EMBEDDINGS_IMPL")
@@ -48,6 +48,8 @@ def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddin
 
     if ftype in ['csv', 'xls', 'xlsx', 'json']:
         records = list(pandas_loader.PandasLoader(ftype=ftype).load(fname))
+    elif ftype == 'pdf':
+        records = list(pdf_loader.PDFLoader().load(file=fname))
     else:
         raise ValueError("Invalid file type.")
 

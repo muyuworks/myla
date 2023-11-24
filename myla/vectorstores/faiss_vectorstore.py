@@ -68,7 +68,7 @@ class FAISS(VectorStore):
 
         d = []
         for doc in docs:
-            v = doc[0].dict()
+            v = doc[0].metadata
             v['_distance'] = float(doc[1])
             d.append(v)
         return d
