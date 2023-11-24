@@ -37,7 +37,7 @@ extras_require = {
         'sentence_transformers',
         'lancedb',
         'faiss-cpu',
-        'chatglm_cpp',
+        'chatglm_cpp>=0.3.0',
     ],
     'lancedb': [
         'sentence_transformers',
@@ -54,7 +54,7 @@ extras_require = {
         'langchain'
     ],
     'chatglm': [
-        'chatglm_cpp'
+        'chatglm_cpp>=0.3.0'
     ]
 }
 

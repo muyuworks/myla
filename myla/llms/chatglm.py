@@ -3,7 +3,7 @@ from typing import Dict, List
 from .backend import LLM
 from . import utils
 
-from chatglm_cpp import Pipeline
+from chatglm_cpp import Pipeline, ChatMessage
 
 class ChatGLM(LLM):
     def __init__(self, model=None) -> None:
@@ -26,22 +26,22 @@ async def chat(messages: List[Dict], model=None, stream=False, **kwargs):
     pipeline = Pipeline(model)
     history = []
     for m in messages:
-        history.append(f"{m['role']}: {m['content']}")
-    history.append("assistant: ")
+        #history.append(f"{m['role']}: {m['content']}")
+        history.append(ChatMessage(role=m['role'], content=m['content']))
 
     g = pipeline.chat(
-        history=history,
+        messages=history,
         stream=True,
     **kwargs)
     if stream:
         async def iter():
             for c in g:
-                yield c
+                yield c.content
         return iter()
     else:
         genreated = []
         for c in g:
-            genreated.append(c)
+            genreated.append(c.content)
         return ''.join(genreated)
     
 async def generate(instructions: str, model=None, stream=False, **kwargs):
