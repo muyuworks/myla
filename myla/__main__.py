@@ -38,6 +38,9 @@ def runserver(args):
     elif 'DATA_DIR' in os.environ:
         os.environ['VECTORSTORE_DIR'] = os.path.join(os.environ['DATA_DIR'], 'vectorstore')
 
+    if args.webui:
+        os.environ['WEBUI'] = args.webui
+
     uvicorn.run('myla:entry', host=args.host, port=args.port,
                 workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,
                 log_config=LOGGING_CONFIG, reload_dirs=reload_dirs)
@@ -64,7 +67,7 @@ parser.add_argument("--data", default='data',
                     help="data directory")
 parser.add_argument("--debug", default=False,
                     action='store_true', help="enable debug")
-
+parser.add_argument("--webui", default=None, help="webui directory")
 
 def main():
     args = parser.parse_args(sys.argv[1:])

@@ -13,7 +13,7 @@ async def main():
     )
     print(r)
     async for c in r:
-        print(c, end='')
+        print(c, end='', flush=True)
 
 
 if __name__ == '__main__':
