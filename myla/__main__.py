@@ -4,6 +4,7 @@ import sys
 import argparse
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
+from ._entry import register_webui
 
 MYLA_LIB_DIR = os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.pardir))
@@ -40,6 +41,7 @@ def runserver(args):
 
     if args.webui:
         os.environ['WEBUI'] = args.webui
+        register_webui(args.webui)
 
     uvicorn.run('myla:entry', host=args.host, port=args.port,
                 workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,

@@ -12,7 +12,7 @@ from ._run_scheduler import RunScheduler
 from . import _tools
 from . import _env
 from ._api import api
-from ._web_template import render
+from ._web_template import render, get_templates
 from ._logging import logger
 from .vectorstores import load_loaders
 
@@ -68,3 +68,24 @@ routes = [
 ]
 
 entry = Starlette(debug=False, routes=routes, lifespan=lifespan)
+
+def register(path, name, endpoint):
+    entry.routes.insert(0, Route(path=path, name=name, endpoint=endpoint))
+
+def register_webui(webui_dir):
+    webui_dir = os.path.abspath(webui_dir)
+    print(webui_dir)
+    templates = get_templates(webui_dir)
+    print(templates.env)
+
+    entry.routes.insert(0, Mount(
+        '/static',
+        name='static',
+        app=StaticFiles(directory=os.path.join(webui_dir, 'static'), check_dir=False),
+    ))
+
+    entry.routes.insert(0, Route(
+        '/',
+        name='home',
+        endpoint=render('index.html', templates=templates)
+    ))
