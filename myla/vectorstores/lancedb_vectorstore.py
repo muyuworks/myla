@@ -1,4 +1,3 @@
-import json
 from typing import Any, List, Optional, Dict
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
