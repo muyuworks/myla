@@ -74,9 +74,7 @@ def register(path, name, endpoint):
 
 def register_webui(webui_dir):
     webui_dir = os.path.abspath(webui_dir)
-    print(webui_dir)
     templates = get_templates(webui_dir)
-    print(templates.env)
 
     entry.routes.insert(0, Mount(
         '/static',
