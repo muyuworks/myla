@@ -2,11 +2,17 @@ from typing import Optional, List, Dict, Any
 from abc import ABC, abstractmethod
 from functools import partial
 import asyncio
-
+from operator import itemgetter
 
 class Record(Dict):
-    pass
-
+    @staticmethod
+    def values_to_text(record: Dict, props: List[str] = None, separator: str = '\001'):
+        if props:
+            o = itemgetter(*props)
+            v = list(o(record))
+        else:
+            v = list(record.values())
+        return separator.join(v)
 
 class VectorStore(ABC):
     def __init__(self) -> None:

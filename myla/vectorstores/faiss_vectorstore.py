@@ -4,7 +4,6 @@ from typing import List, Optional, Dict, Any
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
 from .._logging import logger
-from operator import itemgetter
 
 def _import_langchain_vectorstores():
     try:
@@ -32,12 +31,10 @@ class FAISS(VectorStore):
 
         text_to_embed = []
         for r in records:
-            if embeddings_columns:
-                o = itemgetter(*embeddings_columns)
-                v = o(r)
-            else:
-                v = r
-            text_to_embed.append(json.dumps(v, ensure_ascii=False))
+            try:
+                text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
+            except Exception as e:
+                logger.warn(f"Record error: {e}")
 
         vs.add_texts(texts=text_to_embed, metadatas=records)
         vs.save_local(os.path.join(self._db_path, collection))
