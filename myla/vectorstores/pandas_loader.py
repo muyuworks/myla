@@ -4,7 +4,7 @@ from ._base import Record
 from .loaders import Loader
 
 class PandasLoader(Loader):
-    def __init__(self, ftype) -> None:
+    def __init__(self, ftype="csv") -> None:
         super().__init__()
         self._ftype = ftype
 

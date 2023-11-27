@@ -22,5 +22,14 @@
 #]
 #'
 
+#LOADERS='
+#[
+#    {
+#        "name": "my_loader",
+#        "impl": "my_loaders.MyLoader"
+#    }
+#]
+#'
+
 # HuggingFace
 #TOKENIZERS_PARALLELISM=4

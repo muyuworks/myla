@@ -1,10 +1,13 @@
 import os
+import json
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
 from .sentence_transformers_embeddings import SentenceTransformerEmbeddings
 from .lancedb_vectorstore import LanceDB
 from .faiss_vectorstore import FAISS
 from . import pandas_loader, pdf_loader
+from .._logging import logger
+from ..utils import create_instance
 
 def get_default_embeddings():
     impl = os.environ.get("EMBEDDINGS_IMPL")
@@ -43,15 +46,44 @@ def get_default_vectorstore():
     
     return vs
 
-def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns = None):
+_loaders = {}
+
+def load_loaders():
+    """Load configured Loaders."""
+    loaders_cfg = os.environ.get("LOADERS")
+    if not loaders_cfg:
+        return
+
+    loaders = json.loads(loaders_cfg)
+    for c in loaders:
+        try:
+            name = c.get("name")
+            impl = c.get("impl")
+            if not name or not impl:
+                logger.warn(f"Invalid Loader config: name={name}, impl={impl}")
+                continue
+            instance = create_instance(impl)
+            _loaders[name] = instance
+        except Exception as e:
+            logger.warn(f"Create Loader failed: {e}", exc_info=e)
+
+def get_loader_instance(name: str):
+    """Get configured Loader."""
+    return _loaders.get(name)
+
+def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns = None, loader: str = None):
     vs = get_default_vectorstore()
 
-    if ftype in ['csv', 'xls', 'xlsx', 'json']:
-        records = list(pandas_loader.PandasLoader(ftype=ftype).load(fname))
+    if loader:
+        loader_ = get_loader_instance(loader)
+    elif ftype in ['csv', 'xls', 'xlsx', 'json']:
+        loader_ = pandas_loader.PandasLoader(ftype=ftype)
     elif ftype == 'pdf':
-        records = list(pdf_loader.PDFLoader().load(file=fname))
+        loader_ = pdf_loader.PDFLoader()
     else:
         raise ValueError("Invalid file type.")
+
+    records = list(loader_.load(file=fname))
 
     if len(records) == 0:
         return

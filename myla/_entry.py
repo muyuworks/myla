@@ -14,6 +14,7 @@ from . import _env
 from ._api import api
 from ._web_template import render
 from ._logging import logger
+from .vectorstores import load_loaders
 
 def import_extensions():
     ext_dir = os.environ.get("EXT_DIR")
@@ -32,6 +33,9 @@ async def lifespan(api: FastAPI):
 
         # Load tools
         _tools.load_tools()
+
+        # Load loaders
+        load_loaders()
 
         # on startup
         Persistence.default().initialize_database()

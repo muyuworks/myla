@@ -2,6 +2,7 @@ import uuid as _uuid
 import hashlib
 import time
 import asyncio
+import importlib
 
 namespace = _uuid.uuid1()
 
@@ -63,3 +64,12 @@ def sync_iter(async_iter, *args, **kwargs):
         if done:
             break
         yield v
+
+def create_instance(module_name: str, *args, **kwargs):
+    try:
+        ss = module_name.split('.')
+        module = importlib.import_module('.'.join(ss[:-1]))
+        instance = getattr(module, ss[-1])(*args, **kwargs)
+        return instance
+    except Exception as e:
+        raise ImportError(f"Create instance failed, module: {module_name}") from e

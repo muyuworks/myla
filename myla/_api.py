@@ -243,11 +243,14 @@ async def upload_file(request: Request, file: UploadFile):
 
     metadata = {}
     embeddings_columns = []
+    loader = None
     for k, v in form.items():
         if k != "purpose" and k != "file":
             metadata[k] = v
             if k == 'embeddings':
                 embeddings_columns = [i.strip() for i in v.split(',')]
+            elif k == 'loader':
+                loader = v
 
     file_upload = _files.FileUpload(
         purpose=purpose,
@@ -288,7 +291,7 @@ async def upload_file(request: Request, file: UploadFile):
     if purpose == "assistants":
         logger.info(f"Build vectorstore: id={id}, ftype={ftype}")
         async def _vs_load_task():
-            load_vectorstore_from_file(collection=id, fname=fname, ftype=ftype, embeddings_columns=embeddings_columns)
+            load_vectorstore_from_file(collection=id, fname=fname, ftype=ftype, embeddings_columns=embeddings_columns, loader=loader)
         try:
             await _vs_load_task()
         except Exception as e:
