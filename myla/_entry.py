@@ -1,5 +1,6 @@
 import os
 import sys
+import importlib
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
@@ -14,14 +15,22 @@ from ._api import api
 from ._web_template import render
 from ._logging import logger
 
+def import_extensions():
+    ext_dir = os.environ.get("EXT_DIR")
+    if ext_dir:
+        sys.path.append(ext_dir)
+
+        entry_py = os.path.join(ext_dir, 'entry.py')
+        if os.path.exists(entry_py):
+            importlib.import_module('entry')
+
 @asynccontextmanager
 async def lifespan(api: FastAPI):
     try:
+        # Load extensions
+        import_extensions()
+
         # Load tools
-        ext_dir = os.environ.get("EXT_DIR")
-        if ext_dir:
-            sys.path.append(ext_dir)
-        
         _tools.load_tools()
 
         # on startup
