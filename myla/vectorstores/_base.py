@@ -1,3 +1,4 @@
+import json
 from typing import Optional, List, Dict, Any
 from abc import ABC, abstractmethod
 from functools import partial
@@ -7,6 +8,8 @@ from operator import itemgetter
 class Record(Dict):
     @staticmethod
     def values_to_text(record: Dict, props: List[str] = None, separator: str = '\001'):
+        if props and not isinstance(props, list):
+            raise ValueError("props should be a list")
         if props:
             o = itemgetter(*props)
             if len(props) == 1:
@@ -15,6 +18,13 @@ class Record(Dict):
                 v = list(o(record))
         else:
             v = list(record.values())
+            vl = []
+            for i in v:
+                if not isinstance(i, str):
+                    vl.append(json.dumps(i, ensure_ascii=False))
+                else:
+                    vl.append(i)
+            v = vl
         return separator.join(v)
 
 class VectorStore(ABC):
