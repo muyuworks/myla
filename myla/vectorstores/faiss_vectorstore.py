@@ -42,18 +42,23 @@ class FAISS(VectorStore):
         raise RuntimeError("Not implemented.")
     
     def search(self, collection: str = None, query: str = None, vector: List = None, filter: Any = None, limit: int = 20, columns: List[str] = None, with_vector: bool = False, with_distance: bool = False, **kwargs) -> List[Record]:
-        return self._faiss_search(collection_name=collection, query=query, k=limit, fetch_k=limit*10)
+        fetch_k = kwargs['fetch_k'] if 'fetch_k' in kwargs else None
+        if not fetch_k:
+            fetch_k = limit * 10
+        return self._faiss_search(collection_name=collection, query=query, vector=vector, filter=filter, k=limit, fetch_k=fetch_k)
 
     def _faiss_search(
         self,
         collection_name,
-        query: str,
+        query: str = None,
+        vector = None,
         k: int = 4,
         filter: Optional[Dict[str, Any]] = None,
         fetch_k: int = 20,
         **kwargs: Any
     ) -> Dict:
         vs = self._get_vectorstore(name=collection_name)
+        # TODO: asimilarity_search_with_score_by_vector
         docs = vs.similarity_search_with_score(
             query=query,
             k=k,
