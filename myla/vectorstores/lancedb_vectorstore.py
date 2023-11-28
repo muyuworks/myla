@@ -49,10 +49,7 @@ class LanceDB(VectorStore):
 
         text_to_embed = []
         for r in records:
-            try:
-                text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
-            except Exception as e:
-                logger.warn(f"Record error: {e}")
+            text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
 
         embeds = self._embeddings.embed_batch(texts=text_to_embed)
         for i in range(len(records)):

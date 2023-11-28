@@ -30,10 +30,7 @@ class FAISS(VectorStore):
 
         text_to_embed = []
         for r in records:
-            try:
-                text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
-            except Exception as e:
-                logger.warn(f"Record error: {e}")
+            text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
 
         vs.add_texts(texts=text_to_embed, metadatas=records)
         vs.save_local(os.path.join(self._db_path, collection))
