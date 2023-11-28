@@ -18,9 +18,9 @@ class Persistence:
             self._connect_args = json.loads(
                 os.environ['DATABASE_CONNECT_ARGS'])
         if not self._database_url:
-            #raise ValueError("database_url is required.")
-            logger.warn("DATABASE_URL not specified, use sqlite:///myla.db")
-            self._database_url = 'sqlite:///myla.db'
+            self._database_url = f"sqlite:///{os.path.join(os.getcwd(), 'myla.db')}"
+            logger.warn(f"DATABASE_URL not specified, use {self._database_url}")
+            
         if not self._connect_args:
             self._connect_args = {}
         
