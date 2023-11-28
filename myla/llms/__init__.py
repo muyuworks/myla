@@ -22,5 +22,8 @@ def get(model_name=None):
     elif backend == "chatglm":
         from .chatglm import ChatGLM
         return ChatGLM(model=model)
+    elif backend == "mock":
+        from .mock import MockLLM
+        return MockLLM()
     else:
         raise ValueError(f"Invalid LLM backend: {model_name}")
