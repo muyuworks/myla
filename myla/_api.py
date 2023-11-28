@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
 
 from ._models import ListModel
-from . import _tools, assistants, threads, messages, runs, _files
+from . import _tools, assistants, files, threads, messages, runs
 from ._run_scheduler import RunScheduler
 from . import tools
 from ._logging import logger
@@ -234,7 +234,7 @@ async def execute_tool(tool_name:str, context: tools.Context):
     return context
 
 # Files
-@api.post("/v1/files", response_model=_files.FileRead, tags=['Files'])
+@api.post("/v1/files", response_model=files.FileRead, tags=['Files'])
 async def upload_file(request: Request, file: UploadFile):
     form = await request.form()
     purpose = form.get("purpose")
@@ -252,7 +252,7 @@ async def upload_file(request: Request, file: UploadFile):
             elif k == 'loader':
                 loader = v
 
-    file_upload = _files.FileUpload(
+    file_upload = files.FileUpload(
         purpose=purpose,
         metadata=metadata
     )
@@ -298,8 +298,8 @@ async def upload_file(request: Request, file: UploadFile):
             logger.debug(f"Build vectorstore failed", exc_info=e)
             raise HTTPException(status_code=400, detail=f"Can't build vectorstore. {e}")
 
-    return _files.create(id=id, file=file_upload, bytes=bytes, filename=filename)
+    return files.create(id=id, file=file_upload, bytes=bytes, filename=filename)
 
-@api.get("/v1/files", response_model=_files.FileList, tags=["Files"])
-async def list_files(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> _files.FileList:
-    return _files.list(purpose=purpose, limit=limit, order=order, after=after, before=before)
+@api.get("/v1/files", response_model=files.FileList, tags=["Files"])
+async def list_files(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> files.FileList:
+    return files.list(purpose=purpose, limit=limit, order=order, after=after, before=before)
