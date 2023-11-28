@@ -9,7 +9,10 @@ class Record(Dict):
     def values_to_text(record: Dict, props: List[str] = None, separator: str = '\001'):
         if props:
             o = itemgetter(*props)
-            v = list(o(record))
+            if len(props) == 1:
+                v = [o(record)]
+            else:
+                v = list(o(record))
         else:
             v = list(record.values())
         return separator.join(v)
