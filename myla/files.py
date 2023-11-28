@@ -1,7 +1,6 @@
-from typing import List, Dict, Any, Optional, Union
-from sqlmodel import Field, Session, Column, JSON, select
-from pydantic import BaseModel
-from ._models import auto_session, MetadataModel, DBModel, ReadModel, ListModel
+from typing import List, Optional, Union
+from sqlmodel import Field, Session, select
+from ._models import auto_session, MetadataModel, DBModel, ReadModel, ListModel, DeletionStatus
 from ._models import create as create_model
 
 class FileUpload(MetadataModel):
@@ -20,7 +19,7 @@ class File(DBModel, table=True):
     filename: Optional[str] = None
     purpose: str = Field(index=True)
 
-def create(id: str, file: FileUpload, bytes:int, filename:str) -> FileRead:
+def create(id: str, file: FileUpload, bytes:int, filename:str, session: Optional[Session] = None) -> FileRead:
     db_model = File(
         purpose=file.purpose,
         bytes=bytes,
@@ -28,12 +27,30 @@ def create(id: str, file: FileUpload, bytes:int, filename:str) -> FileRead:
         metadata_=file.metadata
     )
 
-    dbo = create_model(id=id, object="file", meta_model=file, db_model=db_model)
+    dbo = create_model(id=id, object="file", meta_model=file, db_model=db_model, session=session)
 
     r = FileRead(**dbo.dict())
     r.metadata = dbo.metadata_
 
     return r
+
+@auto_session
+def get(id: str, session: Optional[Session] = None) -> Union[FileRead, None]:
+    r = None
+    dbo = session.get(File, id)
+    if dbo:
+        d = dbo.dict()
+        r = FileRead(**d)
+        r.metadata = dbo.metadata_
+    return r
+
+@auto_session
+def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
+    dbo = session.get(File, id)
+    if dbo:
+        session.delete(dbo)
+        session.commit()
+    return DeletionStatus(id=id, object="file.deleted", deleted=True)
 
 @auto_session
 def list(purpose:str = None, limit: int = 20, order:str = "desc", after:str = None, before:str = None, session: Optional[Session] = None) -> FileList:
