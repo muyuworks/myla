@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
 import { Layout, List, Avatar, Space, Typography, Button, Card, Modal, Form, Input } from 'antd'
-import { MenuUnfoldOutlined, MenuFoldOutlined, MessageFilled, RobotOutlined,CloseCircleOutlined,EditOutlined } from '@ant-design/icons'
+import { MenuUnfoldOutlined, MenuFoldOutlined, MessageFilled, RobotOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined } from '@ant-design/icons'
 import {
 
 } from '@ant-design/icons';
@@ -28,7 +28,7 @@ export const Aify = (props) => {
     const [currentAssistantId, setCurrentAsistantId] = useState(null);
     const [currentThreadId, setCurrentThreadId] = useState(null);
     const [threads, setThreads] = useState();
-    
+
     const [welcomMessage, setWelcomeMessage] = useState();
     const [user, setUser] = useState();
 
@@ -47,7 +47,7 @@ export const Aify = (props) => {
         var metadata = createAssistantForm.getFieldValue("metadata");
         metadata = metadata ? JSON.parse(metadata) : {}
         metadata.icon = icon
-        
+
         var body = {
             "name": name,
             "description": desc,
@@ -81,10 +81,10 @@ export const Aify = (props) => {
                 "Content-Type": "application/json"
             }
         })
-        .then(r => r.json())
-        .then(thread => {
-            loadAsistants();
-        })
+            .then(r => r.json())
+            .then(thread => {
+                loadAsistants();
+            })
     }
 
     const loadAsistants = () => {
@@ -92,7 +92,7 @@ export const Aify = (props) => {
             .then(r => r.json())
             .then(asis => {
                 let m = {};
-                
+
                 asis.data.forEach(a => {
                     if (!a.name) {
                         a.name = a.id
@@ -131,7 +131,7 @@ export const Aify = (props) => {
             })
             .then(data => setWelcomeMessage(data))
     }
-    
+
     const loadUser = () => {
         fetch('/api/user')
             .then(r => r.json())
@@ -158,12 +158,12 @@ export const Aify = (props) => {
                 }
             })
         })
-        .then(r => r.json())
-        .then(thread => {
-            loadThreads();
-            switchThread(assistant_id, thread.id);
-        })
-        
+            .then(r => r.json())
+            .then(thread => {
+                loadThreads();
+                switchThread(assistant_id, thread.id);
+            })
+
     }
 
     const deleteThread = (thread_id) => {
@@ -173,13 +173,13 @@ export const Aify = (props) => {
                 "Content-Type": "application/json"
             }
         })
-        .then(r => r.json())
-        .then(thread => {
-            loadThreads();
-            if (currentThreadId === thread_id) {
-                setCurrentThreadId(null);
-            }
-        })
+            .then(r => r.json())
+            .then(thread => {
+                loadThreads();
+                if (currentThreadId === thread_id) {
+                    setCurrentThreadId(null);
+                }
+            })
     }
 
     const switchThread = (assistant_id, thread_id) => {
@@ -205,14 +205,14 @@ export const Aify = (props) => {
                 collapsible
                 collapsed={leftCollapsed}
                 onCollapse={(value) => setLeftCollapsed(value)}
-                //breakpoint="lg"
+                breakpoint="lg"
                 theme="light"
                 style={{
-                    overflow: 'auto',
                     height: '100vh',
                     backgroundColor: 'whitesmoke'
                 }}
-                width={250}
+                className='overflow-auto scrollbar-none'
+                width={280}
                 collapsedWidth={65}
                 trigger={null}
             >
@@ -221,34 +221,34 @@ export const Aify = (props) => {
                     itemLayout="horizontal"
                     dataSource={threads}
                     renderItem={(thread => (
-                        assistantMap[thread.metadata.assistant_id] != null? (
-                        <List.Item style={currentThreadId === thread.id ? {backgroundColor: 'white'} : {}}>
-                            <Space>
-                                <Link
-                                    onClick={() => switchThread(thread.metadata.assistant_id, thread.id)}
-                                >
-                                    <Space>
-                                        <Avatar style={{ backgroundColor: '#fff' }}>{(assistantMap[thread.metadata.assistant_id].metadata.icon) ?? '🤖'}</Avatar>
-                                        {!leftCollapsed ? (
-                                            <Space direction='horizontal' size={0}>
-                                                <Text type="secondary"
-                                                    ellipsis={{
-                                                        rows: 1,
-                                                    }}
-                                                    style={{ width: '160px' }}
-                                                >
-                                                    <div id={`last-msg-${thread.id}`}>{assistantMap[thread.metadata.assistant_id].name}</div>
-                                                </Text>
-                                            </Space>
-                                        ) : null}
+                        assistantMap[thread.metadata.assistant_id] != null ? (
+                            <List.Item style={currentThreadId === thread.id ? { backgroundColor: 'white' } : {}}>
+                                <Space>
+                                    <Link
+                                        onClick={() => switchThread(thread.metadata.assistant_id, thread.id)}
+                                    >
+                                        <Space>
+                                            <Avatar style={{ backgroundColor: '#fff' }}>{(assistantMap[thread.metadata.assistant_id].metadata.icon) ?? '🤖'}</Avatar>
+                                            {!leftCollapsed ? (
+                                                <Space direction='horizontal' size={0}>
+                                                    <Text type="secondary"
+                                                        ellipsis={{
+                                                            rows: 1,
+                                                        }}
+                                                        style={{ width: '190px' }}
+                                                    >
+                                                        <div id={`last-msg-${thread.id}`}>{assistantMap[thread.metadata.assistant_id].name}</div>
+                                                    </Text>
+                                                </Space>
+                                            ) : null}
 
-                                    </Space>
-                                </Link>
-                                {!leftCollapsed ? (
-                                <Link onClick={() => deleteThread(thread.id)}><CloseCircleOutlined style={{color: '#ccc', marginTop: 15}}/></Link>
-                                ) : null}
-                            </Space>
-                        </List.Item>
+                                        </Space>
+                                    </Link>
+                                    {!leftCollapsed ? (
+                                        <Link onClick={() => deleteThread(thread.id)}><CloseCircleOutlined style={{ color: '#ccc', marginTop: 15 }} /></Link>
+                                    ) : null}
+                                </Space>
+                            </List.Item>
                         ) : null
                     ))}
                 />
@@ -257,7 +257,7 @@ export const Aify = (props) => {
                 id="content"
                 style={{
                     height: '100vh',
-                    overflow: 'scroll',
+                    overflow: 'hidden',
                 }}
                 className='bg-white'
             >
@@ -309,20 +309,20 @@ export const Aify = (props) => {
                 collapsible
                 collapsed={rightCollapsed}
                 onCollapse={(value) => setRightCollapsed(value)}
-                //breakpoint="lg"
+                breakpoint="lg"
                 theme="light"
                 style={{
-                    overflow: 'auto',
                     height: '100vh',
                     backgroundColor: 'whitesmoke'
                 }}
-                width={250}
+                className='overflow-auto scrollbar-none'
+                width={300}
                 collapsedWidth={0}
                 trigger={null}
                 reverseArrow
             >
-                <div style={{marginLeft: 18, marginRight: 18, marginTop: 20}}>
-                    <Button type="primary" block onClick={() => {setOpenCreateAssistantModal(true);setAssistantToModify(null)}}>
+                <div style={{ marginLeft: 18, marginRight: 18, marginTop: 20, marginBottom: 20 }}>
+                    <Button type="primary" block onClick={() => { setOpenCreateAssistantModal(true); setAssistantToModify(null) }}>
                         <RobotOutlined /> Build Assistant
                     </Button>
                 </div>
@@ -334,37 +334,40 @@ export const Aify = (props) => {
                     renderItem={(assistant) => (
                         <List.Item>
                             <Card
+                                size='small'
                                 style={{
-                                    width: 268,
-                                    marginTop: 16,
+                                    width: 280
                                 }}
                                 actions={[
                                     <MessageFilled key="createSession" onClick={() => createThread(assistant.id, assistant.name)} />,
-                                    <EditOutlined onClick={() => {setAssistantToModify(assistant); setOpenCreateAssistantModal(true); }}/>,
-                                    <CloseCircleOutlined onClick={() => deleteAssistant(assistant.id)}/>,
+                                    <SettingOutlined onClick={() => { setAssistantToModify(assistant); setOpenCreateAssistantModal(true); }} />,
+                                    <DeleteOutlined onClick={() => deleteAssistant(assistant.id)} />,
                                 ]}
                             >
                                 <Meta
                                     avatar={<Avatar style={{ backgroundColor: '#eee' }}>{assistant.metadata.icon ?? '🤖'}</Avatar>}
-                                    title={assistant.name}
+                                    title=<span style={{ fontSize: 14 }}>{assistant.name}</span>
                                 />
-                                <div className='pt-3'>
-                                    <Text type="secondary">
-                                        {assistant.description}
-                                    </Text>
-                                </div>
+                                {assistant.description ? (
+                                    <div className='pt-3'>
+                                        <Text type="secondary">
+                                            {assistant.description}
+                                        </Text>
+                                    </div>
+                                ) : null}
+
                             </Card>
                         </List.Item>
                     )}
 
                 />
 
-            <Modal
+                <Modal
                     title="Build your assistant"
                     //centered
                     open={openCreateAssistantModal}
-                    onOk={() => {createAssistant(assistantToModify ? assistantToModify.id : null)}}
-                    onCancel={() => {createAssistantForm.resetFields();setOpenCreateAssistantModal(false); setAssistantToModify(null)}}
+                    onOk={() => { createAssistant(assistantToModify ? assistantToModify.id : null) }}
+                    onCancel={() => { createAssistantForm.resetFields(); setOpenCreateAssistantModal(false); setAssistantToModify(null) }}
                     afterOpenChange={() => createAssistantForm.resetFields()}
                 >
                     <Form form={createAssistantForm} layout="vertical">
@@ -417,7 +420,7 @@ export const Aify = (props) => {
                         <Form.Item label='Avatar' name='icon' initialValue={assistantToModify ? assistantToModify.metadata.icon : "🤖"}>
                             <Input
                                 type='text'
-                                style={{width: 50, height: 50, fontSize: 24}}
+                                style={{ width: 50, height: 50, fontSize: 24 }}
                             />
                         </Form.Item>
                     </Form>

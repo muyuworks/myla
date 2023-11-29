@@ -223,7 +223,7 @@ export const Chat = (props) => {
             }}
             className="p-0 bg-white"
         >
-            <div id="history" className='mb-auto overflow-auto px-3'>
+            <div id="history" className='mb-auto overflow-auto scrollbar-none px-3'>
                 {loading ? <div className='text-center'><Spin size="small" /></div> : null}
                 <MessageHistory history={history} icon={props.icon} user={props.user}/>
                 <div>
@@ -292,7 +292,7 @@ const Message = (props) => {
                         backgroundColor: props.role === 'user' ? '#D6EAF8' : '#f8f9fa'
                     }}
                 >
-                    <div className='card-body px-3 pt-3 pb-0'>
+                    <div className='px-3 pt-3 pb-0'>
                         <ReactMarkdown children={props.message} remarkPlugins={[remarkGfm]} className='p-0 m-0'>
 
                         </ReactMarkdown>
