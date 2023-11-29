@@ -171,7 +171,7 @@ async def modify_run(thread_id: str, run_id: str, run: runs.RunModify):
 
 
 @api.delete("/v1/threads/{thread_id}/runs/{run_id}", tags=['Runs'])
-async def delete_message(thread_id: str, run_id: str):
+async def delete_run(thread_id: str, run_id: str):
     return runs.delete(id=run_id)
 
 
@@ -179,24 +179,28 @@ async def delete_message(thread_id: str, run_id: str):
 async def list_runs(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
     return runs.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before)
 
+
 @api.post("/v1/threads/{thread_id}/runs/{run_id}/cancel", response_model=runs.RunRead, tags=['Runs'])
 async def cancel_run(thread_id: str, run_id: str):
     return runs.cancel(thread_id=thread_id, run_id=run_id)
+
 
 @api.post("/v1/threads/runs", response_model=runs.RunRead, tags=['Runs'])
 async def create_thread_and_run(thread_run: runs.ThreadRunCreate):
     return runs.create_thread_and_run(thread_run=thread_run)
 
+
 @api.get("/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}", response_model=runs.RunStep, tags=['Runs'])
 async def retrieve_run_step(thread_id: str, run_id: str, step_id: str):
     return runs.get_step(thread_id=thread_id, run_id=run_id, step_id=step_id)
+
 
 @api.get("/v1/threads/{thread_id}/runs/{run_id}/steps", response_model=ListModel, tags=['Runs'])
 async def list_run_steps(thread_id: str, run_id: str):
     return runs.list_steps(thread_id=thread_id, run_id=run_id)
 
 
-async def create_run_stream(thread_id:str, run_id: str, timeout=30):
+async def create_run_stream(thread_id: str, run_id: str, timeout=30):
     # waiting for scheduler
     begin = datetime.now().timestamp()
     while True:
@@ -212,7 +216,7 @@ async def create_run_stream(thread_id:str, run_id: str, timeout=30):
             logger.debug(f"Scheduler timeout: thread_id={thread_id}, run_id={run_id}")
             yield "event: error\ndata: %s\n\n" % json.dumps({"e": "Timeout."})
             return
-    
+
         async for c in iter:
             if isinstance(c, str):
                 e = {
@@ -223,17 +227,20 @@ async def create_run_stream(thread_id:str, run_id: str, timeout=30):
                 yield "event: error\ndata: %s\n\n" % json.dumps({"e": str(c)})
     return StreamingResponse(aiter(), headers={'Content-Type': "text/event-stream"})
 
+
 @api.post("/tools/{tool_name}/execute", tags=["Tools"], response_model=tools.Context)
-async def execute_tool(tool_name:str, context: tools.Context):
+async def execute_tool(tool_name: str, context: tools.Context):
     tool_instance = _tools.get_tool(tool_name)
     if not tool_instance or not isinstance(tool_instance, tools.Tool):
         raise HTTPException(status_code=404, detail="Tool not found")
-    
+
     await tool_instance.execute(context=context)
 
     return context
 
 # Files
+
+
 @api.post("/v1/files", response_model=files.FileRead, tags=['Files'])
 async def upload_file(request: Request, file: UploadFile):
     form = await request.form()
@@ -299,6 +306,7 @@ async def upload_file(request: Request, file: UploadFile):
             raise HTTPException(status_code=400, detail=f"Can't build vectorstore. {e}")
 
     return files.create(id=id, file=file_upload, bytes=bytes, filename=filename)
+
 
 @api.get("/v1/files", response_model=files.FileList, tags=["Files"])
 async def list_files(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> files.FileList:

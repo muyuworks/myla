@@ -22,6 +22,7 @@ def sha256(s: str):
     m.update(s.encode())
     return m.hexdigest()
 
+
 def retry(func, rety_times=3):
     def inner(*args, **kwargs):
         for i in range(rety_times):
@@ -37,10 +38,11 @@ def retry(func, rety_times=3):
 def ensure_event_loop():
     try:
         loop = asyncio.get_running_loop()
-    except RuntimeError as e:
+    except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop=loop)
     return loop
+
 
 def sync_call(async_func, *args, **kwargs):
     loop = ensure_event_loop()
@@ -48,6 +50,7 @@ def sync_call(async_func, *args, **kwargs):
     task = loop.create_task(async_func(*args, **kwargs))
     loop.run_until_complete(task)
     return task.result()
+
 
 def sync_iter(async_iter, *args, **kwargs):
     loop = ensure_event_loop()
@@ -64,6 +67,7 @@ def sync_iter(async_iter, *args, **kwargs):
         if done:
             break
         yield v
+
 
 def create_instance(module_name: str, *args, **kwargs):
     try:
