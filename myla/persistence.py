@@ -5,6 +5,7 @@ import json
 from sqlmodel import SQLModel, create_engine, Session
 from ._logging import logger
 
+
 class Persistence:
     _instance = None
 
@@ -20,10 +21,10 @@ class Persistence:
         if not self._database_url:
             self._database_url = f"sqlite:///{os.path.join(os.getcwd(), 'myla.db')}"
             logger.warn(f"DATABASE_URL not specified, use {self._database_url}")
-            
+
         if not self._connect_args:
             self._connect_args = {}
-        
+
         self._engine = create_engine(
             self._database_url,
             connect_args=self._connect_args,
@@ -33,10 +34,10 @@ class Persistence:
     @property
     def engine(self):
         return self._engine
-    
+
     def create_session(self) -> Session:
         return Session(self._engine)
-    
+
     def initialize_database(self):
         SQLModel.metadata.create_all(self._engine)
 
@@ -45,4 +46,3 @@ class Persistence:
         if not Persistence._instance:
             Persistence._instance = Persistence()
         return Persistence._instance
-    

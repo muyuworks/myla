@@ -18,11 +18,14 @@ class AssistantBase(BaseModel):
 class AssistantEdit(MetadataModel, AssistantBase):
     pass
 
+
 class AssistantCreate(AssistantEdit):
     pass
 
+
 class AssistantModify(AssistantEdit):
     pass
+
 
 class AssistantRead(ReadModel, AssistantBase):
     pass
@@ -90,8 +93,9 @@ def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
         session.commit()
     return DeletionStatus(id=id, object="assistant.deleted", deleted=True)
 
+
 @auto_session
-def list(limit: int = 20, order: str = "desc", after:str = None, before:str = None, session: Optional[Session] = None) -> ListModel:
+def list(limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> ListModel:
     select_stmt = select(Assistant)
 
     select_stmt = select_stmt.order_by(-Assistant.created_at if order == "desc" else Assistant.created_at)
@@ -101,7 +105,7 @@ def list(limit: int = 20, order: str = "desc", after:str = None, before:str = No
         select_stmt = select_stmt.filter(Assistant.id < before)
 
     select_stmt = select_stmt.limit(limit)
-    
+
     dbos = session.exec(select_stmt).all()
     rs = []
     for dbo in dbos:

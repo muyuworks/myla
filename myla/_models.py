@@ -28,12 +28,14 @@ class DeletionStatus(BaseModel):
     object: str
     deleted: bool
 
+
 class ListModel(BaseModel):
     object: str = "list"
     data: List[Any] = []
     first_id: Optional[str]
     last_id: Optional[str]
     has_more: bool = False
+
 
 def auto_session(func):
     def inner(session: Optional[Session] = None, **kwargs):

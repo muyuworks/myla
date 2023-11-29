@@ -4,15 +4,19 @@ from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBM
 from ._models import create as create_model
 from .messages import Message
 
+
 class ThreadEdit(MetadataModel):
     # message list
     pass
 
+
 class ThreadCreate(ThreadEdit):
     pass
 
+
 class ThreadModify(ThreadEdit):
     pass
+
 
 class ThreadRead(ReadModel):
     pass
@@ -78,8 +82,9 @@ def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
         session.commit()
     return DeletionStatus(id=id, object="thread.deleted", deleted=True)
 
+
 @auto_session
-def list(limit: int = 20, order: str = "desc", after:str = None, before:str = None, session: Optional[Session] = None) -> ListModel:
+def list(limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> ListModel:
     select_stmt = select(Thread)
 
     select_stmt = select_stmt.order_by(-Thread.created_at if order == "desc" else Thread.created_at)
@@ -89,7 +94,7 @@ def list(limit: int = 20, order: str = "desc", after:str = None, before:str = No
         select_stmt = select_stmt.filter(Thread.id < before)
 
     select_stmt = select_stmt.limit(limit)
-    
+
     dbos = session.exec(select_stmt).all()
     rs = []
     for dbo in dbos:

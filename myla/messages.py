@@ -1,24 +1,28 @@
-import json
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Optional, Union
 from sqlmodel import Field, Session, Column, JSON, select
 from pydantic import BaseModel
 from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBModel, ListModel
 from ._models import create as create_model
 
+
 class MessageText(BaseModel):
     value: str
+
 
 class MessageContent(BaseModel):
     type: str
     text: Optional[List[MessageText]]
+
 
 class MessageCreate(MetadataModel):
     role: str
     content: str
     file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
 
+
 class MessageModify(MetadataModel):
     pass
+
 
 class MessageRead(ReadModel):
     thread_id: str
@@ -28,8 +32,10 @@ class MessageRead(ReadModel):
     content: Optional[List[MessageContent]]
     file_ids: Optional[List[str]] = []
 
+
 class MessageList(ListModel):
     data: List[MessageRead]
+
 
 class Message(DBModel, table=True):
     """
@@ -43,7 +49,7 @@ class Message(DBModel, table=True):
     file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
 
 
-def create(thread_id: str, message: MessageCreate, assistant_id:str = None, run_id:str=None, session: Session = None) -> MessageRead:
+def create(thread_id: str, message: MessageCreate, assistant_id: str = None, run_id: str=None, session: Session = None) -> MessageRead:
     db_model = Message(
         thread_id=thread_id,
         role=message.role,
@@ -102,8 +108,9 @@ def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
         session.commit()
     return DeletionStatus(id=id, object="thread.message.deleted", deleted=True)
 
+
 @auto_session
-def list(thread_id: str, limit: int = 20, order: str = "desc", after:str = None, before:str = None, session: Optional[Session] = None) -> MessageList:
+def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> MessageList:
     select_stmt = select(Message)
     select_stmt = select_stmt.where(Message.thread_id == thread_id)
 
@@ -114,7 +121,7 @@ def list(thread_id: str, limit: int = 20, order: str = "desc", after:str = None,
         select_stmt = select_stmt.filter(Message.id < before)
 
     select_stmt = select_stmt.limit(limit)
-    
+
     dbos = session.exec(select_stmt).all()
     rs = []
     for dbo in dbos:

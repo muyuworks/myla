@@ -5,8 +5,10 @@ from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBM
 from ._models import create as create_model
 from . import assistants
 
+
 class RunEdit(MetadataModel):
     pass
+
 
 class RunCreate(RunEdit):
     assistant_id: str
@@ -14,8 +16,10 @@ class RunCreate(RunEdit):
     instructions: Optional[str]
     tools: Optional[List[Dict[str, Any]]] = []
 
+
 class RunModify(RunEdit):
     pass
+
 
 class RunBase(BaseModel):
     thread_id: Optional[str] = Field(index=True)
@@ -31,14 +35,16 @@ class RunBase(BaseModel):
     failed_at: Optional[int]
     completed_at: Optional[int]
 
+
 class RunRead(ReadModel, RunBase):
     file_ids: Optional[List[str]]
+
 
 class Run(DBModel, RunBase, table=True):
     """
     Represents an assistant that can call the model and use tools.
     """
-    
+
 
 class ThreadRunCreate(MetadataModel):
     assistant_id: str
@@ -47,6 +53,7 @@ class ThreadRunCreate(MetadataModel):
     instructions: Optional[str]
     tools: Optional[List[Dict]]
     file_ids: Optional[List[str]]
+
 
 class RunStep(DBModel, MetadataModel):
     assistant_id: str = Field(index=True)
@@ -77,17 +84,17 @@ def create(thread_id: str, run: RunCreate, session: Session = None) -> RunRead:
 
 
 @auto_session
-def get(thread_id:str, run_id: str, session: Session = None) -> Union[RunRead, None]:
+def get(thread_id: str, run_id: str, session: Session = None) -> Union[RunRead, None]:
     r = None
     dbo = session.get(Run, run_id)
     if dbo:
-        
+
         d = dbo.dict()
 
         # Get thread
         # Get assistant
         assitant = assistants.get(id=dbo.assistant_id, session=session)
-        
+
         d.update(assitant.dict())
 
         r = RunRead(**d)
@@ -102,12 +109,12 @@ def modify(id: str, run: RunModify, session: Session = None) -> Union[RunRead, N
     dbo = session.get(Run, id)
     if dbo:
         for k, v in run.dict(exclude_unset=True).items():
-            
+
             if k == 'metadata':
                 dbo.metadata_ = v
             else:
                 setattr(dbo, k, v)
-            
+
         session.add(dbo)
         session.commit()
         session.refresh(dbo)
@@ -115,7 +122,7 @@ def modify(id: str, run: RunModify, session: Session = None) -> Union[RunRead, N
         # Get thread
         # Get assistant
         #asistant = assistants.get(id=dbo.assistant_id, session=session)
-        
+
         r = RunRead(**dbo.dict())
         r.metadata = dbo.metadata_
 
@@ -130,8 +137,9 @@ def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
         session.commit()
     return DeletionStatus(id=id, object="thread.run.deleted", deleted=True)
 
+
 @auto_session
-def list(thread_id:str, limit: int = 20, order: str = "desc", after:str = None, before:str = None, session: Optional[Session] = None) -> ListModel:
+def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> ListModel:
     select_stmt = select(Run)
 
     select_stmt = select_stmt.order_by(-Run.created_at if order == "desc" else Run.created_at)
@@ -141,11 +149,11 @@ def list(thread_id:str, limit: int = 20, order: str = "desc", after:str = None, 
         select_stmt = select_stmt.filter(Run.id < before)
 
     select_stmt = select_stmt.limit(limit)
-    
+
     dbos = session.exec(select_stmt).all()
     rs = []
     for dbo in dbos:
-        
+
         # Get assistant
         #asistant = assistants.get(id=dbo.assistant_id, session=session)
         #if assitant:
@@ -157,33 +165,39 @@ def list(thread_id:str, limit: int = 20, order: str = "desc", after:str = None, 
     r = ListModel(data=rs)
     return r
 
+
 def cancel(thread_id: str, run_id: str, session: Session = None) -> Union[RunRead, None]:
     return
+
 
 def create_thread_and_run(thread_run: ThreadRunCreate, session: Session = None) -> Union[RunRead, None]:
     return None
 
+
 def create_step(run_id: str, step: RunStep, session: Session = None) -> Union[RunStep, None]:
-    
+
     return None
+
 
 def list_steps(thread_id: str, run_id: str, session: Session = None) -> ListModel:
     return ListModel(object="thread.run.step", data=[])
 
+
 def get_step(thread_id: str, run_id: str, step_id: str, session: Session = None) -> Union[RunStep, None]:
     return None
+
 
 @auto_session
 def update(id: str, session: Session = None, **kwargs):
     dbo = session.get(Run, id)
     if dbo:
         for k, v in kwargs.items():
-            
+
             if k == 'metadata':
                 dbo.metadata_ = v
             else:
                 setattr(dbo, k, v)
-            
+
         session.add(dbo)
         session.commit()
         session.refresh(dbo)
