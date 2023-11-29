@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+
 def plain_messages(messages: List[Dict], model=None):
     text = []
     for m in messages:

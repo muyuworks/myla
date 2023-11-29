@@ -1,5 +1,4 @@
 from myla.vectorstores.lancedb_vectorstore import LanceDB
-import pyarrow as pa
 from myla.vectorstores.sentence_transformers_embeddings import SentenceTransformerEmbeddings
 from myla.vectorstores.pandas_loader import PandasLoader
 

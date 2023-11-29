@@ -20,7 +20,7 @@ class OpenAI(LLM):
             base_url=self.base_url,
             **kwargs
         )
-    
+
     async def generate(self, instructions: str, model=None, stream=False, **kwargs):
         if not model:
             model = self.model

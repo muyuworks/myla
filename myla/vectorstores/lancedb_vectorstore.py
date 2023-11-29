@@ -1,7 +1,6 @@
 from typing import Any, List, Optional, Dict
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
-from .._logging import logger
 
 VECTOR_COLUMN_NAME = "_vector"
 
@@ -12,6 +11,7 @@ class LanceDB(VectorStore):
 
         try:
             import pyarrow as pa
+            pa.__version__
         except ImportError as exc:
             raise ImportError(
                 "Could not import pyarrow python package. "
@@ -108,7 +108,7 @@ class LanceDB(VectorStore):
                 "Could not import pyarrow python package. "
                 "Please install it with `pip install pyarrow`."
             ) from exc
-        
+
         dims = len(self._embeddings.embed(""))
         columns = [
             pa.field(VECTOR_COLUMN_NAME, pa.list_(pa.float32(), dims)),

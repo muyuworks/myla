@@ -5,6 +5,7 @@ DEFAULT_BGE_INSTRUCTION_EN = "Represent this question for searching relevant pas
 
 DEFAULT_BGE_INSTRUCTION_ZH = "为这个句子生成表示以用于检索相关文章："
 
+
 class SentenceTransformerEmbeddings(Embeddings):
     def __init__(
             self,

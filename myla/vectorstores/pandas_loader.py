@@ -3,6 +3,7 @@ from typing import Iterator
 from ._base import Record
 from .loaders import Loader
 
+
 class PandasLoader(Loader):
     def __init__(self, ftype="csv") -> None:
         super().__init__()

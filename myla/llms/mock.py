@@ -1,6 +1,7 @@
 from typing import Dict, List
 from .backend import LLM
 
+
 class MockLLM(LLM):
     def __init__(self) -> None:
         super().__init__()
@@ -15,6 +16,6 @@ class MockLLM(LLM):
             return iter()
         else:
             return last_message
-    
+
     async def generate(self, instructions: str, model=None, stream=False, **kwargs):
         return instructions

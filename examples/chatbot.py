@@ -8,6 +8,7 @@ import myla
 # Load settings
 load_dotenv(".env")
 
+
 async def main():
     myla.RunScheduler.default().start()
 
@@ -33,8 +34,8 @@ async def main():
         content="hi"
     )
     message = myla.messages.create(
-        thread_id=thread.id, 
-        assistant_id=assistant.id, 
+        thread_id=thread.id,
+        assistant_id=assistant.id,
         message=message_create)
     print(f"Message created: {message.id}")
 

@@ -3,6 +3,7 @@ import asyncio
 from ._llm import chat_complete
 from ._logging import logger
 
+
 class AsyncIterator:
     def __init__(self):
         self.queue = asyncio.Queue()
@@ -20,6 +21,7 @@ class AsyncIterator:
 
     async def put(self, item):
         await self.queue.put(item)
+
 
 class RunScheduler:
     _instance = None

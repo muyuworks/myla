@@ -1,6 +1,6 @@
 import asyncio
-from myla.llms.openai import OpenAI
 from myla.llms.chatglm import ChatGLM
+
 
 async def main():
     openai = ChatGLM()

@@ -15,11 +15,13 @@ DOC_SUMMARY_INSTRUCTIONS_ZH = """
 
 候选回答:
 """
+
+
 class QASummaryTool(Tool):
     async def execute(self, context: Context) -> None:
         if len(context.messages) == 0:
             return
-        
+
         last_message = context.messages[-1]['content']
 
         docs = None
@@ -27,7 +29,7 @@ class QASummaryTool(Tool):
         for msg in context.messages:
             if msg.get('type') == 'docs':
                 docs = msg
-        
+
         if docs:
             summary = await llms.get().chat(messages=[{
                 "role": "system",
@@ -41,5 +43,5 @@ class QASummaryTool(Tool):
                 if not (msg['role'] == 'user' or msg['role'] == 'assistant'):
                     messages.append(msg)
             messages.append({"role": "user", "content": last_message})
-            
+
             context.messages = messages

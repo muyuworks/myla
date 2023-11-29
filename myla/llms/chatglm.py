@@ -1,9 +1,9 @@
 import os
 from typing import Dict, List
 from .backend import LLM
-from . import utils
 
 from chatglm_cpp import Pipeline, ChatMessage
+
 
 class ChatGLM(LLM):
     def __init__(self, model=None) -> None:
@@ -13,11 +13,12 @@ class ChatGLM(LLM):
         if not model:
             model = self.model
         return await chat(messages=messages, model=model, stream=stream)
-    
+
     async def generate(self, instructions: str, model=None, stream=False, **kwargs):
         if not model:
             model = self.model
         return await generate(instructions=instructions, model=model, stream=stream, **kwargs)
+
 
 async def chat(messages: List[Dict], model=None, stream=False, **kwargs):
     if not model:
@@ -43,7 +44,8 @@ async def chat(messages: List[Dict], model=None, stream=False, **kwargs):
         for c in g:
             genreated.append(c.content)
         return ''.join(genreated)
-    
+
+
 async def generate(instructions: str, model=None, stream=False, **kwargs):
     r = await chat(messages=[{
         "role": "system",

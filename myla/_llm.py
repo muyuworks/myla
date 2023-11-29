@@ -1,12 +1,11 @@
-import os
 import datetime
 from ._tools import get_tool
 from .tools import Tool, Context
 from . import runs, assistants
-from .messages import create as create_message
 from .messages import list as list_messages, create as create_message, MessageCreate
 from ._logging import logger as log
 from . import llms
+
 
 async def chat_complete(run: runs.RunRead, iter):
     try:
@@ -121,7 +120,7 @@ async def chat_complete(run: runs.RunRead, iter):
     except Exception as e:
         log.warn(f"LLM Failed: {e}")
         log.debug("LLM exc: ", exc_info=e)
-        
+
         runs.update(id=run.id,
             status="failed",
             last_error={
@@ -133,7 +132,8 @@ async def chat_complete(run: runs.RunRead, iter):
         await iter.put(e)
         await iter.put(None) #DONE
 
-async def run_tools(tools, messages, run_metadata, file_ids = []):
+
+async def run_tools(tools, messages, run_metadata, file_ids=[]):
     run_metadata = run_metadata if run_metadata else {}
 
     context = Context(messages=messages, run_metadata=run_metadata, file_ids=file_ids)
@@ -158,6 +158,7 @@ async def run_tools(tools, messages, run_metadata, file_ids = []):
             return context
 
     return context
+
 
 def combine_system_messages(messages):
     """Combine multiple system messages into one"""

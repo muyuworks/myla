@@ -2,6 +2,7 @@ import unittest
 
 from myla.vectorstores import Record
 
+
 class TestRecord(unittest.TestCase):
     def test_values_to_text(self):
         r = {

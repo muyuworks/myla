@@ -5,6 +5,7 @@ from functools import partial
 import asyncio
 from operator import itemgetter
 
+
 class Record(Dict):
     @staticmethod
     def values_to_text(record: Dict, props: List[str] = None, separator: str = '\001'):
@@ -26,6 +27,7 @@ class Record(Dict):
                     vl.append(i)
             v = vl
         return separator.join(v)
+
 
 class VectorStore(ABC):
     def __init__(self) -> None:

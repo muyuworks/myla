@@ -4,6 +4,7 @@ from ._base import Record, VectorStore
 from ._embeddings import Embeddings
 from .._logging import logger
 
+
 def _import_langchain_vectorstores():
     try:
         import langchain.vectorstores as vectorstores
@@ -13,6 +14,7 @@ def _import_langchain_vectorstores():
             "Please install it with `pip install langchain`."
         ) from exc
     return vectorstores
+
 
 class FAISS(VectorStore):
     def __init__(self, db_path: str = None, embeddings: Embeddings = None) -> None:
@@ -24,7 +26,7 @@ class FAISS(VectorStore):
         vectorstores = _import_langchain_vectorstores()
         vs = vectorstores.FAISS.from_texts(texts=[''], embedding=self.get_embeddings())
         vs.save_local(os.path.join(self._db_path, collection))
-    
+
     def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None):
         vs = self._get_vectorstore(collection)
 
@@ -34,10 +36,10 @@ class FAISS(VectorStore):
 
         vs.add_texts(texts=text_to_embed, metadatas=records)
         vs.save_local(os.path.join(self._db_path, collection))
-    
+
     def delete(self, collection: str, query: str):
         raise RuntimeError("Not implemented.")
-    
+
     def search(self, collection: str = None, query: str = None, vector: List = None, filter: Any = None, limit: int = 20, columns: List[str] = None, with_vector: bool = False, with_distance: bool = False, **kwargs) -> List[Record]:
         fetch_k = kwargs['fetch_k'] if 'fetch_k' in kwargs else None
         if not fetch_k:
@@ -48,7 +50,7 @@ class FAISS(VectorStore):
         self,
         collection_name,
         query: str = None,
-        vector = None,
+        vector=None,
         k: int = 4,
         filter: Optional[Dict[str, Any]] = None,
         fetch_k: int = 20,
@@ -92,7 +94,7 @@ class FAISS(VectorStore):
     def get_embeddings(self):
         if not self._embeddings:
             raise ValueError("No default embeddings found.")
-        
+
         from langchain.schema.embeddings import Embeddings as Embeddings_
         class LCEmbeddings(Embeddings_):
             def __init__(self, embed) -> None:

@@ -5,6 +5,7 @@ from ._logging import logger
 
 _tools = {}
 
+
 def load_tools():
     tools = os.environ.get('TOOLS')
     try:
@@ -24,6 +25,7 @@ def load_tools():
 
 def get_tool(name):
     return _tools.get(name)
+
 
 def get_tools():
     return _tools

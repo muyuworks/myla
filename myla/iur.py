@@ -16,6 +16,7 @@ INSTRUCTIONS_ZH = """
 改写后的用户回复:
 """
 
+
 class IURTool(Tool):
     async def execute(self, context: Context) -> None:
         """
@@ -34,7 +35,7 @@ class IURTool(Tool):
         iur_query = await llms.get().generate(INSTRUCTIONS_ZH.format(history=history, last_user_message=last_user_message), temperature=0)
 
         logger.debug(f"Converstations: \n{history}\n IUR: {iur_query}")
-        
+
         context.messages[-1]['content'] = iur_query
 
         context.message_metadata['iur'] = iur_query

@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+
 class LLM:
     def __init__(self, model=None) -> None:
         self.model = model

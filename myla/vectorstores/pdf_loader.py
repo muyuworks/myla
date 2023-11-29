@@ -3,6 +3,7 @@ from typing import Iterator
 from myla.vectorstores._base import Record
 from .loaders import Loader
 
+
 class PDFLoader(Loader):
     def __init__(self, chunk_size=500, chunk_overlap=50) -> None:
         super().__init__()

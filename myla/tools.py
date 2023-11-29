@@ -1,7 +1,8 @@
-from typing import Optional, List, Dict
+from typing import List, Dict
 from pydantic import BaseModel
 import aiohttp
 from ._logging import logger
+
 
 class Context(BaseModel):
     # args, 有系统/LLM产生的调用 Tool 的参数，不可修改
@@ -13,7 +14,7 @@ class Context(BaseModel):
     # Run 的 metadata, 不可修改
     run_metadata: Dict = {}
 
-    # 设置调用 LLM 的参数, 可修改 
+    # 设置调用 LLM 的参数, 可修改
     llm_args: Dict = {}
 
     # 设置生成 Message 的 metadata
@@ -37,6 +38,7 @@ class Context(BaseModel):
         else:
             return self.messages[-1]
 
+
 class Tool:
     """
     Tool 被设置在 Assistant 或 Run 中, 会在 Run 执行过程中被调用。
@@ -47,6 +49,7 @@ class Tool:
     async def execute(self, context: Context) -> None:
         pass
 
+
 class HTTPTool(Tool):
     """
     以 HTTP API 调用远程 Tool 执行
@@ -55,6 +58,7 @@ class HTTPTool(Tool):
     body: Context
     response body: Cotext
     """
+
     def __init__(self, url=None) -> None:
         super().__init__()
         self.url = url

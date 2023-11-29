@@ -16,6 +16,7 @@ from ._web_template import render, get_templates
 from ._logging import logger
 from .vectorstores import load_loaders
 
+
 def import_extensions():
     ext_dir = os.environ.get("EXT_DIR")
     if ext_dir:
@@ -24,6 +25,7 @@ def import_extensions():
         entry_py = os.path.join(ext_dir, 'entry.py')
         if os.path.exists(entry_py):
             importlib.import_module('entry')
+
 
 @asynccontextmanager
 async def lifespan(api: FastAPI):
@@ -69,8 +71,10 @@ routes = [
 
 entry = Starlette(debug=False, routes=routes, lifespan=lifespan)
 
+
 def register(path, name, endpoint):
     entry.routes.insert(0, Route(path=path, name=name, endpoint=endpoint))
+
 
 def register_webui(webui_dir):
     webui_dir = os.path.abspath(webui_dir)
