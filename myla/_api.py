@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
 
-from ._models import ListModel
+from ._models import ListModel, DeletionStatus
 from . import _tools, assistants, files, threads, messages, runs
 from ._run_scheduler import RunScheduler
 from . import tools
@@ -311,3 +311,16 @@ async def upload_file(request: Request, file: UploadFile):
 @api.get("/v1/files", response_model=files.FileList, tags=["Files"])
 async def list_files(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> files.FileList:
     return files.list(purpose=purpose, limit=limit, order=order, after=after, before=before)
+
+
+@api.get("/v1/files/{file_id}", response_model=files.FileRead, tags=['Files'])
+async def retrieve_file(file_id: str):
+    file = files.get(id=file_id)
+    if not file:
+        raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
+    return file
+
+
+@api.delete("/v1/files/{file_id}", response_model=DeletionStatus, tags=['Files'])
+async def delete_file(file_id: str):
+    return files.delete(id=file_id)
