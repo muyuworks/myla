@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
-import { Layout, List, Avatar, Space, Typography, Button, Card, Modal, Form, Input } from 'antd'
-import { MenuUnfoldOutlined, MenuFoldOutlined, MessageFilled, RobotOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert } from 'antd'
+import { MenuUnfoldOutlined, MenuFoldOutlined, PlusOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined } from '@ant-design/icons'
 import {
 
 } from '@ant-design/icons';
@@ -14,7 +14,6 @@ import TextArea from 'antd/es/input/TextArea';
 
 const { Sider } = Layout
 const { Text } = Typography
-const { Meta } = Card
 
 let welcome_message = `
 # Welcome!
@@ -32,19 +31,15 @@ export const Aify = (props) => {
     const [welcomMessage, setWelcomeMessage] = useState();
     const [user, setUser] = useState();
 
-    const [openCreateAssistantModal, setOpenCreateAssistantModal] = useState(false);
-    const [assistantToModify, setAssistantToModify] = useState(false);
-    const [createAssistantForm] = Form.useForm();
-
-    const createAssistant = (assistant_id) => {
-        let name = createAssistantForm.getFieldValue("name");
-        let desc = createAssistantForm.getFieldValue("desc");
-        let instructions = createAssistantForm.getFieldValue("instructions");
-        let model = createAssistantForm.getFieldValue("model");
-        let icon = createAssistantForm.getFieldValue("icon");
-        let tools = createAssistantForm.getFieldValue("tools");
-        let file_ids = createAssistantForm.getFieldValue("file_ids");
-        var metadata = createAssistantForm.getFieldValue("metadata");
+    const createAssistant = async (assistant) => {
+        let name = assistant.name;
+        let desc = assistant.desc;
+        let instructions = assistant.instructions;
+        let model = assistant.model;
+        let icon = assistant.icon;
+        let tools = assistant.tools;
+        let file_ids = assistant.file_ids;
+        var metadata = assistant.metadata;
         metadata = metadata ? JSON.parse(metadata) : {}
         metadata.icon = icon
 
@@ -61,17 +56,17 @@ export const Aify = (props) => {
             body.model = '';
         }
 
-        fetch(assistant_id ? `/api/v1/assistants/${assistant_id}` : "/api/v1/assistants", {
+        const r = await fetch(assistant.id ? `/api/v1/assistants/${assistant.id}` : "/api/v1/assistants", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(body)
-        }).then(r => {
-            loadAsistants();
-            setOpenCreateAssistantModal(false);
-            createAssistantForm.resetFields();
         });
+        if (r.status !== 200) {
+            throw new Error("Bad request status: " + r.status);
+        }
+        loadAsistants();
     }
 
     const deleteAssistant = (assistant_id) => {
@@ -131,12 +126,12 @@ export const Aify = (props) => {
             })
             .then(data => setWelcomeMessage(data))
     }
-
+    /*
     const loadUser = () => {
         fetch('/api/user')
             .then(r => r.json())
             .then(user => setUser(user))
-    }
+    }*/
 
     useEffect(() => {
         loadAsistants();
@@ -205,11 +200,11 @@ export const Aify = (props) => {
                 collapsible
                 collapsed={leftCollapsed}
                 onCollapse={(value) => setLeftCollapsed(value)}
-                breakpoint="lg"
+                //breakpoint="lg"
                 theme="light"
                 style={{
                     height: '100vh',
-                    backgroundColor: 'whitesmoke'
+                    backgroundColor: '#FBFCFC'
                 }}
                 className='overflow-auto scrollbar-none'
                 width={280}
@@ -219,6 +214,7 @@ export const Aify = (props) => {
                 <List
                     size='small'
                     itemLayout="horizontal"
+                    locale={{ emptyText: ' ' }}
                     dataSource={threads}
                     renderItem={(thread => (
                         assistantMap[thread.metadata.assistant_id] != null ? (
@@ -228,7 +224,7 @@ export const Aify = (props) => {
                                         onClick={() => switchThread(thread.metadata.assistant_id, thread.id)}
                                     >
                                         <Space>
-                                            <Avatar style={{ backgroundColor: '#fff' }}>{(assistantMap[thread.metadata.assistant_id].metadata.icon) ?? '🤖'}</Avatar>
+                                            <Avatar style={{ backgroundColor: '#eee', color: '#999' }}>{(assistantMap[thread.metadata.assistant_id].metadata.icon) ?? '🤖'}</Avatar>
                                             {!leftCollapsed ? (
                                                 <Space direction='horizontal' size={0}>
                                                     <Text type="secondary"
@@ -313,120 +309,188 @@ export const Aify = (props) => {
                 theme="light"
                 style={{
                     height: '100vh',
-                    backgroundColor: 'whitesmoke'
+                    backgroundColor: '#FBFCFC',
+                    padding: 10
                 }}
-                className='overflow-auto scrollbar-none'
-                width={300}
+                className='overflow-auto'
+                width={500}
                 collapsedWidth={0}
                 trigger={null}
                 reverseArrow
             >
-                <div style={{ marginLeft: 18, marginRight: 18, marginTop: 20, marginBottom: 20 }}>
-                    <Button type="primary" block onClick={() => { setOpenCreateAssistantModal(true); setAssistantToModify(null) }}>
-                        <RobotOutlined /> Build Assistant
-                    </Button>
-                </div>
-                <List
-                    split={false}
-                    size='small'
-                    itemLayout="horizontal"
-                    dataSource={assistants}
-                    renderItem={(assistant) => (
-                        <List.Item>
-                            <Card
-                                size='small'
-                                style={{
-                                    width: 280
-                                }}
-                                actions={[
-                                    <MessageFilled key="createSession" onClick={() => createThread(assistant.id, assistant.name)} />,
-                                    <SettingOutlined onClick={() => { setAssistantToModify(assistant); setOpenCreateAssistantModal(true); }} />,
-                                    <DeleteOutlined onClick={() => deleteAssistant(assistant.id)} />,
-                                ]}
-                            >
-                                <Meta
-                                    avatar={<Avatar style={{ backgroundColor: '#eee' }}>{assistant.metadata.icon ?? '🤖'}</Avatar>}
-                                    title=<span style={{ fontSize: 14 }}>{assistant.name}</span>
-                                />
-                                {assistant.description ? (
-                                    <div className='pt-3'>
-                                        <Text type="secondary">
-                                            {assistant.description}
-                                        </Text>
-                                    </div>
-                                ) : null}
-
-                            </Card>
-                        </List.Item>
-                    )}
-
+                <Tabs
+                    defaultActiveKey="1"
+                    items={[
+                        {
+                            key: '1',
+                            label: ' Assistants',
+                            children: <Assistants assistants={assistants} onCreate={createAssistant} onDelete={deleteAssistant} createThread={createThread} />
+                        },
+                        {
+                            key: '2',
+                            label: 'Files',
+                            children: <Files />
+                        }
+                    ]}
                 />
-
-                <Modal
-                    title="Build your assistant"
-                    //centered
-                    open={openCreateAssistantModal}
-                    onOk={() => { createAssistant(assistantToModify ? assistantToModify.id : null) }}
-                    onCancel={() => { createAssistantForm.resetFields(); setOpenCreateAssistantModal(false); setAssistantToModify(null) }}
-                    afterOpenChange={() => createAssistantForm.resetFields()}
-                >
-                    <Form form={createAssistantForm} layout="vertical">
-                        <Form.Item label="Name" name='name' initialValue={assistantToModify ? assistantToModify.name : null}>
-                            <Input
-                                type='text'
-                                placeholder="Name"
-                            />
-                        </Form.Item>
-                        <Form.Item label='Description' name='desc' initialValue={assistantToModify ? assistantToModify.description : null} >
-                            <Input
-                                type='text'
-                                //style={{width: 200}}
-                                placeholder="Description"
-                            />
-                        </Form.Item>
-                        <Form.Item label='Instructions' name='instructions' initialValue={assistantToModify ? assistantToModify.instructions : null}>
-                            <TextArea
-                                autoSize
-                                //style={{width: 200}}
-                                placeholder="Instructions"
-                            />
-                        </Form.Item>
-                        <Form.Item label="Model" name='model' initialValue={assistantToModify ? assistantToModify.model : null}>
-                            <Input
-                                type='text'
-                                placeholder="Model name"
-                            />
-                        </Form.Item>
-                        <Form.Item label='Tools' name='tools' initialValue={assistantToModify ? JSON.stringify(assistantToModify.tools) : null}>
-                            <TextArea
-                                autoSize
-                                //style={{width: 200}}
-                                placeholder='tools settings, like: [{"type": "$iur"}, {"type": "retrieval"}]'
-                            />
-                        </Form.Item>
-                        <Form.Item label='Files' name='file_ids' initialValue={assistantToModify ? JSON.stringify(assistantToModify.file_ids) : null}>
-                            <TextArea
-                                autoSize
-                                placeholder='file_ids, like: ["file_1", "file_2"]'
-                            />
-                        </Form.Item>
-                        <Form.Item label='Metadata' name='metadata' initialValue={assistantToModify ? JSON.stringify(assistantToModify.metadata) : null}>
-                            <TextArea
-                                autoSize
-                                //style={{width: 200}}
-                                placeholder='metadata, like: {"retrieval_collection": "default"}'
-                            />
-                        </Form.Item>
-                        <Form.Item label='Avatar' name='icon' initialValue={assistantToModify ? assistantToModify.metadata.icon : "🤖"}>
-                            <Input
-                                type='text'
-                                style={{ width: 50, height: 50, fontSize: 24 }}
-                            />
-                        </Form.Item>
-                    </Form>
-                </Modal>
             </Sider>
         </Layout>
+    );
+}
+
+const Assistants = (props) => {
+    const [formView, setFormView] = useState(false);
+    const [assistantToModify, setAssistantToModify] = useState(null);
+    const [createAssistantForm] = Form.useForm();
+    const [error, setError] = useState();
+
+    const onCancel = () => {
+        setAssistantToModify(null);
+        setFormView(false);
+        createAssistantForm.resetFields();
+        setError(null);
+    }
+
+    const onCreate = () => {
+        let assistant = {
+            id: assistantToModify != null ? assistantToModify.id : null,
+            name: createAssistantForm.getFieldValue("name"),
+            desc: createAssistantForm.getFieldValue("desc"),
+            instructions: createAssistantForm.getFieldValue("instructions"),
+            model: createAssistantForm.getFieldValue("model"),
+            icon: createAssistantForm.getFieldValue("icon"),
+            tools: createAssistantForm.getFieldValue("tools"),
+            file_ids: createAssistantForm.getFieldValue("file_ids"),
+            metadata: createAssistantForm.getFieldValue("metadata")
+        }
+
+        props.onCreate(assistant).then(() => onCancel()).catch(err => setError(err.message));
+
+    }
+
+    const onModify = (assistant) => {
+        createAssistantForm.setFieldValue('name', assistant.name);
+        createAssistantForm.setFieldValue('desc', assistant.desc);
+        createAssistantForm.setFieldValue('instructions', assistant.instructions);
+        createAssistantForm.setFieldValue('model', assistant.model);
+        createAssistantForm.setFieldValue('icon', assistant.metadata.icon);
+        createAssistantForm.setFieldValue('tools', JSON.stringify(assistant.tools, null, 4));
+        createAssistantForm.setFieldValue('file_ids', JSON.stringify(assistant.file_ids, null, 4));
+        createAssistantForm.setFieldValue('metadata', JSON.stringify(assistant.metadata, null, 4));
+        setAssistantToModify(assistant);
+        setFormView(true);
+    }
+
+    useEffect(() => {
+    }, [])
+
+    return (
+        <div>
+            {!formView ? (
+                <div>
+                    <Button
+                        type="dashed"
+                        shape="circle"
+                        style={{ marginLeft: 15, marginBottom: 10 }}
+                        onClick={() => setFormView(true)}
+                    >
+                        <PlusOutlined />
+                    </Button>
+
+                    <List
+                        //split={false}
+                        size='small'
+                        itemLayout="horizontal"
+                        locale={{ emptyText: ' ' }}
+                        dataSource={props.assistants}
+                        renderItem={(assistant) => (
+                            <List.Item
+                                actions={[
+                                    <SettingOutlined onClick={() => { onModify(assistant) }} />,
+                                    <DeleteOutlined onClick={() => props.onDelete(assistant.id)} />,
+                                ]}
+                            >
+                                <Skeleton avatar title={false} loading={assistant.loading} active>
+                                    <List.Item.Meta
+                                        avatar={<Avatar style={{ backgroundColor: '#eee', color: '#999' }}>{assistant.metadata.icon ?? '🤖'}</Avatar>}
+                                        title={<Link onClick={() => props.createThread(assistant.id, assistant.name)} style={{ fontSize: '0.85rem' }}>{assistant.name}</Link>}
+                                        description={assistant.description}
+                                    />
+                                </Skeleton>
+                            </List.Item>
+                        )}
+                    />
+                </div>
+            ) : (
+                <Form form={createAssistantForm} layout="vertical">
+                    <Form.Item label="Name" name='name'>
+                        <Input
+                            type='text'
+                            placeholder="Name"
+                        />
+                    </Form.Item>
+                    <Form.Item label='Description' name='desc' >
+                        <Input
+                            type='text'
+                            //style={{width: 200}}
+                            placeholder="Description"
+                        />
+                    </Form.Item>
+                    <Form.Item label='Instructions' name='instructions'>
+                        <TextArea
+                            autoSize
+                            //style={{width: 200}}
+                            placeholder="Instructions"
+                        />
+                    </Form.Item>
+                    <Form.Item label="Model" name='model'>
+                        <Input
+                            type='text'
+                            placeholder="Model name"
+                        />
+                    </Form.Item>
+                    <Form.Item label='Tools' name='tools'>
+                        <TextArea
+                            autoSize
+                            //style={{width: 200}}
+                            placeholder='tools settings, like: [{"type": "$iur"}, {"type": "retrieval"}]'
+                        />
+                    </Form.Item>
+                    <Form.Item label='Files' name='file_ids'>
+                        <TextArea
+                            autoSize
+                            placeholder='file_ids, like: ["file_1", "file_2"]'
+                        />
+                    </Form.Item>
+                    <Form.Item label='Metadata' name='metadata'>
+                        <TextArea
+                            autoSize
+                            //style={{width: 200}}
+                            placeholder='metadata, like: {"retrieval_collection": "default"}'
+                        />
+                    </Form.Item>
+                    <Form.Item label='Avatar' name='icon' initialValue={'🤖'}>
+                        <Input
+                            type='text'
+                            style={{ width: 50, height: 50, fontSize: 24 }}
+                        />
+                    </Form.Item>
+
+                    {error ? (<Alert message={error} type="error" showIcon style={{ marginBottom: 10 }} />) : null}
+
+                    <Space style={{marginBottom: 20}}>
+                        <Button type='default' onClick={() => { onCancel() }}>Cancel</Button>
+                        <Button type='primary' onClick={onCreate}>{assistantToModify ? 'Modify' : 'Create'}</Button>
+                    </Space>
+                </Form>
+            )}
+        </div>
+    );
+}
+
+const Files = (props) => {
+    return (
+        <div>Files</div>
     );
 }
 
