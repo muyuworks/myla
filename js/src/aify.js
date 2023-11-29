@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
-import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert } from 'antd'
-import { MenuUnfoldOutlined, MenuFoldOutlined, PlusOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined } from '@ant-design/icons'
+import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin } from 'antd'
+import { MenuUnfoldOutlined, MenuFoldOutlined, PlusOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons'
 import {
 
 } from '@ant-design/icons';
@@ -231,7 +231,7 @@ export const Aify = (props) => {
                                                         ellipsis={{
                                                             rows: 1,
                                                         }}
-                                                        style={{ width: '190px' }}
+                                                        style={{ width: '190px', fontSize: '0.8rem' }}
                                                     >
                                                         <div id={`last-msg-${thread.id}`}>{assistantMap[thread.metadata.assistant_id].name}</div>
                                                     </Text>
@@ -323,12 +323,12 @@ export const Aify = (props) => {
                     items={[
                         {
                             key: '1',
-                            label: ' Assistants',
+                            label: <span>Assistants</span>,
                             children: <Assistants assistants={assistants} onCreate={createAssistant} onDelete={deleteAssistant} createThread={createThread} />
                         },
                         {
                             key: '2',
-                            label: 'Files',
+                            label: <span>Files</span>,
                             children: <Files />
                         }
                     ]}
@@ -343,6 +343,7 @@ const Assistants = (props) => {
     const [assistantToModify, setAssistantToModify] = useState(null);
     const [createAssistantForm] = Form.useForm();
     const [error, setError] = useState();
+    const [msg, msgContextHolder] = message.useMessage();
 
     const onCancel = () => {
         setAssistantToModify(null);
@@ -364,7 +365,18 @@ const Assistants = (props) => {
             metadata: createAssistantForm.getFieldValue("metadata")
         }
 
-        props.onCreate(assistant).then(() => onCancel()).catch(err => setError(err.message));
+        props.onCreate(assistant)
+            .then(() => {
+                if (assistant.id != null) {
+                    msg.open({
+                        type: 'success',
+                        content: "Success"
+                    });
+                } else {
+                    onCancel();
+                }
+            })
+            .catch(err => setError(err.message));
 
     }
 
@@ -422,75 +434,240 @@ const Assistants = (props) => {
                     />
                 </div>
             ) : (
-                <Form form={createAssistantForm} layout="vertical">
-                    <Form.Item label="Name" name='name'>
-                        <Input
-                            type='text'
-                            placeholder="Name"
-                        />
-                    </Form.Item>
-                    <Form.Item label='Description' name='desc' >
-                        <Input
-                            type='text'
-                            //style={{width: 200}}
-                            placeholder="Description"
-                        />
-                    </Form.Item>
-                    <Form.Item label='Instructions' name='instructions'>
-                        <TextArea
-                            autoSize
-                            //style={{width: 200}}
-                            placeholder="Instructions"
-                        />
-                    </Form.Item>
-                    <Form.Item label="Model" name='model'>
-                        <Input
-                            type='text'
-                            placeholder="Model name"
-                        />
-                    </Form.Item>
-                    <Form.Item label='Tools' name='tools'>
-                        <TextArea
-                            autoSize
-                            //style={{width: 200}}
-                            placeholder='tools settings, like: [{"type": "$iur"}, {"type": "retrieval"}]'
-                        />
-                    </Form.Item>
-                    <Form.Item label='Files' name='file_ids'>
-                        <TextArea
-                            autoSize
-                            placeholder='file_ids, like: ["file_1", "file_2"]'
-                        />
-                    </Form.Item>
-                    <Form.Item label='Metadata' name='metadata'>
-                        <TextArea
-                            autoSize
-                            //style={{width: 200}}
-                            placeholder='metadata, like: {"retrieval_collection": "default"}'
-                        />
-                    </Form.Item>
-                    <Form.Item label='Avatar' name='icon' initialValue={'🤖'}>
-                        <Input
-                            type='text'
-                            style={{ width: 50, height: 50, fontSize: 24 }}
-                        />
-                    </Form.Item>
+                <div>
+                    {msgContextHolder}
+                    <Link onClick={onCancel} style={{ marginBottom: 20, display: 'block' }}>&lt; Back</Link>
+                    <Form form={createAssistantForm} layout="vertical">
+                        <Form.Item label="Name" name='name'>
+                            <Input
+                                type='text'
+                                placeholder="Name"
+                            />
+                        </Form.Item>
+                        <Form.Item label='Description' name='desc' >
+                            <Input
+                                type='text'
+                                //style={{width: 200}}
+                                placeholder="Description"
+                            />
+                        </Form.Item>
+                        <Form.Item label='Instructions' name='instructions'>
+                            <TextArea
+                                autoSize
+                                //style={{width: 200}}
+                                placeholder="Instructions"
+                            />
+                        </Form.Item>
+                        <Form.Item label="Model" name='model'>
+                            <Input
+                                type='text'
+                                placeholder="Model name"
+                            />
+                        </Form.Item>
+                        <Form.Item label='Tools' name='tools'>
+                            <TextArea
+                                autoSize
+                                //style={{width: 200}}
+                                placeholder='tools settings, like: [{"type": "$iur"}, {"type": "retrieval"}]'
+                            />
+                        </Form.Item>
+                        <Form.Item label='Files' name='file_ids'>
+                            <TextArea
+                                autoSize
+                                placeholder='file_ids, like: ["file_1", "file_2"]'
+                            />
+                        </Form.Item>
+                        <Form.Item label='Metadata' name='metadata'>
+                            <TextArea
+                                autoSize
+                                //style={{width: 200}}
+                                placeholder='metadata, like: {"retrieval_collection": "default"}'
+                            />
+                        </Form.Item>
+                        <Form.Item label='Avatar' name='icon' initialValue={'🤖'}>
+                            <Input
+                                type='text'
+                                style={{ width: 50, height: 50, fontSize: 24 }}
+                            />
+                        </Form.Item>
 
-                    {error ? (<Alert message={error} type="error" showIcon style={{ marginBottom: 10 }} />) : null}
+                        {error ? (<Alert message={error} type="error" showIcon style={{ marginBottom: 10 }} />) : null}
 
-                    <Space style={{marginBottom: 20}}>
-                        <Button type='default' onClick={() => { onCancel() }}>Cancel</Button>
-                        <Button type='primary' onClick={onCreate}>{assistantToModify ? 'Modify' : 'Create'}</Button>
-                    </Space>
-                </Form>
+                        <Space style={{ marginBottom: 20 }}>
+                            <Button type='default' onClick={() => { onCancel() }}>Cancel</Button>
+                            <Button type='primary' onClick={onCreate}>{assistantToModify ? 'Modify' : 'Create'}</Button>
+                        </Space>
+                    </Form>
+                </div>
             )}
         </div>
     );
 }
 
 const Files = (props) => {
+    const [uploadFileForm] = Form.useForm();
+    const [formView, setFormView] = useState(false);
+    const [error, setError] = useState();
+
+    const [files, setFiles] = useState();
+    const [uploading, setUploading] = useState(false);
+
+    const listFiles = () => {
+        fetch('/api/v1/files')
+            .then(r => r.json())
+            .then(data => {
+                setFiles(data.data);
+            });
+    }
+
+    const deleteFile = (id) => {
+        fetch(`/api/v1/files/${id}`, {
+            method: 'DELETE',
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then(r => {
+            listFiles();
+        })
+    }
+
+    useEffect(() => {
+        listFiles();
+    }, []);
+
+    const onCancel = () => {
+        uploadFileForm.resetFields();
+        setFormView(false);
+        setError(null);
+    }
+
+    const uploadFile = (upload) => {
+        const formData = new FormData();
+        formData.append('file', upload.file);
+        formData.append('purpose', 'assistants');
+
+        let embeddings = uploadFileForm.getFieldValue('embeddings');
+        if (embeddings != null) {
+            formData.append('embeddings', embeddings);
+        }
+        let metadata = uploadFileForm.getFieldValue('metadata');
+        if (metadata != null) {
+            try {
+                metadata = JSON.parse(metadata);
+                for (let k of Object.keys(metadata)) {
+                    formData.append(k, metadata[k]);
+                }
+            } catch (err) {
+                setError(err.message);
+                return;
+            }
+        }
+
+        setUploading(true);
+        fetch('/api/v1/files', {
+            method: 'POST',
+            body: formData
+        }).then(r => {
+            if (r.status == 200) {
+                return r.json();
+            } else {
+                upload.onError("Status: " + r.status);
+                setUploading(false);
+            }
+        }).then(data => {
+            upload.onSuccess(data);
+            setUploading(false);
+            listFiles();
+            onCancel();
+        }).catch(err => {
+            setUploading(false);
+        });
+    }
+
     return (
-        <div>Files</div>
+        <div>
+            {!formView ? (
+                <div>
+                    <Button
+                        type="dashed"
+                        shape="circle"
+                        style={{ marginLeft: 15, marginBottom: 10 }}
+                        onClick={() => setFormView(true)}
+                    >
+                        <PlusOutlined />
+                    </Button>
+
+                    <List
+                        //split={false}
+                        size='small'
+                        itemLayout="horizontal"
+                        locale={{ emptyText: ' ' }}
+                        dataSource={files}
+                        renderItem={(file) => (
+                            <List.Item
+                                key={file.id}
+                                actions={[
+                                    <DeleteOutlined onClick={() => {deleteFile(file.id)}} />,
+                                ]}
+                            >
+                                <Skeleton title={false} loading={file.loading} active>
+                                    <Popover
+                                        trigger="click"
+                                        content={
+                                            <Space direction='vertical'>
+                                                <div><strong>Purpose: </strong><Tag color='blue'>{file.purpose}</Tag></div>
+                                                <div><strong>Id: </strong>{file.id}</div>
+                                                <div><strong>Bytes: </strong>{file.bytes}</div>
+                                                <div><strong>Created: </strong>{new Date(file.created_at * 1000).toLocaleString()}</div>
+                                                <div><strong>Metadata: </strong>{JSON.stringify(file.metadata)}</div>
+                                            </Space>
+                                        }
+                                    >
+                                        <Link style={{ fontSize: '0.85rem', fontWeight: 'normal', color: '#666' }}>{file.filename}</Link>
+                                    </Popover>
+                                </Skeleton>
+                            </List.Item>
+                        )}
+                    />
+                </div>
+            ) : (
+                <div>
+                    <Link onClick={onCancel} style={{ marginBottom: 20, display: 'block' }}>&lt; Back</Link>
+                    <Form form={uploadFileForm} layout="vertical">
+                        <Form.Item label='Embedding Columns' name='embeddings'>
+                            <TextArea
+                                autoSize
+                                placeholder="Embedding columns, like: column1,column2"
+                            />
+                        </Form.Item>
+                        <Form.Item label='Metadata' name='metadata'>
+                            <TextArea
+                                rows={5}
+                                placeholder='metadata, like: {"metadata1": "value"}'
+                            />
+                        </Form.Item>
+
+                        {error ? (<Alert message={error} type="error" showIcon style={{ marginBottom: 10 }} />) : null}
+
+                        <Space style={{ marginBottom: 20 }}>
+                            <Upload
+                                name='file'
+                                /*action='/api/v1/files'
+                                data={{
+                                    "purpose": "assistants",
+                                    "embeddings": uploadFileForm.getFieldValue('embeddings')
+                                }}*/
+                                customRequest={uploadFile}
+                                showUploadList={false}
+                            >
+                                <Button icon={<UploadOutlined />} type='primary' onClick={() => { }}>Upload</Button>
+                            </Upload>
+                            {uploading ? <Spin /> : null}
+                        </Space>
+                    </Form>
+                </div>
+            )}
+        </div>
     );
 }
 

@@ -289,7 +289,7 @@ const Message = (props) => {
                 </div>
                 <div className='card mx-3 border-0'
                     style={{
-                        backgroundColor: props.role === 'user' ? '#D6EAF8' : '#f8f9fa'
+                        backgroundColor: props.role === 'user' ? '#E8F8F5' : '#f8f9fa'
                     }}
                 >
                     <div className='px-3 pt-3 pb-0'>
