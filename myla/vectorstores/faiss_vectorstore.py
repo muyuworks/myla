@@ -24,7 +24,7 @@ class FAISS(VectorStore):
 
     def create_collection(self, collection: str, schema: Dict[str, type] = None, mode="create"):
         vectorstores = _import_langchain_vectorstores()
-        vs = vectorstores.FAISS.from_texts(texts=[''], embedding=self.get_embeddings())
+        vs = vectorstores.FAISS.from_texts(texts=[''], embedding=self.get_embeddings(), normalize_L2=True)
         vs.save_local(os.path.join(self._db_path, collection))
 
     def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None):

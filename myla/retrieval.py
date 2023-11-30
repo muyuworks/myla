@@ -49,7 +49,7 @@ class RetrievalTool(Tool):
                 if doc['_distance'] < distance:
                     docs.append(doc)
 
-        #logger.debug("Retrieval docs:" + json.dumps(docs, ensure_ascii=False))
+        logger.debug("Retrieval docs:" + json.dumps(docs, ensure_ascii=False))
         if docs and len(docs) > 0:
             messages = context.messages
             last_message = messages[-1]
