@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
-import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin } from 'antd'
-import { MenuUnfoldOutlined, MenuFoldOutlined, PlusOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons'
+import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin, Card, Select } from 'antd'
+import { MenuUnfoldOutlined, MenuFoldOutlined, PlusOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons'
 import {
 
 } from '@ant-design/icons';
@@ -43,13 +43,19 @@ export const Aify = (props) => {
         metadata = metadata ? JSON.parse(metadata) : {}
         metadata.icon = icon
 
+        let tools_cfg = [];
+        for (let i = 0; tools && i < tools.length; i ++) {
+            tools_cfg.push({
+                "type": tools[i]
+            });
+        }
         var body = {
             "name": name,
             "description": desc,
             "instructions": instructions,
             "model": model,
-            "tools": tools ? JSON.parse(tools) : [],
-            "file_ids": file_ids ? JSON.parse(file_ids) : [],
+            "tools": tools ? tools_cfg : [],
+            "file_ids": file_ids ? file_ids : [],
             "metadata": metadata
         };
         if (model == null) {
@@ -329,7 +335,7 @@ export const Aify = (props) => {
                         {
                             key: '2',
                             label: <span>Files</span>,
-                            children: <Files />
+                            children: <Files/>
                         }
                     ]}
                 />
@@ -344,6 +350,10 @@ const Assistants = (props) => {
     const [createAssistantForm] = Form.useForm();
     const [error, setError] = useState();
     const [msg, msgContextHolder] = message.useMessage();
+
+    const [fileIdsOptions, setFileIdsOptions] = useState([]);
+    const [toolsOptions, setToolsOptions] = useState();
+    const [modelsOptions, setModelsOptions] = useState();
 
     const onCancel = () => {
         setAssistantToModify(null);
@@ -386,15 +396,69 @@ const Assistants = (props) => {
         createAssistantForm.setFieldValue('instructions', assistant.instructions);
         createAssistantForm.setFieldValue('model', assistant.model);
         createAssistantForm.setFieldValue('icon', assistant.metadata.icon);
-        createAssistantForm.setFieldValue('tools', JSON.stringify(assistant.tools, null, 4));
-        createAssistantForm.setFieldValue('file_ids', JSON.stringify(assistant.file_ids, null, 4));
+        createAssistantForm.setFieldValue('file_ids', assistant.file_ids);
         createAssistantForm.setFieldValue('metadata', JSON.stringify(assistant.metadata, null, 4));
+
+        let tools = [];
+        for (let i = 0; assistant.tools && i < assistant.tools.length; i ++) {
+            tools.push(assistant.tools[i].type);
+        }
+        createAssistantForm.setFieldValue('tools', tools);
+
         setAssistantToModify(assistant);
         setFormView(true);
     }
 
+    const listFiles = () => {
+        fetch('/api/v1/files')
+            .then(r => r.json())
+            .then(data => {
+                let options = []
+                for (let i = 0; i < data.data.length; i ++) {
+                    options.push({
+                        label: data.data[i].filename,
+                        value: data.data[i].id
+                    });
+                }
+                setFileIdsOptions(options);
+            });
+    }
+
+    const listTools = () => {
+        fetch('/api/v1/tools')
+            .then(r => r.json())
+            .then(data => {
+                let options = []
+                for (let i = 0; i < data.length; i ++) {
+                    options.push({
+                        label: data[i],
+                        value: data[i]
+                    });
+                }
+                setToolsOptions(options);
+            });
+    }
+
+    const listModels = () => {
+        fetch('/api/v1/models')
+            .then(r => r.json())
+            .then(data => {
+                let options = []
+                for (let i = 0; i < data.data.length; i ++) {
+                    options.push({
+                        label: data.data[i].id,
+                        value: data.data[i].id
+                    });
+                }
+                setModelsOptions(options);
+            });
+    }
+
     useEffect(() => {
-    }, [])
+        listFiles();
+        listTools();
+        listModels();
+    }, [formView])
 
     return (
         <div>
@@ -459,24 +523,30 @@ const Assistants = (props) => {
                             />
                         </Form.Item>
                         <Form.Item label="Model" name='model'>
-                            <Input
-                                type='text'
-                                placeholder="Model name"
+                            <Select
+                                allowClear
+                                placeholder="Select a model"
+                                options={modelsOptions}
                             />
                         </Form.Item>
                         <Form.Item label='Tools' name='tools'>
-                            <TextArea
-                                autoSize
-                                //style={{width: 200}}
-                                placeholder='tools settings, like: [{"type": "$iur"}, {"type": "retrieval"}]'
+                            <Select
+                                mode="multiple"
+                                allowClear
+                                placeholder="Select tools"
+                                options={toolsOptions}
                             />
                         </Form.Item>
-                        <Form.Item label='Files' name='file_ids'>
-                            <TextArea
-                                autoSize
-                                placeholder='file_ids, like: ["file_1", "file_2"]'
+
+                        <Form.Item label='Files' name='file_ids' extra={<Button onClick={listFiles} style={{marginTop: 10}} size='small'><ReloadOutlined /> Reload</Button>}>
+                            <Select
+                                mode="multiple"
+                                allowClear
+                                placeholder="Select files"
+                                options={fileIdsOptions}
                             />
                         </Form.Item>
+
                         <Form.Item label='Metadata' name='metadata'>
                             <TextArea
                                 autoSize
@@ -495,7 +565,7 @@ const Assistants = (props) => {
 
                         <Space style={{ marginBottom: 20 }}>
                             <Button type='default' onClick={() => { onCancel() }}>Cancel</Button>
-                            <Button type='primary' onClick={onCreate}>{assistantToModify ? 'Modify' : 'Create'}</Button>
+                            <Button type='primary' onClick={onCreate}>{assistantToModify ? 'Save' : 'Create'}</Button>
                         </Space>
                     </Form>
                 </div>
@@ -571,8 +641,7 @@ const Files = (props) => {
             if (r.status == 200) {
                 return r.json();
             } else {
-                upload.onError("Status: " + r.status);
-                setUploading(false);
+                throw new Error("Status: " + r.status);
             }
         }).then(data => {
             upload.onSuccess(data);
@@ -581,6 +650,8 @@ const Files = (props) => {
             onCancel();
         }).catch(err => {
             setUploading(false);
+            upload.onError(err.message);
+            setError(err.message);
         });
     }
 
@@ -596,7 +667,6 @@ const Files = (props) => {
                     >
                         <PlusOutlined />
                     </Button>
-
                     <List
                         //split={false}
                         size='small'
@@ -607,6 +677,7 @@ const Files = (props) => {
                             <List.Item
                                 key={file.id}
                                 actions={[
+                                    //<CheckCircleOutlined onClick={() => props.selectFile(file)} style={{color: props.selectedFiles[file.id] ? 'green' : ''}} />,
                                     <DeleteOutlined onClick={() => {deleteFile(file.id)}} />,
                                 ]}
                             >
@@ -649,14 +720,10 @@ const Files = (props) => {
 
                         {error ? (<Alert message={error} type="error" showIcon style={{ marginBottom: 10 }} />) : null}
 
+                        <div style={{marginBottom: 10, color: 'gray'}}>Available formats: csv, xsl, xlsx, pdf, json</div>
                         <Space style={{ marginBottom: 20 }}>
                             <Upload
                                 name='file'
-                                /*action='/api/v1/files'
-                                data={{
-                                    "purpose": "assistants",
-                                    "embeddings": uploadFileForm.getFieldValue('embeddings')
-                                }}*/
                                 customRequest={uploadFile}
                                 showUploadList={false}
                             >
