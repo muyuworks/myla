@@ -15,4 +15,12 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="aify"></div>
 </body>
+<script defer>
+    window.onload = function () {
+        var chatMode = "{{chat_mode}}" == 'True';
+        var assistantId = "{{assistant_id}}";
+        assistantId = assistantId !== '' ? assistantId : null;
+        createAify("aify", chatMode=chatMode, assistantId=assistantId);
+    }
+</script>
 </html>

@@ -567,7 +567,7 @@ const Assistants = (props) => {
 
                         {assistantToModify ? (
                             <div style={{marginBottom: 10}}>
-                                <Link href={`/assistants/${assistantToModify.id}`}>Share this assistant to others.</Link>
+                                <Link href={`/assistants/${assistantToModify.id}`} target='_blank'>Share this assistant to others.</Link>
                             </div>
                         ) : null}
 

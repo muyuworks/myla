@@ -15,6 +15,7 @@ from ._api import api
 from ._web_template import render, get_templates
 from ._logging import logger
 from .vectorstores import load_loaders
+from . import webui
 
 
 def import_extensions():
@@ -66,6 +67,11 @@ routes = [
         '/',
         name='home',
         endpoint=render('index.html')
+    ),
+    Route(
+        '/assistants/{assistant_id}',
+        name='assistant',
+        endpoint=webui.assistant
     )
 ]
 
