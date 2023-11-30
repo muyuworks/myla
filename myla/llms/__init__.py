@@ -1,6 +1,7 @@
 import os
 from .backend import LLM
 
+
 def get(model_name=None):
     """
     Get LLM
@@ -27,3 +28,26 @@ def get(model_name=None):
         return MockLLM()
     else:
         raise ValueError(f"Invalid LLM backend: {model_name}")
+
+
+def list_models():
+    """List all models."""
+    models = {}
+
+    if os.environ.get("LLM_ENDPOINT"):
+        endpoint = os.environ.get("LLM_ENDPOINT")
+        api_key = os.environ.get("LLM_API_KEY")
+        import openai
+        client = openai.OpenAI(api_key=api_key, base_url=endpoint)
+        openai_models = client.models.list()
+        for m in openai_models.data:
+            models[m.id] = m
+
+    default_model = os.environ.get("DEFAULT_LLM_MODEL_NAME")
+    if default_model and default_model not in models:
+        models[default_model] = {
+            'id': default_model,
+            'object': 'model'
+        }
+
+    return models

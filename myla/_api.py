@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+from typing import List
 from datetime import datetime
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Request, UploadFile
@@ -13,6 +14,7 @@ from . import tools
 from ._logging import logger
 from . import utils
 from .vectorstores import load_vectorstore_from_file
+from . import llms
 
 API_VERSION = "v1"
 
@@ -47,6 +49,14 @@ class Version(BaseModel):
 @api.get('/version', response_model=Version)
 async def get_version():
     return Version(version=API_VERSION)
+
+
+@api.get("/v1/models")
+async def list_models():
+    return {
+        'object': 'list',
+        'data': list(llms.list_models().values())
+    }
 
 # Assistants
 
@@ -227,8 +237,18 @@ async def create_run_stream(thread_id: str, run_id: str, timeout=30):
                 yield "event: error\ndata: %s\n\n" % json.dumps({"e": str(c)})
     return StreamingResponse(aiter(), headers={'Content-Type': "text/event-stream"})
 
+# Tools
 
-@api.post("/tools/{tool_name}/execute", tags=["Tools"], response_model=tools.Context)
+
+@api.get("/v1/tools", response_model=List[str], tags=['Tools'])
+async def list_tools():
+    tools = []
+    for t in _tools.get_tools().keys():
+        tools.append(t)
+    return tools
+
+
+@api.post("/v1/tools/{tool_name}/execute", tags=["Tools"], response_model=tools.Context)
 async def execute_tool(tool_name: str, context: tools.Context):
     tool_instance = _tools.get_tool(tool_name)
     if not tool_instance or not isinstance(tool_instance, tools.Tool):
