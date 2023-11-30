@@ -43,7 +43,7 @@ def get_default_vectorstore():
             vs = LanceDB(db_uri=vs_dir, embeddings=embeddings)
         else:
             raise ValueError(f"VectorStore not suported: {impl}")
-    
+        _default_vs[impl] = vs
     return vs
 
 _loaders = {}
@@ -82,6 +82,9 @@ def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddin
         loader_ = pdf_loader.PDFLoader()
     else:
         raise ValueError("Invalid file type.")
+
+    if not loader_:
+        raise RuntimeError(f"Loader not found: {loader}")
 
     records = list(loader_.load(file=fname))
 
