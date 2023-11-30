@@ -1,13 +1,17 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { create, Aify } from './aify'
+import { Aify } from './aify'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import './index.css'
 
-const root = ReactDOM.createRoot(document.getElementById("aify"));
-root.render(
-    <React.StrictMode>
-        <Aify />
-    </React.StrictMode>
-);
+export const createAify = (elementId, chatMode=false, assistantId=null) => {
+    const root = ReactDOM.createRoot(document.getElementById(elementId));
+    root.render(
+        <React.StrictMode>
+            <Aify chatMode={chatMode} assistantId={assistantId}/>
+        </React.StrictMode>
+    );
+}
+window.createAify = createAify;
+//export default createAify;

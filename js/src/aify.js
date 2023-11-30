@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
-import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin, Card, Select } from 'antd'
+import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin, Select } from 'antd'
 import { MenuUnfoldOutlined, MenuFoldOutlined, PlusOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons'
 import {
 
@@ -223,7 +223,7 @@ export const Aify = (props) => {
                     locale={{ emptyText: ' ' }}
                     dataSource={threads}
                     renderItem={(thread => (
-                        assistantMap[thread.metadata.assistant_id] != null ? (
+                        assistantMap[thread.metadata.assistant_id] != null && (props.assistantId == null || (props.assistantId != null && props.assistantId == thread.metadata.assistant_id)) ? (
                             <List.Item style={currentThreadId === thread.id ? { backgroundColor: 'white' } : {}}>
                                 <Space>
                                     <Link
@@ -330,12 +330,12 @@ export const Aify = (props) => {
                         {
                             key: '1',
                             label: <span>Assistants</span>,
-                            children: <Assistants assistants={assistants} onCreate={createAssistant} onDelete={deleteAssistant} createThread={createThread} />
+                            children: <Assistants assistantId={props.assistantId} chatMode={props.chatMode} assistants={assistants} onCreate={createAssistant} onDelete={deleteAssistant} createThread={createThread} />
                         },
                         {
                             key: '2',
-                            label: <span>Files</span>,
-                            children: <Files/>
+                            label: props.chatMode ? '' : <span>Files</span>,
+                            children: <Files chatMode={props.chatMode}/>
                         }
                     ]}
                 />
@@ -464,14 +464,16 @@ const Assistants = (props) => {
         <div>
             {!formView ? (
                 <div>
-                    <Button
-                        type="dashed"
-                        shape="circle"
-                        style={{ marginLeft: 15, marginBottom: 10 }}
-                        onClick={() => setFormView(true)}
-                    >
-                        <PlusOutlined />
-                    </Button>
+                    {!props.chatMode ? (
+                        <Button
+                            type="dashed"
+                            shape="circle"
+                            style={{ marginLeft: 15, marginBottom: 10 }}
+                            onClick={() => setFormView(true)}
+                        >
+                            <PlusOutlined />
+                        </Button>
+                    ) : null}
 
                     <List
                         //split={false}
@@ -480,20 +482,22 @@ const Assistants = (props) => {
                         locale={{ emptyText: ' ' }}
                         dataSource={props.assistants}
                         renderItem={(assistant) => (
-                            <List.Item
-                                actions={[
-                                    <SettingOutlined onClick={() => { onModify(assistant) }} />,
-                                    <DeleteOutlined onClick={() => props.onDelete(assistant.id)} />,
-                                ]}
-                            >
-                                <Skeleton avatar title={false} loading={assistant.loading} active>
-                                    <List.Item.Meta
-                                        avatar={<Avatar style={{ backgroundColor: '#eee', color: '#999' }}>{assistant.metadata.icon ?? '🤖'}</Avatar>}
-                                        title={<Link onClick={() => props.createThread(assistant.id, assistant.name)} style={{ fontSize: '0.85rem' }}>{assistant.name}</Link>}
-                                        description={assistant.description}
-                                    />
-                                </Skeleton>
-                            </List.Item>
+                            props.assistantId == null || (props.assistantId != null && assistant.id == props.assistantId) ? (
+                                <List.Item
+                                    actions={[
+                                        props.chatMode ? null : <SettingOutlined onClick={() => { onModify(assistant) }} />,
+                                        props.chatMode ? null : <DeleteOutlined onClick={() => props.onDelete(assistant.id)} />,
+                                    ]}
+                                >
+                                    <Skeleton avatar title={false} loading={assistant.loading} active>
+                                        <List.Item.Meta
+                                            avatar={<Avatar style={{ backgroundColor: '#eee', color: '#999' }}>{assistant.metadata.icon ?? '🤖'}</Avatar>}
+                                            title={<Link onClick={() => props.createThread(assistant.id, assistant.name)} style={{ fontSize: '0.85rem' }}>{assistant.name}</Link>}
+                                            description={assistant.description}
+                                        />
+                                    </Skeleton>
+                                </List.Item>
+                            ) : null
                         )}
                     />
                 </div>
@@ -560,6 +564,12 @@ const Assistants = (props) => {
                                 style={{ width: 50, height: 50, fontSize: 24 }}
                             />
                         </Form.Item>
+
+                        {assistantToModify ? (
+                            <div style={{marginBottom: 10}}>
+                                <Link href={`/assistants/${assistantToModify.id}`}>Share this assistant to others.</Link>
+                            </div>
+                        ) : null}
 
                         {error ? (<Alert message={error} type="error" showIcon style={{ marginBottom: 10 }} />) : null}
 
