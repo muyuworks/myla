@@ -1,4 +1,5 @@
 import datetime
+import asyncio
 from ._tools import get_tool
 from .tools import Tool, Context
 from . import runs, assistants
@@ -103,6 +104,7 @@ async def chat_complete(run: runs.RunRead, iter):
                 if c is not None:
                     genereated.append(c)
                     await iter.put(c)
+                    await asyncio.sleep(0) # back to envent loop for iter.get
 
         msg_create = MessageCreate(
             role="assistant",
