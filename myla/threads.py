@@ -72,11 +72,12 @@ def modify(id: str, thread: ThreadEdit, session: Session = None):
 
 
 @auto_session
-def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
+def delete(id: str, delete_message: bool = False, session: Optional[Session] = None) -> DeletionStatus:
     dbo = session.get(Thread, id)
     if dbo:
         # delete all messages that belong to this thread
-        session.query(Message).where(Message.thread_id == id).delete()
+        if delete_message:
+            session.query(Message).where(Message.thread_id == id).delete()
 
         session.delete(dbo)
         session.commit()
