@@ -2,16 +2,36 @@
 #DATABASE_URL=sqlite:///myla.db
 #DATABASE_CONNECT_ARGS={"check_same_thread": false}
 
+
 # LLMs
+
 #LLM_ENDPOINT=http://172.88.0.20:8888/v1/
 #LLM_API_KEY=sk-xx
 #DEFAULT_LLM_MODEL_NAME=Qwen-14B-Chat-Int4
 
+# to use ChatGLM as the backend: pip install myla[chatglm]
+# the model name for ChatGLM like:
+#DEFAULT_LLM_MODEL_NAME=chatglm@/Users/shellc/Workspaces/chatglm.cpp/chatglm-ggml.bin
+
+
 # Ebeddings
+
 #EMBEDDINGS_IMPL=sentence_transformers
 #EMBEDDINGS_MODEL_NAME=/Users/shellc/Downloads/bge-large-zh-v1.5
 #EMBEDDINGS_DEVICE=cpu
 #EMBEDDINGS_INSTRUCTION=
+
+
+# Vectorstore
+# Default vecotrstore backend, options: faiss, lancedb
+# to use faiss as the backend: pip install myla[faiss-cpu] or myla[faiss-gpu]
+# to use LanceDB as the backend: pip install myla[lancedb]
+
+#VECTOR_STORE_IMPL=faiss
+
+
+# Tools
+# JSON format configurations
 
 #TOOLS='
 #[
@@ -22,6 +42,10 @@
 #]
 #'
 
+
+# Vectorstore Loaders
+# JSON format configurations
+
 #LOADERS='
 #[
 #    {
@@ -31,5 +55,9 @@
 #]
 #'
 
+
+# Others
+
 # HuggingFace
+
 #TOKENIZERS_PARALLELISM=4
