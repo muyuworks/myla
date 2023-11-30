@@ -21,6 +21,9 @@ class SentenceTransformerEmbeddings(Embeddings):
         self.encode_kwargs = encode_kwargs
         self.multi_process = multi_process
 
+        if not self.model_name:
+            raise ValueError("Can't found embeddings model, EMBEDDINGS_MODEL_NAME required.")
+
         self.instruction = instruction
         if not self.instruction:
             self.instruction = DEFAULT_BGE_INSTRUCTION_ZH if '-zh' in self.model_name else DEFAULT_BGE_INSTRUCTION_EN
