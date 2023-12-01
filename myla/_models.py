@@ -21,6 +21,8 @@ class DBModel(SQLModel):
     object: Optional[str]
     created_at: Optional[int] = Field(index=True)
     metadata_: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
+    org_id: Optional[str] = Field(index=True)
+    user_id: Optional[str] = Field(index=True)
 
 
 class DeletionStatus(BaseModel):
@@ -49,14 +51,15 @@ def auto_session(func):
 
 
 @auto_session
-def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = None, session: Session = None) -> ReadModel:
+def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = None, session: Session = None, auto_commit=True):
     db_model.id = id if id else utils.sha1(utils.uuid())
     db_model.created_at = int(round(datetime.now().timestamp()))
     db_model.object = object
     db_model.metadata_ = meta_model.metadata
 
     session.add(db_model)
-    session.commit()
-    session.refresh(db_model)
+    if auto_commit:
+        session.commit()
+        session.refresh(db_model)
 
     return db_model
