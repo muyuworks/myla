@@ -299,7 +299,7 @@ async def upload_file(request: Request, file: UploadFile):
     if not os.path.exists(files_dir):
         os.mkdir(files_dir)
 
-    id = utils.sha1(utils.uuid())
+    id = "file_" + utils.random_id()
     fname = os.path.join(files_dir, id)
 
     with open(fname, "wb") as f:

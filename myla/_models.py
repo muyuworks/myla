@@ -54,7 +54,26 @@ def auto_session(func):
 
 @auto_session
 def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = None, session: Session = None, auto_commit=True):
-    db_model.id = id if id else utils.sha1(utils.uuid())
+    id = id if id else utils.random_id()
+
+    if object == "secret_key":
+        id = "sk-" + id
+    elif object == "assistant":
+        id = "asst_" + id
+    elif object == "thread":
+        id = "thread_" + id
+    elif object ==  "thread.message":
+        id = "msg_" + id
+    elif object == "thread.run":
+        id = "run_" + id
+    elif object == "thread.run.step":
+        id = "step_" + id
+    elif object == "organization":
+        id = "org-" + id
+    elif object == "user":
+        id = "user-" + id
+
+    db_model.id = id
     db_model.created_at = int(round(datetime.now().timestamp()))
     db_model.object = object
     db_model.metadata_ = meta_model.metadata

@@ -14,7 +14,7 @@ class TestFiles(unittest.TestCase):
         self.session.close()
 
     def test_file_create(self):
-        id = utils.uuid()
+        id = utils.random_id()
         file = files.FileUpload(purpose="assistant", metadata={"k1": "v1", "k2": "v2"})
         file_created = files.create(id=id, file=file, filename="filename", bytes=0, session=self.session)
 

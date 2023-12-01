@@ -16,6 +16,7 @@ from ._web_template import render, get_templates
 from ._logging import logger
 from .vectorstores import load_loaders
 from . import webui
+from . import users
 
 
 def import_extensions():
@@ -40,8 +41,15 @@ async def lifespan(api: FastAPI):
         # Load loaders
         load_loaders()
 
-        # on startup
+        # Initialize database
         Persistence.default().initialize_database()
+
+        # Create default super admin user
+        sa = users.create_default_superadmin()
+        if sa:
+            logger.warn(f"Super admin user created: {sa.username}")
+
+        # Start RunScheduler
         RunScheduler.default().start()
 
     except Exception as e:

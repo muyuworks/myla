@@ -79,3 +79,10 @@ class TestUsers(unittest.TestCase):
         self.assertIsNotNone(sk.id)
         self.assertEqual(sk.tag, 'web')
         self.assertEqual(sk.user_id, 'shellc')
+
+    def create_default_superadmin(self):
+        sa = users.create_default_superadmin(session=self.session)
+        self.assertEqual(sa.username, 'admin')
+
+        sa = users.create_default_superadmin(session=self.session)
+        self.assertIsNone(sa)

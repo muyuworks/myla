@@ -1,5 +1,6 @@
 import uuid as _uuid
 import hashlib
+import base64 as base64_
 import time
 import asyncio
 import importlib
@@ -8,19 +9,41 @@ namespace = _uuid.uuid1()
 
 
 def uuid():
-    return _uuid.uuid5(namespace, _uuid.uuid1().hex).hex
+    return _uuid.uuid5(namespace, _uuid.uuid1().hex)
 
 
-def sha1(s: str):
+def sha1(s: bytes):
     m = hashlib.sha1()
-    m.update(s.encode())
-    return m.hexdigest()
+    m.update(s)
+    return m.digest()
 
 
-def sha256(s: str):
+def sha256(s: bytes):
     m = hashlib.sha256()
-    m.update(s.encode())
-    return m.hexdigest()
+    m.update(s)
+    return m.digest()
+
+
+def sha384(s: bytes):
+    m = hashlib.sha384()
+    m.update(s)
+    return m.digest()
+
+
+def base32(s: bytes):
+    return base64_.b32encode(s=s)
+
+
+def base64(s: bytes):
+    return base64_.b64encode(s, altchars=b'PS')
+
+
+def random_id():
+    return base32(sha1(uuid().bytes)).decode().lower()
+
+
+def random_key():
+    return base64(sha384(uuid().bytes)).decode()
 
 
 def retry(func, rety_times=3):

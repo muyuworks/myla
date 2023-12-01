@@ -110,12 +110,12 @@ def get_organization(id: str, session: Optional[Session] = None):
 
 def generate_password(password: str, salt: str):
     s = f"{password} {salt}"
-    return utils.sha256(s=s)
+    return utils.base64(utils.sha384(s=s.encode())).decode()
 
 
 @_models.auto_session
 def create_user(user: UserCreate, is_sa: bool = False, session: Session = None) -> UserRead:
-    salt = utils.uuid()
+    salt = utils.random_key()
     password = generate_password(user.password, salt)
 
     db_model = User(salt=salt, is_sa=is_sa, **user.dict())
@@ -186,7 +186,9 @@ def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = No
     db_model = SecretKey.from_orm(key)
     db_model.user_id = user_id
 
-    dbo = _models.create(object="secret_key", meta_model=key, db_model=db_model, session=session)
+    secret_key = utils.random_key()
+
+    dbo = _models.create(object="secret_key", meta_model=key, db_model=db_model, id=secret_key, session=session)
 
     r = SecrectKeyRead(**dbo.dict())
     r.metadata = dbo.metadata_
@@ -221,3 +223,11 @@ def list_secret_keys(user_id: str, session: Session = None):
 @_models.auto_session
 def delete_secret_key(id: str, session: Session = None):
     pass
+
+
+@_models.auto_session
+def create_default_superadmin(session: Session = None):
+    """Create the default super admin user."""
+    sa = list_sa_users(session=session)
+    if len(sa.data) == 0:
+        return create_user(user=UserCreate(username='admin', password='admin'), is_sa=True, session=session)
