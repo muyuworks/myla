@@ -4,6 +4,7 @@ from sqlmodel import SQLModel, Field, Session, select
 from . import _models
 from . import utils
 
+
 class UserOrgLink(SQLModel, table=True):
     org_id: str = Field(foreign_key="organization.id", primary_key=True)
     user_id: str = Field(foreign_key="user.id", primary_key=True)
@@ -64,26 +65,25 @@ class User(_models.DBModel, UserBase, table=True):
 
 
 class SecretKeyBase(BaseModel):
-    secret_key: str = Field(primary_key=True)
-    user_id: str = Field(index=True)
     display_name: Optional[str]
+    tag: Optional[str] = Field(index=True)
 
 
-class SecrectKeyCreate(SecretKeyBase):
+class SecrectKeyCreate(_models.MetadataModel, SecretKeyBase):
     """Secrect object to be created."""
 
 
-class SecrectKeyRead(SecretKeyBase):
+class SecrectKeyRead(_models.ReadModel, SecretKeyBase):
     """The SecrectKey read."""
+    user_id: str
 
 
-class SecrectKeyList(_models.ReadModel):
+class SecrectKeyList(_models.ListModel):
     data: List[SecrectKeyRead] = []
 
 
-class SecretKey(SQLModel, SecretKeyBase, table=True):
-
-    created_at: int = Field(index=True)
+class SecretKey(_models.DBModel, SecretKeyBase, table=True):
+    """"""
 
 
 def create_organization(org: OrganizationCreate, is_primary: bool = False, user_id: str = None, session: Optional[Session] = None, auto_commit=True) -> OrganizationRead:
@@ -179,3 +179,45 @@ def list_sa_users(session: Session = None) -> UserList:
         rs.append(a)
     r = UserList(data=rs)
     return r
+
+
+@_models.auto_session
+def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = None) -> SecrectKeyRead:
+    db_model = SecretKey.from_orm(key)
+    db_model.user_id = user_id
+
+    dbo = _models.create(object="secret_key", meta_model=key, db_model=db_model, session=session)
+
+    r = SecrectKeyRead(**dbo.dict())
+    r.metadata = dbo.metadata_
+
+    return r
+
+
+@_models.auto_session
+def get_secret_key(id: str, session: Session = None) -> SecrectKeyRead:
+    r = None
+    dbo = session.get(SecretKey, id)
+    if dbo:
+        r = SecrectKeyRead(**dbo.dict())
+        r.metadata = dbo.metadata_
+
+    return r
+
+
+@_models.auto_session
+def list_secret_keys(user_id: str, session: Session = None):
+    stmt = select(SecretKey).filter(SecretKey.user_id == user_id)
+    dbos = session.exec(statement=stmt).all()
+
+    rs = []
+    for dbo in dbos:
+        a = SecrectKeyRead(**dbo.dict())
+        rs.append(a)
+    r = SecrectKeyList(data=rs)
+    return r
+
+
+@_models.auto_session
+def delete_secret_key(id: str, session: Session = None):
+    pass

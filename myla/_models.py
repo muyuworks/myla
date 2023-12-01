@@ -23,6 +23,8 @@ class DBModel(SQLModel):
     metadata_: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
     org_id: Optional[str] = Field(index=True)
     user_id: Optional[str] = Field(index=True)
+    is_deleted: Optional[bool] = Field(index=True, default=False)
+    deleted_at: Optional[int]
 
 
 class DeletionStatus(BaseModel):
