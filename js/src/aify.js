@@ -2,7 +2,18 @@ import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
 import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin, Select } from 'antd'
-import { MenuUnfoldOutlined, MenuFoldOutlined, PlusOutlined, CloseCircleOutlined, SettingOutlined, DeleteOutlined, UploadOutlined, ReloadOutlined } from '@ant-design/icons'
+import {
+    MenuUnfoldOutlined,
+    MenuFoldOutlined,
+    PlusOutlined,
+    CloseCircleOutlined,
+    SettingOutlined,
+    DeleteOutlined,
+    UploadOutlined,
+    ReloadOutlined,
+    FileTextOutlined,
+    RobotOutlined
+} from '@ant-design/icons'
 import {
 
 } from '@ant-design/icons';
@@ -207,14 +218,15 @@ export const Aify = (props) => {
                 collapsed={leftCollapsed}
                 onCollapse={(value) => setLeftCollapsed(value)}
                 //breakpoint="lg"
-                theme="light"
+                //theme="light"
                 style={{
                     height: '100vh',
+                    borderRight: '1px solid #eee',
                     backgroundColor: '#FBFCFC'
                 }}
                 className='overflow-auto scrollbar-none'
                 width={280}
-                collapsedWidth={65}
+                collapsedWidth={threads && threads.length > 0 ? 65 : 0}
                 trigger={null}
             >
                 <List
@@ -223,7 +235,7 @@ export const Aify = (props) => {
                     locale={{ emptyText: ' ' }}
                     dataSource={threads}
                     renderItem={(thread => (
-                        assistantMap[thread.metadata.assistant_id] != null && (props.assistantId == null || (props.assistantId != null && props.assistantId == thread.metadata.assistant_id)) ? (
+                        assistantMap[thread.metadata.assistant_id] !== null && (props.assistantId === null || (props.assistantId !== null && props.assistantId === thread.metadata.assistant_id)) ? (
                             <List.Item style={currentThreadId === thread.id ? { backgroundColor: 'white' } : {}}>
                                 <Space>
                                     <Link
@@ -247,7 +259,7 @@ export const Aify = (props) => {
                                         </Space>
                                     </Link>
                                     {!leftCollapsed ? (
-                                        <Link onClick={() => deleteThread(thread.id)}><CloseCircleOutlined style={{ color: '#ccc', marginTop: 15 }} /></Link>
+                                        <Link onClick={() => deleteThread(thread.id)}><CloseCircleOutlined style={{ color: '#ccc', marginTop: 15 }} className='thread-close' /></Link>
                                     ) : null}
                                 </Space>
                             </List.Item>
@@ -311,12 +323,12 @@ export const Aify = (props) => {
                 collapsible
                 collapsed={rightCollapsed}
                 onCollapse={(value) => setRightCollapsed(value)}
-                breakpoint="lg"
+                //breakpoint="lg"
                 theme="light"
                 style={{
                     height: '100vh',
                     backgroundColor: '#FBFCFC',
-                    padding: 10
+                    borderLeft: '1px solid #eee',
                 }}
                 className='overflow-auto'
                 width={500}
@@ -329,15 +341,16 @@ export const Aify = (props) => {
                     items={[
                         {
                             key: '1',
-                            label: <span>Assistants</span>,
+                            label: <span><RobotOutlined />Assistants</span>,
                             children: <Assistants assistantId={props.assistantId} chatMode={props.chatMode} assistants={assistants} onCreate={createAssistant} onDelete={deleteAssistant} createThread={createThread} />
                         },
                         {
                             key: '2',
-                            label: props.chatMode ? '' : <span>Files</span>,
+                            label: props.chatMode ? '' : <span><FileTextOutlined />Files</span>,
                             children: <Files chatMode={props.chatMode}/>
                         }
                     ]}
+                    style={{paddingLeft: 15, paddingRight: 15}}
                 />
             </Sider>
         </Layout>
@@ -482,7 +495,7 @@ const Assistants = (props) => {
                         locale={{ emptyText: ' ' }}
                         dataSource={props.assistants}
                         renderItem={(assistant) => (
-                            props.assistantId == null || (props.assistantId != null && assistant.id == props.assistantId) ? (
+                            props.assistantId == null || (props.assistantId !== null && assistant.id === props.assistantId) ? (
                                 <List.Item
                                     actions={[
                                         props.chatMode ? null : <SettingOutlined onClick={() => { onModify(assistant) }} />,
@@ -648,7 +661,7 @@ const Files = (props) => {
             method: 'POST',
             body: formData
         }).then(r => {
-            if (r.status == 200) {
+            if (r.status === 200) {
                 return r.json();
             } else {
                 throw new Error("Status: " + r.status);

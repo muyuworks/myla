@@ -5,11 +5,11 @@ import { Aify } from './aify'
 import 'bootstrap/dist/css/bootstrap.css'
 import './index.css'
 
-export const createAify = (elementId, chatMode=false, assistantId=null) => {
+export const createAify = (elementId, chatMode = false, assistantId = null) => {
     const root = ReactDOM.createRoot(document.getElementById(elementId));
     root.render(
         <React.StrictMode>
-            <Aify chatMode={chatMode} assistantId={assistantId}/>
+            <Aify chatMode={chatMode} assistantId={assistantId} />
         </React.StrictMode>
     );
 }
