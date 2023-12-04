@@ -10,9 +10,7 @@ import {
     SettingOutlined,
     DeleteOutlined,
     UploadOutlined,
-    ReloadOutlined,
-    FileTextOutlined,
-    RobotOutlined
+    ReloadOutlined
 } from '@ant-design/icons'
 import {
 
@@ -80,7 +78,7 @@ export const Aify = (props) => {
             },
             body: JSON.stringify(body)
         });
-        if (r.status !== 200) {
+        if (r.status != 200) {
             throw new Error("Bad request status: " + r.status);
         }
         loadAsistants();
@@ -235,14 +233,14 @@ export const Aify = (props) => {
                     locale={{ emptyText: ' ' }}
                     dataSource={threads}
                     renderItem={(thread => (
-                        assistantMap[thread.metadata.assistant_id] !== null && (props.assistantId === null || (props.assistantId !== null && props.assistantId === thread.metadata.assistant_id)) ? (
+                        thread.metadata != null && assistantMap[thread.metadata.assistant_id] != null && (props.assistantId === null || (props.assistantId != null && props.assistantId === thread.metadata.assistant_id)) ? (
                             <List.Item style={currentThreadId === thread.id ? { backgroundColor: 'white' } : {}}>
                                 <Space>
                                     <Link
                                         onClick={() => switchThread(thread.metadata.assistant_id, thread.id)}
                                     >
                                         <Space>
-                                            <Avatar style={{ backgroundColor: '#eee', color: '#999' }}>{(assistantMap[thread.metadata.assistant_id].metadata.icon) ?? '🤖'}</Avatar>
+                                            <Avatar style={{ backgroundColor: '#eee', color: '#999' }}>{(assistantMap[thread.metadata.assistant_id].metadata != null && assistantMap[thread.metadata.assistant_id].metadata.icon) ?? '🤖'}</Avatar>
                                             {!leftCollapsed ? (
                                                 <Space direction='horizontal' size={0}>
                                                     <Text type="secondary"
@@ -341,12 +339,12 @@ export const Aify = (props) => {
                     items={[
                         {
                             key: '1',
-                            label: <span><RobotOutlined />Assistants</span>,
+                            label: <span>Assistants</span>,
                             children: <Assistants assistantId={props.assistantId} chatMode={props.chatMode} assistants={assistants} onCreate={createAssistant} onDelete={deleteAssistant} createThread={createThread} />
                         },
                         {
                             key: '2',
-                            label: props.chatMode ? '' : <span><FileTextOutlined />Files</span>,
+                            label: props.chatMode ? '' : <span>Files</span>,
                             children: <Files chatMode={props.chatMode}/>
                         }
                     ]}
@@ -495,7 +493,7 @@ const Assistants = (props) => {
                         locale={{ emptyText: ' ' }}
                         dataSource={props.assistants}
                         renderItem={(assistant) => (
-                            props.assistantId == null || (props.assistantId !== null && assistant.id === props.assistantId) ? (
+                            props.assistantId == null || (props.assistantId != null && assistant.id === props.assistantId) ? (
                                 <List.Item
                                     actions={[
                                         props.chatMode ? null : <SettingOutlined onClick={() => { onModify(assistant) }} />,
