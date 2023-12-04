@@ -455,7 +455,7 @@ const Assistants = (props) => {
             .then(r => r.json())
             .then(data => {
                 let options = []
-                for (let i = 0; i < data.data.length; i ++) {
+                for (let i = 0; data && i < data.data.length; i ++) {
                     options.push({
                         label: data.data[i].id,
                         value: data.data[i].id

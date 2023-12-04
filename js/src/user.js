@@ -35,7 +35,7 @@ export const Login = (props) => {
             }
         }).then(data => {
             Cookies.set('user', JSON.stringify(data.user));
-            Cookies.set('secret_key', JSON.stringify(data.secret_key));
+            Cookies.set('secret_key', data.secret_key.id);
             window.location.href = '/';
         }).catch(err => {
             msg.error(err.message);
