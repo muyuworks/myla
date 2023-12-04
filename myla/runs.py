@@ -40,6 +40,10 @@ class RunRead(ReadModel, RunBase):
     file_ids: Optional[List[str]]
 
 
+class RunList(ListModel):
+    data: List[RunRead] = []
+
+
 class Run(DBModel, RunBase, table=True):
     """
     Represents an assistant that can call the model and use tools.
@@ -69,13 +73,13 @@ class RunStep(DBModel, MetadataModel):
     completed_at: Optional[int]
 
 
+@auto_session
 def create(thread_id: str, run: RunCreate, session: Session = None) -> RunRead:
     db_model = Run.from_orm(run)
     db_model.thread_id = thread_id
     db_model.status = "queued"
 
-    dbo = create_model(object="thread.run",
-                       meta_model=run, db_model=db_model)
+    dbo = create_model(object="thread.run", meta_model=run, db_model=db_model, session=session)
 
     r = RunRead(**dbo.dict())
     r.metadata = dbo.metadata_
@@ -139,7 +143,7 @@ def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
 
 
 @auto_session
-def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> ListModel:
+def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> RunList:
     select_stmt = select(Run)
 
     select_stmt = select_stmt.order_by(-Run.created_at if order == "desc" else Run.created_at)
@@ -162,7 +166,7 @@ def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None
         a = RunRead(**dbo.dict())
         a.metadata = dbo.metadata_
         rs.append(a)
-    r = ListModel(data=rs)
+    r = RunList(data=rs)
     return r
 
 

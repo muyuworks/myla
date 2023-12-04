@@ -53,7 +53,7 @@ def auto_session(func):
 
 
 @auto_session
-def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = None, session: Session = None, auto_commit=True):
+def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = None, user_id: str = None, org_id: str = None, session: Session = None, auto_commit=True):
     id = id if id else utils.random_id()
 
     if object == "secret_key":
@@ -77,6 +77,8 @@ def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = 
     db_model.created_at = int(round(datetime.now().timestamp()))
     db_model.object = object
     db_model.metadata_ = meta_model.metadata
+    db_model.user_id = user_id
+    db_model.org_id = org_id
 
     session.add(db_model)
     if auto_commit:

@@ -24,7 +24,8 @@ class File(DBModel, table=True):
     purpose: str = Field(index=True)
 
 
-def create(id: str, file: FileUpload, bytes: int, filename: str, session: Optional[Session] = None) -> FileRead:
+@auto_session
+def create(id: str, file: FileUpload, bytes: int, filename: str, user_id: str = None, org_id: str = None, session: Optional[Session] = None) -> FileRead:
     db_model = File(
         purpose=file.purpose,
         bytes=bytes,
@@ -32,8 +33,7 @@ def create(id: str, file: FileUpload, bytes: int, filename: str, session: Option
         metadata_=file.metadata
     )
 
-    dbo = create_model(id=id, object="file", meta_model=file,
-                       db_model=db_model, session=session)
+    dbo = create_model(id=id, object="file", meta_model=file, user_id=user_id, org_id=org_id, db_model=db_model, session=session)
 
     r = FileRead(**dbo.dict())
     r.metadata = dbo.metadata_
@@ -70,7 +70,7 @@ def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
 
 
 @auto_session
-def list(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> FileList:
+def list(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None, user_id: str = None, org_id: str = None, session: Optional[Session] = None) -> FileList:
     select_stmt = select(File)
 
     if purpose:
@@ -81,6 +81,11 @@ def list(purpose: str = None, limit: int = 20, order: str = "desc", after: str =
         select_stmt = select_stmt.filter(File.id > after)
     if before:
         select_stmt = select_stmt.filter(File.id < before)
+
+    if user_id:
+        select_stmt = select_stmt.filter(File.user_id == user_id)
+    if org_id:
+        select_stmt = select_stmt.filter(File.org_id == org_id)
 
     select_stmt = select_stmt.limit(limit)
 

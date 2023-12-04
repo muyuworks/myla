@@ -49,6 +49,7 @@ class Message(DBModel, table=True):
     file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
 
 
+@auto_session
 def create(thread_id: str, message: MessageCreate, assistant_id: str = None, run_id: str=None, session: Session = None) -> MessageRead:
     db_model = Message(
         thread_id=thread_id,
@@ -60,8 +61,7 @@ def create(thread_id: str, message: MessageCreate, assistant_id: str = None, run
         run_id=run_id
     )
 
-    dbo = create_model(object="thread.message",
-                       meta_model=message, db_model=db_model)
+    dbo = create_model(object="thread.message", meta_model=message, db_model=db_model, session=session)
     r = MessageRead(**dbo.dict())
     r.metadata = dbo.metadata_
     return r

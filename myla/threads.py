@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 from sqlmodel import Session, select
 from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBModel, ListModel
 from ._models import create as create_model
@@ -22,6 +22,10 @@ class ThreadRead(ReadModel):
     pass
 
 
+class ThreadList(ListModel):
+    data: List[ThreadRead] = []
+
+
 class Thread(DBModel, table=True):
     """
     Represents an assistant that can call the model and use tools.
@@ -29,10 +33,10 @@ class Thread(DBModel, table=True):
     pass
 
 
-def create(thread: ThreadEdit, session: Session = None) -> ThreadRead:
+@auto_session
+def create(thread: ThreadEdit, user_id: str = None, org_id: str = None, session: Session = None) -> ThreadRead:
     db_model = Thread.from_orm(thread)
-    dbo = create_model(object="thread",
-                       meta_model=thread, db_model=db_model)
+    dbo = create_model(object="thread", meta_model=thread, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
     r = ThreadRead(**dbo.dict())
     r.metadata = dbo.metadata_
     return r
@@ -85,7 +89,7 @@ def delete(id: str, delete_message: bool = False, session: Optional[Session] = N
 
 
 @auto_session
-def list(limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> ListModel:
+def list(limit: int = 20, order: str = "desc", after: str = None, before: str = None, user_id: str = None, org_id: str = None, session: Optional[Session] = None) -> ThreadList:
     select_stmt = select(Thread)
 
     select_stmt = select_stmt.order_by(-Thread.created_at if order == "desc" else Thread.created_at)
@@ -93,6 +97,11 @@ def list(limit: int = 20, order: str = "desc", after: str = None, before: str = 
         select_stmt = select_stmt.filter(Thread.id > after)
     if before:
         select_stmt = select_stmt.filter(Thread.id < before)
+
+    if user_id:
+        select_stmt = select_stmt.filter(Thread.user_id == user_id)
+    if org_id:
+        select_stmt = select_stmt.filter(Thread.org_id == org_id)
 
     select_stmt = select_stmt.limit(limit)
 
@@ -102,5 +111,5 @@ def list(limit: int = 20, order: str = "desc", after: str = None, before: str = 
         a = ThreadRead(**dbo.dict())
         a.metadata = dbo.metadata_
         rs.append(a)
-    r = ListModel(data=rs)
+    r = ThreadList(data=rs)
     return r

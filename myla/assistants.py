@@ -31,6 +31,10 @@ class AssistantRead(ReadModel, AssistantBase):
     pass
 
 
+class AssistantList(ListModel):
+    data: List[AssistantRead] = []
+
+
 class Assistant(DBModel, AssistantBase, table=True):
     """
     Represents an assistant that can call the model and use tools.
@@ -38,15 +42,15 @@ class Assistant(DBModel, AssistantBase, table=True):
     pass
 
 
-def create(assistant: AssistantCreate, session: Session = None) -> AssistantRead:
+@auto_session
+def create(assistant: AssistantCreate, user_id: str = None, org_id: str = None, session: Session = None) -> AssistantRead:
     db_model = Assistant.from_orm(assistant)
     if not db_model.model or db_model == '':
         default_model = os.environ.get("DEFAULT_LLM_MODEL_NAME")
         if default_model:
             db_model.model = default_model
 
-    dbo = create_model(object="assistant",
-                       meta_model=assistant, db_model=db_model)
+    dbo = create_model(object="assistant", meta_model=assistant, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
     r = AssistantRead(**dbo.dict())
     r.metadata = dbo.metadata_
     return r
@@ -95,7 +99,7 @@ def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
 
 
 @auto_session
-def list(limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> ListModel:
+def list(limit: int = 20, order: str = "desc", after: str = None, before: str = None, user_id: str = None, org_id: str = None, session: Optional[Session] = None) -> AssistantList:
     select_stmt = select(Assistant)
 
     select_stmt = select_stmt.order_by(-Assistant.created_at if order == "desc" else Assistant.created_at)
@@ -103,6 +107,11 @@ def list(limit: int = 20, order: str = "desc", after: str = None, before: str = 
         select_stmt = select_stmt.filter(Assistant.id > after)
     if before:
         select_stmt = select_stmt.filter(Assistant.id < before)
+
+    if user_id:
+        select_stmt = select_stmt.filter(Assistant.user_id == user_id)
+    if org_id:
+        select_stmt = select_stmt.filter(Assistant.org_id == org_id)
 
     select_stmt = select_stmt.limit(limit)
 
@@ -112,5 +121,5 @@ def list(limit: int = 20, order: str = "desc", after: str = None, before: str = 
         a = AssistantRead(**dbo.dict())
         a.metadata = dbo.metadata_
         rs.append(a)
-    r = ListModel(data=rs)
+    r = AssistantList(data=rs)
     return r
