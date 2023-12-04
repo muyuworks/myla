@@ -6,7 +6,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
-
+from starlette.authentication import requires
 from ._models import ListModel, DeletionStatus
 from . import _tools, assistants, files, threads, messages, runs, users
 from ._run_scheduler import RunScheduler
@@ -52,7 +52,8 @@ async def get_version():
 
 
 @api.get("/v1/models")
-async def list_models():
+@requires(['authenticated'])
+async def list_models(request: Request):
     return {
         'object': 'list',
         'data': list(llms.list_models().values())
@@ -62,13 +63,15 @@ async def list_models():
 
 
 @api.post("/v1/assistants", response_model=assistants.AssistantRead, tags=['Assistants'])
-async def create_assistant(assistant: assistants.AssistantCreate):
+@requires(['authenticated'])
+async def create_assistant(assistant: assistants.AssistantCreate, request: Request):
     r = assistants.create(assistant=assistant)
     return r
 
 
 @api.get("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
-async def retrieve_assistant(assistant_id: str):
+@requires(['authenticated'])
+async def retrieve_assistant(assistant_id: str, request: Request):
     a = assistants.get(id=assistant_id)
     if not a:
         raise HTTPException(status_code=404, detail="Thread not found")
@@ -76,30 +79,35 @@ async def retrieve_assistant(assistant_id: str):
 
 
 @api.post("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
-async def modify_assistant(assistant_id: str, assistant: assistants.AssistantModify):
+@requires(['authenticated'])
+async def modify_assistant(assistant_id: str, assistant: assistants.AssistantModify, request: Request):
     return assistants.modify(id=assistant_id, assistant=assistant)
 
 
 @api.delete("/v1/assistants/{assistant_id}", tags=['Assistants'])
-async def delete_assistant(assistant_id: str):
+@requires(['authenticated'])
+async def delete_assistant(assistant_id: str, request: Request):
     return assistants.delete(id=assistant_id)
 
 
 @api.get("/v1/assistants", response_model=ListModel, tags=['Assistants'])
-async def list_assistants(limit: int = 20, order: str = "desc", after: str = None, before: str = None):
+@requires(['authenticated'])
+async def list_assistants(request: Request, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
     return assistants.list(limit=limit, order=order, after=after, before=before)
 
 # Threads
 
 
 @api.post("/v1/threads", response_model=threads.ThreadRead, tags=['Threads'])
-async def create_thread(thread: threads.ThreadCreate):
+@requires(['authenticated'])
+async def create_thread(thread: threads.ThreadCreate, request: Request):
     r = threads.create(thread=thread)
     return r
 
 
 @api.get("/v1/threads/{thread_id}", response_model=threads.ThreadRead, tags=['Threads'])
-async def retrieve_thread(thread_id: str):
+@requires(['authenticated'])
+async def retrieve_thread(thread_id: str, request: Request):
     t = threads.get(id=thread_id)
     if not t:
         raise HTTPException(status_code=404, detail="Thread not found")
@@ -107,30 +115,35 @@ async def retrieve_thread(thread_id: str):
 
 
 @api.post("/v1/threads/{thread_id}", response_model=threads.ThreadRead, tags=['Threads'])
-async def modify_thread(thread_id: str, thread: threads.ThreadModify):
+@requires(['authenticated'])
+async def modify_thread(thread_id: str, thread: threads.ThreadModify, request: Request):
     return threads.modify(id=thread_id, thread=thread)
 
 
 @api.delete("/v1/threads/{thread_id}", tags=['Threads'])
-async def delete_thread(thread_id: str):
+@requires(['authenticated'])
+async def delete_thread(thread_id: str, request: Request):
     return threads.delete(id=thread_id)
 
 
 @api.get("/v1/threads", response_model=ListModel, tags=['Threads'])
-async def list_threads(limit: int = 20, order: str = "desc", after: str = None, before: str = None):
+@requires(['authenticated'])
+async def list_threads(request: Request, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
     return threads.list(limit=limit, order=order, after=after, before=before)
 
 # Messages
 
 
 @api.post("/v1/threads/{thread_id}/messages", response_model=messages.MessageRead, tags=['Messages'])
-async def create_message(thread_id: str, message: messages.MessageCreate):
+@requires(['authenticated'])
+async def create_message(thread_id: str, message: messages.MessageCreate, request: Request):
     r = messages.create(thread_id=thread_id, message=message)
     return r
 
 
 @api.get("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
-async def retrieve_message(thread_id: str, message_id: str):
+@requires(['authenticated'])
+async def retrieve_message(thread_id: str, message_id: str, request: Request):
     t = messages.get(id=message_id)
     if not t:
         raise HTTPException(status_code=404, detail="Thread not found")
@@ -138,24 +151,27 @@ async def retrieve_message(thread_id: str, message_id: str):
 
 
 @api.post("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
-async def modify_message(thread_id: str, message_id: str, message: messages.MessageModify):
+@requires(['authenticated'])
+async def modify_message(thread_id: str, message_id: str, message: messages.MessageModify, request: Request):
     return messages.modify(id=message_id, message=message)
 
 
 @api.delete("/v1/threads/{thread_id}/messages/{message_id}", tags=['Messages'])
-async def delete_message(thread_id: str, message_id: str):
+async def delete_message(thread_id: str, message_id: str, request: Request):
     return messages.delete(id=message_id)
 
 
 @api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Messages'])
-async def list_messages(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
+@requires(['authenticated'])
+async def list_messages(request: Request, thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
     return messages.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before)
 
 # Runs
 
 
 @api.post("/v1/threads/{thread_id}/runs", tags=['Runs'])
-async def create_run(thread_id: str, run: runs.RunCreate, stream: bool = False, timeout: int = 30):
+@requires(['authenticated'])
+async def create_run(request: Request, thread_id: str, run: runs.RunCreate, stream: bool = False, timeout: int = 30):
     r = runs.create(thread_id=thread_id, run=run)
 
     # Submit run to run
@@ -168,7 +184,8 @@ async def create_run(thread_id: str, run: runs.RunCreate, stream: bool = False, 
 
 
 @api.get("/v1/threads/{thread_id}/runs/{run_id}", response_model=runs.RunRead, tags=['Runs'])
-async def retrieve_run(thread_id: str, run_id: str):
+@requires(['authenticated'])
+async def retrieve_run(thread_id: str, run_id: str, request: Request):
     t = runs.get(thread_id=thread_id, run_id=run_id)
     if not t:
         raise HTTPException(status_code=404, detail="Run not found")
@@ -176,37 +193,44 @@ async def retrieve_run(thread_id: str, run_id: str):
 
 
 @api.post("/v1/threads/{thread_id}/runs/{run_id}", response_model=runs.RunRead, tags=['Runs'])
-async def modify_run(thread_id: str, run_id: str, run: runs.RunModify):
+@requires(['authenticated'])
+async def modify_run(thread_id: str, run_id: str, run: runs.RunModify, request: Request):
     return runs.modify(id=run_id, run=run)
 
 
 @api.delete("/v1/threads/{thread_id}/runs/{run_id}", tags=['Runs'])
-async def delete_run(thread_id: str, run_id: str):
+@requires(['authenticated'])
+async def delete_run(thread_id: str, run_id: str, request: Request):
     return runs.delete(id=run_id)
 
 
 @api.get("/v1/threads/{thread_id}/runs", response_model=ListModel, tags=['Runs'])
-async def list_runs(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
+@requires(['authenticated'])
+async def list_runs(request: Request, thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
     return runs.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before)
 
 
 @api.post("/v1/threads/{thread_id}/runs/{run_id}/cancel", response_model=runs.RunRead, tags=['Runs'])
-async def cancel_run(thread_id: str, run_id: str):
+@requires(['authenticated'])
+async def cancel_run(thread_id: str, run_id: str, request: Request):
     return runs.cancel(thread_id=thread_id, run_id=run_id)
 
 
 @api.post("/v1/threads/runs", response_model=runs.RunRead, tags=['Runs'])
-async def create_thread_and_run(thread_run: runs.ThreadRunCreate):
+@requires(['authenticated'])
+async def create_thread_and_run(thread_run: runs.ThreadRunCreate, request: Request):
     return runs.create_thread_and_run(thread_run=thread_run)
 
 
 @api.get("/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}", response_model=runs.RunStep, tags=['Runs'])
-async def retrieve_run_step(thread_id: str, run_id: str, step_id: str):
+@requires(['authenticated'])
+async def retrieve_run_step(thread_id: str, run_id: str, step_id: str, request: Request):
     return runs.get_step(thread_id=thread_id, run_id=run_id, step_id=step_id)
 
 
 @api.get("/v1/threads/{thread_id}/runs/{run_id}/steps", response_model=ListModel, tags=['Runs'])
-async def list_run_steps(thread_id: str, run_id: str):
+@requires(['authenticated'])
+async def list_run_steps(thread_id: str, run_id: str, request: Request):
     return runs.list_steps(thread_id=thread_id, run_id=run_id)
 
 
@@ -241,7 +265,8 @@ async def create_run_stream(thread_id: str, run_id: str, timeout=30):
 
 
 @api.get("/v1/tools", response_model=List[str], tags=['Tools'])
-async def list_tools():
+@requires(['authenticated'])
+async def list_tools(request: Request):
     tools = []
     for t in _tools.get_tools().keys():
         tools.append(t)
@@ -249,7 +274,8 @@ async def list_tools():
 
 
 @api.post("/v1/tools/{tool_name}/execute", tags=["Tools"], response_model=tools.Context)
-async def execute_tool(tool_name: str, context: tools.Context):
+@requires(['authenticated'])
+async def execute_tool(tool_name: str, context: tools.Context, request: Request):
     tool_instance = _tools.get_tool(tool_name)
     if not tool_instance or not isinstance(tool_instance, tools.Tool):
         raise HTTPException(status_code=404, detail="Tool not found")
@@ -262,6 +288,7 @@ async def execute_tool(tool_name: str, context: tools.Context):
 
 
 @api.post("/v1/files", response_model=files.FileRead, tags=['Files'])
+@requires(['authenticated'])
 async def upload_file(request: Request, file: UploadFile):
     form = await request.form()
     purpose = form.get("purpose")
@@ -329,12 +356,14 @@ async def upload_file(request: Request, file: UploadFile):
 
 
 @api.get("/v1/files", response_model=files.FileList, tags=["Files"])
-async def list_files(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> files.FileList:
+@requires(['authenticated'])
+async def list_files(request: Request, purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> files.FileList:
     return files.list(purpose=purpose, limit=limit, order=order, after=after, before=before)
 
 
 @api.get("/v1/files/{file_id}", response_model=files.FileRead, tags=['Files'])
-async def retrieve_file(file_id: str):
+@requires(['authenticated'])
+async def retrieve_file(file_id: str, request: Request):
     file = files.get(id=file_id)
     if not file:
         raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
@@ -342,7 +371,8 @@ async def retrieve_file(file_id: str):
 
 
 @api.delete("/v1/files/{file_id}", response_model=DeletionStatus, tags=['Files'])
-async def delete_file(file_id: str):
+@requires(['authenticated'])
+async def delete_file(file_id: str, request: Request):
     return files.delete(id=file_id)
 
 

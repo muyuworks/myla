@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Session, select
 from . import _models
@@ -244,7 +244,7 @@ def create_default_superadmin(session: Session = None):
 
 
 @_models.auto_session
-def login(user: UserLogin, session: Session = None) -> UserLoginResult:
+def login(user: UserLogin, session: Session = None) -> Union[UserLoginResult, None]:
     stmt = select(User).where(User.username == user.username)
 
     from sqlalchemy.exc import NoResultFound

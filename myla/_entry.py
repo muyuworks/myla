@@ -4,6 +4,8 @@ import importlib
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
+from starlette.middleware import Middleware
+from starlette.middleware.authentication import AuthenticationMiddleware
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
@@ -17,6 +19,7 @@ from ._logging import logger
 from .vectorstores import load_loaders
 from . import webui
 from . import users
+from . import _auth
 
 
 def import_extensions():
@@ -83,7 +86,12 @@ routes = [
     )
 ]
 
-entry = Starlette(debug=False, routes=routes, lifespan=lifespan)
+# Middlewares
+middleware = [
+    Middleware(AuthenticationMiddleware, backend=_auth.BasicAuthBackend())
+]
+
+entry = Starlette(debug=False, routes=routes, middleware=middleware, lifespan=lifespan)
 
 
 def register(path, name, endpoint):
