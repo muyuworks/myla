@@ -73,17 +73,27 @@ class SecrectKeyCreate(_models.MetadataModel, SecretKeyBase):
     """Secrect object to be created."""
 
 
-class SecrectKeyRead(_models.ReadModel, SecretKeyBase):
+class SecretKeyRead(_models.ReadModel, SecretKeyBase):
     """The SecrectKey read."""
     user_id: str
 
 
 class SecrectKeyList(_models.ListModel):
-    data: List[SecrectKeyRead] = []
+    data: List[SecretKeyRead] = []
 
 
 class SecretKey(_models.DBModel, SecretKeyBase, table=True):
     """"""
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class UserLoginResult(BaseModel):
+    user: UserRead
+    secret_key: SecretKeyRead
 
 
 def create_organization(org: OrganizationCreate, is_primary: bool = False, user_id: str = None, session: Optional[Session] = None, auto_commit=True) -> OrganizationRead:
@@ -182,7 +192,7 @@ def list_sa_users(session: Session = None) -> UserList:
 
 
 @_models.auto_session
-def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = None) -> SecrectKeyRead:
+def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = None) -> SecretKeyRead:
     db_model = SecretKey.from_orm(key)
     db_model.user_id = user_id
 
@@ -190,18 +200,18 @@ def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = No
 
     dbo = _models.create(object="secret_key", meta_model=key, db_model=db_model, id=secret_key, session=session)
 
-    r = SecrectKeyRead(**dbo.dict())
+    r = SecretKeyRead(**dbo.dict())
     r.metadata = dbo.metadata_
 
     return r
 
 
 @_models.auto_session
-def get_secret_key(id: str, session: Session = None) -> SecrectKeyRead:
+def get_secret_key(id: str, session: Session = None) -> SecretKeyRead:
     r = None
     dbo = session.get(SecretKey, id)
     if dbo:
-        r = SecrectKeyRead(**dbo.dict())
+        r = SecretKeyRead(**dbo.dict())
         r.metadata = dbo.metadata_
 
     return r
@@ -214,7 +224,7 @@ def list_secret_keys(user_id: str, session: Session = None):
 
     rs = []
     for dbo in dbos:
-        a = SecrectKeyRead(**dbo.dict())
+        a = SecretKeyRead(**dbo.dict())
         rs.append(a)
     r = SecrectKeyList(data=rs)
     return r
@@ -231,3 +241,32 @@ def create_default_superadmin(session: Session = None):
     sa = list_sa_users(session=session)
     if len(sa.data) == 0:
         return create_user(user=UserCreate(username='admin', password='admin'), is_sa=True, session=session)
+
+
+@_models.auto_session
+def login(user: UserLogin, session: Session = None) -> UserLoginResult:
+    stmt = select(User).where(User.username == user.username)
+
+    from sqlalchemy.exc import NoResultFound
+    try:
+        dbo = session.exec(statement=stmt).one() # raise exception if none
+    except NoResultFound:
+        return None
+
+    pwd_g = generate_password(password=user.password, salt=dbo.salt)
+    if pwd_g == dbo.password:
+        r = UserRead(**dbo.dict())
+        r.metadata = dbo.metadata_
+
+        sks = list_secret_keys(user_id=r.id, session=session)
+        sk_web = None
+        for sk in sks.data:
+            if sk.tag == 'web':
+                sk_web = sk
+
+        if not sk_web:
+            sk_web = create_secret_key(key=SecrectKeyCreate(tag='web'), user_id=r.id, session=session)
+
+        return UserLoginResult(user=r, secret_key=sk_web)
+    else:
+        return None

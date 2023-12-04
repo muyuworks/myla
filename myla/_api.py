@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
 
 from ._models import ListModel, DeletionStatus
-from . import _tools, assistants, files, threads, messages, runs
+from . import _tools, assistants, files, threads, messages, runs, users
 from ._run_scheduler import RunScheduler
 from . import tools
 from ._logging import logger
@@ -344,3 +344,15 @@ async def retrieve_file(file_id: str):
 @api.delete("/v1/files/{file_id}", response_model=DeletionStatus, tags=['Files'])
 async def delete_file(file_id: str):
     return files.delete(id=file_id)
+
+
+@api.post("/v1/users/{username}/login", response_model=users.UserLoginResult, tags=['Users'])
+async def login(username: str, user: users.UserLogin):
+    if username != user.username:
+        raise HTTPException(409, "username conflicted.")
+
+    r = users.login(user=user)
+    if not r:
+        raise HTTPException(403)
+    else:
+        return r

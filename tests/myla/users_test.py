@@ -61,13 +61,13 @@ class TestUsers(unittest.TestCase):
 
     def test_create_secret_key(self):
         sk = users.create_secret_key(key=users.SecrectKeyCreate(tag='web'), user_id='shellc', session=self.session)
-        self.assertIsInstance(sk, users.SecrectKeyRead)
+        self.assertIsInstance(sk, users.SecretKeyRead)
         self.assertIsNotNone(sk.id)
         self.assertEqual(sk.tag, 'web')
         self.assertEqual(sk.user_id, 'shellc')
 
         sk = users.get_secret_key(id=sk.id, session=self.session)
-        self.assertIsInstance(sk, users.SecrectKeyRead)
+        self.assertIsInstance(sk, users.SecretKeyRead)
         self.assertIsNotNone(sk.id)
         self.assertEqual(sk.tag, 'web')
         self.assertEqual(sk.user_id, 'shellc')
@@ -75,7 +75,7 @@ class TestUsers(unittest.TestCase):
         sks = users.list_secret_keys(user_id='shellc', session=self.session)
         self.assertEqual(len(sks.data), 1)
         sk = sks.data[0]
-        self.assertIsInstance(sk, users.SecrectKeyRead)
+        self.assertIsInstance(sk, users.SecretKeyRead)
         self.assertIsNotNone(sk.id)
         self.assertEqual(sk.tag, 'web')
         self.assertEqual(sk.user_id, 'shellc')
