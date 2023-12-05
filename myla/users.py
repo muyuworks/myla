@@ -48,6 +48,7 @@ class UserCreate(_models.MetadataModel, UserBase):
 
 class UserRead(_models.ReadModel, UserBase):
     """Represents the user read."""
+    is_sa: Optional[bool]
     orgs: List[Organization] = []
 
 
@@ -179,8 +180,10 @@ def list_orgs(user_id: str, session: Session = None):
 
 
 @_models.auto_session
-def list_sa_users(session: Session = None) -> UserList:
-    stmt = select(User).filter(User.is_sa == True)
+def list_users(sa_only: bool = False, session: Session = None) -> UserList:
+    stmt = select(User)
+    if sa_only:
+        stmt = stmt.where(User.is_sa == True)
     dbos = session.exec(statement=stmt).all()
 
     rs = []
@@ -189,6 +192,11 @@ def list_sa_users(session: Session = None) -> UserList:
         rs.append(a)
     r = UserList(data=rs)
     return r
+
+
+@_models.auto_session
+def list_sa_users(session: Session = None) -> UserList:
+    return list_users(sa_only=True, session=session)
 
 
 @_models.auto_session

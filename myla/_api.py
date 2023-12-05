@@ -419,11 +419,31 @@ class ChangePasswordReq(BaseModel):
     password: str
 
 
-@api.put("/v1/users/{username}/password")
+@api.put("/v1/users/{username}/password", response_model=users.UserRead, tags=['Users'])
 @requires(['authenticated'])
 async def change_password(username: str, password: ChangePasswordReq, request: Request) -> users.UserRead:
     # TODO: check username
     return users.change_password(user_id=request.user.id, new_password=password.password)
+
+
+def check_sa(user_id):
+    user = users.get_user(id=user_id)
+    if not user.is_sa:
+        raise HTTPException(status_code=403)
+
+
+@api.get("/v1/users", response_model=users.UserList, tags=['Users'])
+@requires(['authenticated'])
+async def list_users(request: Request) -> users.UserList:
+    check_sa(request.user.id)
+    return users.list_users()
+
+
+@api.post("/v1/users", response_model=users.UserRead, tags=['Users'])
+@requires(['authenticated'])
+async def create_user(user: users.UserCreate, request: Request) -> users.UserRead:
+    check_sa(request.user.id)
+    return users.create_user(user=user)
 
 
 @api.get("/v1/secret_keys", response_model=users.SecrectKeyList, tags=['Users'])

@@ -355,11 +355,11 @@ export const Aify = (props) => {
                             label: props.chatMode ? '' : <span>API Keys</span>,
                             children: <SecretKeySettings/>
                         },
-                        /*{
+                        {
                             key: '4',
                             label: props.chatMode ? '' : <span>Users</span>,
                             children: <UserAdmin />
-                        },*/
+                        },
                         {
                             key: '5',
                             label: props.chatMode ? '' : <span>Settings</span>,
