@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Aify } from './aify'
 import { getSecretKey, Login } from './user';

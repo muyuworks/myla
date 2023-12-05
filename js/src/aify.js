@@ -20,6 +20,9 @@ import remarkGfm from 'remark-gfm'
 import { Chat } from './chat'
 import Link from 'antd/es/typography/Link';
 import TextArea from 'antd/es/input/TextArea';
+import { SecretKeySettings } from './secret_key';
+import { UserAdmin } from './user_admin';
+import { Settings } from './settings';
 
 const { Sider } = Layout
 const { Text } = Typography
@@ -78,7 +81,7 @@ export const Aify = (props) => {
             },
             body: JSON.stringify(body)
         });
-        if (r.status != 200) {
+        if (r.status !== 200) {
             throw new Error("Bad request status: " + r.status);
         }
         loadAsistants();
@@ -346,7 +349,22 @@ export const Aify = (props) => {
                             key: '2',
                             label: props.chatMode ? '' : <span>Files</span>,
                             children: <Files chatMode={props.chatMode}/>
-                        }
+                        },
+                        {
+                            key: '3',
+                            label: props.chatMode ? '' : <span>API Keys</span>,
+                            children: <SecretKeySettings/>
+                        },
+                        /*{
+                            key: '4',
+                            label: props.chatMode ? '' : <span>Users</span>,
+                            children: <UserAdmin />
+                        },
+                        {
+                            key: '5',
+                            label: props.chatMode ? '' : <span>Settings</span>,
+                            children: <Settings />
+                        }*/
                     ]}
                     style={{paddingLeft: 15, paddingRight: 15}}
                 />

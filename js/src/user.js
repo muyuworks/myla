@@ -9,6 +9,12 @@ export const getUser = () => {
 
 export const getSecretKey = () => {
     let sk = Cookies.get('secret_key');
+    fetch('/api/v1/models').then(r => {
+        if (r.status === 403) {
+            Cookies.remove('user');
+            Cookies.remove('secret_key');
+        }
+    })
     return sk
 }
 
@@ -28,9 +34,9 @@ export const Login = (props) => {
             }),
             headers: {"Content-Type": "application/json"}
         }).then(r => {
-            if (r.status == 200) {
+            if (r.status === 200) {
                 return r.json();
-            } else  if (r.status == 403) {
+            } else  if (r.status === 403) {
                 throw new Error("Login faield");
             }
         }).then(data => {

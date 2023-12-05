@@ -2,7 +2,7 @@
 a {
     text-decoration: none;
 }
-.thread-close {
+.thread-close, .anticon-plus,  .anticon-bulb{
     transform: translate(-0.5px, -3px);
 }
 
