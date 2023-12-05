@@ -413,3 +413,29 @@ async def login(username: str, user: users.UserLogin):
         raise HTTPException(403)
     else:
         return r
+
+
+@api.get("/v1/secret_keys", response_model=users.SecrectKeyList, tags=['Users'])
+@requires(['authenticated'])
+async def list_secret_keys(request: Request) -> users.SecrectKeyList:
+    sks = users.list_secret_keys(user_id=request.user.id)
+    for i in range(len(sks.data)):
+        sk = sks.data[i].id
+        sk = 'sk-...' + sk[-4:]
+        sks.data[i].id = sk
+    return sks
+
+
+@api.delete("/v1/secret_keys/{secret_key}", response_model=DeletionStatus, tags=['Users'])
+@requires(['authenticated'])
+async def delete_secret_key(secret_key: str, request: Request) -> DeletionStatus:
+    try:
+        return users.delete_secret_key(id=secret_key, user_id=request.user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+@api.post("/v1/secret_keys", response_model=users.SecretKeyRead, tags=['Users'])
+@requires(['authenticated'])
+async def create_secret_key(request: Request) -> users.SecretKeyRead:
+    return users.create_secret_key(key=users.SecrectKeyCreate(), user_id=request.user.id)

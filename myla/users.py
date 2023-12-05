@@ -194,11 +194,10 @@ def list_sa_users(session: Session = None) -> UserList:
 @_models.auto_session
 def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = None) -> SecretKeyRead:
     db_model = SecretKey.from_orm(key)
-    db_model.user_id = user_id
 
     secret_key = utils.random_key()
 
-    dbo = _models.create(object="secret_key", meta_model=key, db_model=db_model, id=secret_key, session=session)
+    dbo = _models.create(object="secret_key", meta_model=key, db_model=db_model, id=secret_key, user_id=user_id, session=session)
 
     r = SecretKeyRead(**dbo.dict())
     r.metadata = dbo.metadata_
@@ -219,7 +218,7 @@ def get_secret_key(id: str, session: Session = None) -> SecretKeyRead:
 
 @_models.auto_session
 def list_secret_keys(user_id: str, session: Session = None):
-    stmt = select(SecretKey).filter(SecretKey.user_id == user_id)
+    stmt = select(SecretKey).filter(SecretKey.user_id == user_id).order_by(-SecretKey.created_at)
     dbos = session.exec(statement=stmt).all()
 
     rs = []
@@ -231,8 +230,21 @@ def list_secret_keys(user_id: str, session: Session = None):
 
 
 @_models.auto_session
-def delete_secret_key(id: str, session: Session = None):
-    pass
+def delete_secret_key(id: str, user_id: str, session: Session = None) -> _models.DeletionStatus:
+    stmt = select(SecretKey).filter(SecretKey.user_id == user_id)
+    dbos = session.exec(statement=stmt).all()
+
+    to_delete = []
+    for sk in dbos:
+        if sk.id[-4:] == id[-4:]:
+            to_delete.append(sk)
+    if len(to_delete) > 1:
+        raise ValueError("Conflict")
+    else:
+        session.delete(to_delete[0])
+        session.commit()
+
+    return _models.DeletionStatus(id=id, object="secret_key", deleted=True)
 
 
 @_models.auto_session
