@@ -359,12 +359,12 @@ export const Aify = (props) => {
                             key: '4',
                             label: props.chatMode ? '' : <span>Users</span>,
                             children: <UserAdmin />
-                        },
+                        },*/
                         {
                             key: '5',
                             label: props.chatMode ? '' : <span>Settings</span>,
                             children: <Settings />
-                        }*/
+                        }
                     ]}
                     style={{paddingLeft: 15, paddingRight: 15}}
                 />

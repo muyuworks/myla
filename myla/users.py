@@ -282,3 +282,17 @@ def login(user: UserLogin, session: Session = None) -> Union[UserLoginResult, No
         return UserLoginResult(user=r, secret_key=sk_web)
     else:
         return None
+
+
+@_models.auto_session
+def change_password(user_id: str, new_password: str, session: Session = None) -> Union[UserRead, None]:
+    dbo = session.get(User, user_id)
+    if dbo:
+        pwd = generate_password(new_password, dbo.salt)
+        dbo.password = pwd
+        session.add(dbo)
+        session.commit()
+        session.refresh(dbo)
+        r = UserRead(**dbo.dict())
+        r.metadata = dbo.metadata_
+        return r

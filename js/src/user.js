@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 
 export const getUser = () => {
     let user = Cookies.get('user');
-    return user
+    return user ? JSON.parse(user) : null;
 }
 
 export const getSecretKey = () => {

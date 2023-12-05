@@ -415,6 +415,17 @@ async def login(username: str, user: users.UserLogin):
         return r
 
 
+class ChangePasswordReq(BaseModel):
+    password: str
+
+
+@api.put("/v1/users/{username}/password")
+@requires(['authenticated'])
+async def change_password(username: str, password: ChangePasswordReq, request: Request) -> users.UserRead:
+    # TODO: check username
+    return users.change_password(user_id=request.user.id, new_password=password.password)
+
+
 @api.get("/v1/secret_keys", response_model=users.SecrectKeyList, tags=['Users'])
 @requires(['authenticated'])
 async def list_secret_keys(request: Request) -> users.SecrectKeyList:
