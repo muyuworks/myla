@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Column, JSON, Session, select
 from .persistence import Persistence
@@ -96,6 +96,39 @@ def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = 
         session.refresh(db_model)
 
     return db_model
+
+
+@auto_session
+def get(db_cls: DBModel, read_cls: ReadModel, id: str, user_id: str = None, session: Session = None) -> Union[ReadModel, None]:
+    dbo = session.get(db_cls, id)
+    if dbo and (not user_id or user_id == dbo.user_id):
+        return dbo.to_read(read_cls)
+
+
+@auto_session
+def modify(db_cls: DBModel, read_cls: ReadModel, id: str, to_update: Dict, user_id: str = None, session: Session = None) -> Union[ReadModel, None]:
+    dbo = session.get(db_cls, id)
+    if dbo and (not user_id or user_id == dbo.user_id):
+        for k, v in to_update.items():
+            if k == 'metadata':
+                dbo.metadata_ = v
+            else:
+                setattr(dbo, k, v)
+
+        session.add(dbo)
+        session.commit()
+        session.refresh(dbo)
+
+        return dbo.to_read(read_cls)
+
+
+@auto_session
+def delete(db_cls: DBModel, id: str, user_id: str = None, session: Optional[Session] = None) -> DeletionStatus:
+    dbo = session.get(db_cls, id)
+    if dbo and (not user_id or user_id == dbo.user_id):
+        session.delete(dbo)
+        session.commit()
+    return DeletionStatus(id=id, object=f"{dbo.object}.deleted", deleted=True)
 
 
 @auto_session
