@@ -66,6 +66,7 @@ async def list_models(request: Request):
 @api.post("/v1/assistants", response_model=assistants.AssistantRead, tags=['Assistants'])
 @requires(['authenticated'])
 async def create_assistant(assistant: assistants.AssistantCreate, request: Request):
+    # TODO: check files permissions
     r = assistants.create(assistant=assistant, user_id=request.user.id)
     return r
 
@@ -82,6 +83,7 @@ async def retrieve_assistant(assistant_id: str, request: Request):
 @api.post("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
 @requires(['authenticated'])
 async def modify_assistant(assistant_id: str, assistant: assistants.AssistantModify, request: Request):
+    # TODO: check files permissions
     a = assistants.modify(id=assistant_id, assistant=assistant, user_id=request.user.id)
     if not a:
         raise HTTPException(status_code=404, detail="Assistant not found")
@@ -176,6 +178,7 @@ async def list_messages(request: Request, thread_id: str, limit: int = 20, order
 @api.post("/v1/threads/{thread_id}/runs", tags=['Runs'])
 @requires(['authenticated'])
 async def create_run(request: Request, thread_id: str, run: runs.RunCreate, stream: bool = False, timeout: int = 30):
+    # TODO: check files permissions
     r = runs.create(thread_id=thread_id, run=run, user_id=request.user.id)
 
     if not r:
@@ -202,6 +205,7 @@ async def retrieve_run(thread_id: str, run_id: str, request: Request):
 @api.post("/v1/threads/{thread_id}/runs/{run_id}", response_model=runs.RunRead, tags=['Runs'])
 @requires(['authenticated'])
 async def modify_run(thread_id: str, run_id: str, run: runs.RunModify, request: Request):
+    # TODO: check files permissions
     return runs.modify(id=run_id, run=run, user_id=request.user.id)
 
 

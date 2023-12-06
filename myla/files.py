@@ -1,30 +1,29 @@
 from typing import List, Optional, Union
 from sqlmodel import Field, Session, select
-from ._models import auto_session, MetadataModel, DBModel, ReadModel, ListModel, DeletionStatus
-from ._models import create as create_model
+from . import _models
 
 
-class FileUpload(MetadataModel):
+class FileUpload(_models.MetadataModel):
     purpose: str
 
 
-class FileRead(ReadModel):
+class FileRead(_models.ReadModel):
     bytes: int
     filename: str
     purpose: str
 
 
-class FileList(ListModel):
+class FileList(_models.ListModel):
     data: List[FileRead]
 
 
-class File(DBModel, table=True):
+class File(_models.DBModel, table=True):
     bytes: int
     filename: Optional[str] = None
     purpose: str = Field(index=True)
 
 
-@auto_session
+@_models.auto_session
 def create(id: str, file: FileUpload, bytes: int, filename: str, user_id: str = None, org_id: str = None, session: Optional[Session] = None) -> FileRead:
     db_model = File(
         purpose=file.purpose,
@@ -33,16 +32,13 @@ def create(id: str, file: FileUpload, bytes: int, filename: str, user_id: str = 
         metadata_=file.metadata
     )
 
-    dbo = create_model(id=id, object="file", meta_model=file, user_id=user_id, org_id=org_id, db_model=db_model, session=session)
+    dbo = _models.create(id=id, object="file", meta_model=file, user_id=user_id, org_id=org_id, db_model=db_model, session=session)
 
-    r = FileRead(**dbo.dict())
-    r.metadata = dbo.metadata_
-
-    return r
+    return dbo.to_read(FileRead)
 
 
-@auto_session
-def get(id: str, session: Optional[Session] = None) -> Union[FileRead, None]:
+@_models.auto_session
+def get(id: str, user_id: str = None, session: Optional[Session] = None) -> Union[FileRead, None]:
     """Retrieval File object.
 
     Args:
@@ -51,25 +47,15 @@ def get(id: str, session: Optional[Session] = None) -> Union[FileRead, None]:
     Returns:
         if file exists return FileRead object else return None
     """
-    r = None
-    dbo = session.get(File, id)
-    if dbo:
-        d = dbo.dict()
-        r = FileRead(**d)
-        r.metadata = dbo.metadata_
-    return r
+    return _models.get(db_cls=File, read_cls=FileRead, id=id, user_id=user_id)
 
 
-@auto_session
-def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
-    dbo = session.get(File, id)
-    if dbo:
-        session.delete(dbo)
-        session.commit()
-    return DeletionStatus(id=id, object="file.deleted", deleted=True)
+@_models.auto_session
+def delete(id: str, user_id: str = None, session: Optional[Session] = None) -> _models.DeletionStatus:
+    return _models.delete(db_cls=File, id=id, user_id=user_id, session=session)
 
 
-@auto_session
+@_models.auto_session
 def list(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None, user_id: str = None, org_id: str = None, session: Optional[Session] = None) -> FileList:
     select_stmt = select(File)
 
@@ -92,8 +78,6 @@ def list(purpose: str = None, limit: int = 20, order: str = "desc", after: str =
     dbos = session.exec(select_stmt).all()
     rs = []
     for dbo in dbos:
-        a = FileRead(**dbo.dict())
-        a.metadata = dbo.metadata_
-        rs.append(a)
+        rs.append(dbo.to_read(FileRead))
     r = FileList(data=rs)
     return r
