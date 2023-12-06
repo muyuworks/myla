@@ -9,7 +9,7 @@ export const getUser = () => {
 
 export const getSecretKey = () => {
     let sk = Cookies.get('secret_key');
-    fetch('/api/v1/version').then(r => {
+    fetch('/api/version').then(r => {
         if (r.status === 403) {
             Cookies.remove('user');
             Cookies.remove('secret_key');

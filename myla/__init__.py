@@ -1,4 +1,5 @@
-__version__ = '0.2.0'
+from ._version import VERSION
+__version__ = VERSION
 
 from ._api import api
 from ._entry import entry

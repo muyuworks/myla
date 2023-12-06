@@ -20,6 +20,7 @@ from .vectorstores import load_loaders
 from . import webui
 from . import users
 from . import _auth
+from . import _version
 
 
 def import_extensions():
@@ -77,7 +78,7 @@ routes = [
     Route(
         '/',
         name='home',
-        endpoint=render('index.html')
+        endpoint=render('index.html', context={'version': _version.VERSION})
     ),
     Route(
         '/assistants/{assistant_id}',
