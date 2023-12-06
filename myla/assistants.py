@@ -54,35 +54,17 @@ def create(assistant: AssistantCreate, user_id: str = None, org_id: str = None, 
 
 @_models.auto_session
 def get(id: str, user_id: str = None, session: Session = None) -> Union[AssistantRead, None]:
-    dbo = session.get(Assistant, id)
-    if dbo and (not user_id or user_id == dbo.user_id):
-        return dbo.to_read(AssistantRead)
+    return _models.get(db_cls=Assistant, read_cls=AssistantRead, id=id, user_id=user_id, session=session)
 
 
 @_models.auto_session
 def modify(id: str, assistant: AssistantModify, user_id: str = None, session: Session = None) -> Union[AssistantRead, None]:
-    dbo = session.get(Assistant, id)
-    if dbo and (not user_id or user_id == dbo.user_id):
-        for k, v in assistant.dict(exclude_unset=True).items():
-            if k == 'metadata':
-                dbo.metadata_ = v
-            else:
-                setattr(dbo, k, v)
-
-        session.add(dbo)
-        session.commit()
-        session.refresh(dbo)
-
-        return dbo.to_read(AssistantRead)
+    return _models.modify(db_cls=Assistant, read_cls=AssistantRead, id=id, to_update=assistant.dict(exclude_unset=True), user_id=user_id, session=session)
 
 
 @_models.auto_session
 def delete(id: str, user_id: str = None, session: Optional[Session] = None) -> _models.DeletionStatus:
-    dbo = session.get(Assistant, id)
-    if dbo and (not user_id or user_id == dbo.user_id):
-        session.delete(dbo)
-        session.commit()
-    return _models.DeletionStatus(id=id, object="assistant.deleted", deleted=True)
+    return _models.delete(db_cls=Assistant, id=id, user_id=user_id, session=session)
 
 
 @_models.auto_session

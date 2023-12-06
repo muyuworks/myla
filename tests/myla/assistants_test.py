@@ -48,5 +48,23 @@ class TestUsers(unittest.TestCase):
         self.assertEqual(asst_read.model, 'model')
         self.assertEqual(asst_read.metadata, {'k': 'v'})
 
+        asst_update = assistants.modify(id=asst_read.id, assistant=assistants.AssistantModify(name='newname', model='newmodel', metadata={'k': 'v1'}), user_id=user_id, session=self.session)
+        self.assertIsNotNone(asst_update)
+        self.assertEqual(asst_update.id, asst_created.id)
+        self.assertEqual(asst_update.name, 'newname')
+        asst_read = assistants.get(id=asst_created.id, user_id=user_id, session=self.session)
+        self.assertEqual(asst_read.name, 'newname')
+        self.assertEqual(asst_read.metadata, {'k': 'v1'})
+        self.assertEqual(asst_read.model, 'newmodel')
+        self.assertEqual(asst_read.description, 'desc')
+        self.assertEqual(asst_read.instructions, 'instruction')
+        self.assertEqual(asst_read.tools, [{'type': 'retrieval'}])
+        self.assertEqual(asst_read.file_ids, ['1'])
+
+        res = assistants.delete(id=asst_read.id, user_id=user_id, session=self.session)
+        self.assertEqual(res.object, 'assistant.deleted')
+        asst_read = assistants.get(id=asst_created.id, user_id=user_id, session=self.session)
+        self.assertIsNone(asst_read)
+
     def test_create_get_list_assistant_with_user_id(self):
         self.test_create_get_list_assistant(user_id='shellc')
