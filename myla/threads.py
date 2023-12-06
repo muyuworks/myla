@@ -32,7 +32,7 @@ class Thread(_models.DBModel, table=True):
 
 
 @_models.auto_session
-def create(thread: ThreadEdit, user_id: str = None, org_id: str = None, session: Session = None) -> ThreadRead:
+def create(thread: ThreadCreate, user_id: str = None, org_id: str = None, session: Session = None) -> ThreadRead:
     db_model = Thread.from_orm(thread)
     dbo = _models.create(object="thread", meta_model=thread, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
     return dbo.to_read(ThreadRead)

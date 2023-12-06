@@ -14,7 +14,7 @@ class TestUsers(unittest.TestCase):
         self.session.close()
 
     def test_list_sa_users(self):
-        sa_users = users.list_sa_users(self.session)
+        sa_users = users.list_sa_users(session=self.session)
         self.assertIsInstance(sa_users, users.UserList)
         self.assertCountEqual(sa_users.data, [])
 

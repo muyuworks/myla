@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional, Union
 from sqlmodel import Field, Session, Column, JSON, select
 from pydantic import BaseModel
 from . import _models
-from . import assistants, threads
+from . import threads
 
 
 class RunEdit(_models.MetadataModel):
@@ -116,18 +116,31 @@ def list(
         org_id: str = None,
         session: Optional[Session] = None
     ) -> RunList:
-    return _models.list(
-        db_cls=Run,
-        read_cls=RunRead,
-        list_cls=RunList,
-        limit=limit,
-        order=order,
-        after=after,
-        before=before,
-        user_id=user_id,
-        org_id=org_id,
-        session=session
-    )
+    select_stmt = select(Run)
+
+    if thread_id:
+        select_stmt = select_stmt.filter(Run.thread_id == thread_id)
+
+    select_stmt = select_stmt.order_by(-Run.created_at if order == "desc" else Run.created_at)
+
+    if after:
+        select_stmt = select_stmt.filter(Run.id > after)
+    if before:
+        select_stmt = select_stmt.filter(Run.id < before)
+
+    if user_id:
+        select_stmt = select_stmt.filter(Run.user_id == user_id)
+    if org_id:
+        select_stmt = select_stmt.filter(Run.org_id == org_id)
+
+    select_stmt = select_stmt.limit(limit)
+
+    dbos = session.exec(select_stmt).all()
+
+    rs = []
+    for dbo in dbos:
+        rs.append(dbo.to_read(RunRead))
+    return RunList(data=rs, first_id=rs[0].id if len(rs) > 0 else None, last_id=rs[-1].id if len(rs) > 0 else None)
 
 
 def cancel(thread_id: str, run_id: str, session: Session = None) -> Union[RunRead, None]:

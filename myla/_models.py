@@ -30,6 +30,7 @@ class DBModel(SQLModel):
     deleted_at: Optional[int]
 
     def to_read(self, read_cls: ReadModel) -> ReadModel:
+        """Convert to a ReadModel object."""
         r = read_cls(**self.dict())
         r.metadata = self.metadata_
         return r
@@ -52,12 +53,14 @@ class ListModel(BaseModel):
 
 
 def auto_session(func):
-    def inner(session: Optional[Session] = None, **kwargs):
-        ss = session if session else Persistence.default().create_session()
+    """Ensure that a session is available."""
+    def inner(*args, **kwargs):
+        ss = kwargs['session'] if kwargs.get('session') else Persistence.default().create_session()
         try:
-            return func(session=ss, **kwargs)
+            kwargs['session'] = ss
+            return func(*args, **kwargs)
         finally:
-            if not session:
+            if 'session' not in kwargs:
                 ss.close()
     return inner
 
