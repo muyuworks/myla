@@ -23,6 +23,7 @@ import TextArea from 'antd/es/input/TextArea';
 import { SecretKeySettings } from './secret_key';
 import { UserAdmin } from './user_admin';
 import { Settings } from './settings';
+import { getUser } from './user';
 
 const { Sider } = Layout
 const { Text } = Typography
@@ -56,7 +57,7 @@ export const Aify = (props) => {
         metadata.icon = icon
 
         let tools_cfg = [];
-        for (let i = 0; tools && i < tools.length; i ++) {
+        for (let i = 0; tools && i < tools.length; i++) {
             tools_cfg.push({
                 "type": tools[i]
             });
@@ -156,6 +157,7 @@ export const Aify = (props) => {
         loadThreads();
         loadWelcomeMessage();
         //loadUser();
+        setUser(getUser());
     }, [])
 
     const createThread = (assistant_id, assistant_name) => {
@@ -345,28 +347,36 @@ export const Aify = (props) => {
                             label: <span>Assistants</span>,
                             children: <Assistants assistantId={props.assistantId} chatMode={props.chatMode} assistants={assistants} onCreate={createAssistant} onDelete={deleteAssistant} createThread={createThread} />
                         },
-                        {
-                            key: '2',
-                            label: props.chatMode ? '' : <span>Files</span>,
-                            children: <Files chatMode={props.chatMode}/>
-                        },
-                        {
-                            key: '3',
-                            label: props.chatMode ? '' : <span>API Keys</span>,
-                            children: <SecretKeySettings/>
-                        },
-                        {
-                            key: '4',
-                            label: props.chatMode ? '' : <span>Users</span>,
-                            children: <UserAdmin />
-                        },
-                        {
-                            key: '5',
-                            label: props.chatMode ? '' : <span>Settings</span>,
-                            children: <Settings />
-                        }
+                        props.chatMode ? null : (
+                            {
+                                key: '2',
+                                label: <span>Files</span>,
+                                children: <Files chatMode={props.chatMode} />
+                            }
+                        ),
+                        props.chatMode ? null : (
+                            {
+                                key: '3',
+                                label: <span>API Keys</span>,
+                                children: <SecretKeySettings />
+                            }
+                        ),
+                        !props.chatMode && user && user.is_sa ? (
+                                {
+                                    key: '4',
+                                    label: <span>Users</span>,
+                                    children: <UserAdmin />
+                                }
+                            ) : null,
+                        props.chatMode ? null : (
+                            {
+                                key: '5',
+                                label: <span>Settings</span>,
+                                children: <Settings />
+                            }
+                        )
                     ]}
-                    style={{paddingLeft: 15, paddingRight: 15}}
+                    style={{ paddingLeft: 15, paddingRight: 15 }}
                 />
             </Sider>
         </Layout>
@@ -429,7 +439,7 @@ const Assistants = (props) => {
         createAssistantForm.setFieldValue('metadata', JSON.stringify(assistant.metadata, null, 4));
 
         let tools = [];
-        for (let i = 0; assistant.tools && i < assistant.tools.length; i ++) {
+        for (let i = 0; assistant.tools && i < assistant.tools.length; i++) {
             tools.push(assistant.tools[i].type);
         }
         createAssistantForm.setFieldValue('tools', tools);
@@ -443,7 +453,7 @@ const Assistants = (props) => {
             .then(r => r.json())
             .then(data => {
                 let options = []
-                for (let i = 0; i < data.data.length; i ++) {
+                for (let i = 0; i < data.data.length; i++) {
                     options.push({
                         label: data.data[i].filename,
                         value: data.data[i].id
@@ -458,7 +468,7 @@ const Assistants = (props) => {
             .then(r => r.json())
             .then(data => {
                 let options = []
-                for (let i = 0; i < data.length; i ++) {
+                for (let i = 0; i < data.length; i++) {
                     options.push({
                         label: data[i],
                         value: data[i]
@@ -473,7 +483,7 @@ const Assistants = (props) => {
             .then(r => r.json())
             .then(data => {
                 let options = []
-                for (let i = 0; data && i < data.data.length; i ++) {
+                for (let i = 0; data && i < data.data.length; i++) {
                     options.push({
                         label: data.data[i].id,
                         value: data.data[i].id
@@ -571,7 +581,7 @@ const Assistants = (props) => {
                             />
                         </Form.Item>
 
-                        <Form.Item label='Files' name='file_ids' extra={<Button onClick={listFiles} style={{marginTop: 10}} size='small'><ReloadOutlined /> Reload</Button>}>
+                        <Form.Item label='Files' name='file_ids' extra={<Button onClick={listFiles} style={{ marginTop: 10 }} size='small'><ReloadOutlined /> Reload</Button>}>
                             <Select
                                 mode="multiple"
                                 allowClear
@@ -595,7 +605,7 @@ const Assistants = (props) => {
                         </Form.Item>
 
                         {assistantToModify ? (
-                            <div style={{marginBottom: 10}}>
+                            <div style={{ marginBottom: 10 }}>
                                 <Link href={`/assistants/${assistantToModify.id}`} target='_blank'>Share this assistant with others.</Link>
                             </div>
                         ) : null}
@@ -717,7 +727,7 @@ const Files = (props) => {
                                 key={file.id}
                                 actions={[
                                     //<CheckCircleOutlined onClick={() => props.selectFile(file)} style={{color: props.selectedFiles[file.id] ? 'green' : ''}} />,
-                                    <DeleteOutlined onClick={() => {deleteFile(file.id)}} />,
+                                    <DeleteOutlined onClick={() => { deleteFile(file.id) }} />,
                                 ]}
                             >
                                 <Skeleton title={false} loading={file.loading} active>
@@ -759,7 +769,7 @@ const Files = (props) => {
 
                         {error ? (<Alert message={error} type="error" showIcon style={{ marginBottom: 10 }} />) : null}
 
-                        <div style={{marginBottom: 10, color: 'gray'}}>Available formats: csv, xsl, xlsx, pdf, json</div>
+                        <div style={{ marginBottom: 10, color: 'gray' }}>Available formats: csv, xsl, xlsx, pdf, json</div>
                         <Space style={{ marginBottom: 20 }}>
                             <Upload
                                 name='file'

@@ -433,6 +433,9 @@ async def list_users(request: Request) -> users.UserList:
 @requires(['authenticated'])
 async def create_user(user: users.UserCreate, request: Request) -> users.UserRead:
     check_sa(request.user.id)
+    u = users.get_user_by_uername(username=user.username)
+    if u:
+        raise HTTPException(status_code=409, detail="User exists.")
     return users.create_user(user=user)
 
 

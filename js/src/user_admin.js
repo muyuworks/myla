@@ -57,7 +57,7 @@ export const UserAdmin = () => {
                 onCancel();
                 loadUsers();
             } else {
-                throw new Error('Stauts' + r.status);
+                throw new Error('Stauts: ' + r.status);
             }
         }).catch(err => {
             msg.error(err.message)
