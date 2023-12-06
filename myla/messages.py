@@ -1,8 +1,7 @@
 from typing import List, Dict, Optional, Union
 from sqlmodel import Field, Session, Column, JSON, select
 from pydantic import BaseModel
-from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBModel, ListModel
-from ._models import create as create_model
+from . import _models, threads
 
 
 class MessageText(BaseModel):
@@ -14,17 +13,17 @@ class MessageContent(BaseModel):
     text: Optional[List[MessageText]]
 
 
-class MessageCreate(MetadataModel):
+class MessageCreate(_models.MetadataModel):
     role: str
     content: str
     file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
 
 
-class MessageModify(MetadataModel):
+class MessageModify(_models.MetadataModel):
     pass
 
 
-class MessageRead(ReadModel):
+class MessageRead(_models.ReadModel):
     thread_id: str
     assistant_id: Optional[str]
     run_id: Optional[str]
@@ -33,11 +32,11 @@ class MessageRead(ReadModel):
     file_ids: Optional[List[str]] = []
 
 
-class MessageList(ListModel):
+class MessageList(_models.ListModel):
     data: List[MessageRead]
 
 
-class Message(DBModel, table=True):
+class Message(_models.DBModel, table=True):
     """
     Represents an assistant that can call the model and use tools.
     """
@@ -49,8 +48,8 @@ class Message(DBModel, table=True):
     file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
 
 
-@auto_session
-def create(thread_id: str, message: MessageCreate, assistant_id: str = None, run_id: str=None, session: Session = None) -> MessageRead:
+@_models.auto_session
+def create(thread_id: str, message: MessageCreate, assistant_id: str = None, run_id: str=None, user_id: str = None, org_id: str = None, session: Session = None) -> MessageRead:
     db_model = Message(
         thread_id=thread_id,
         role=message.role,
@@ -61,56 +60,42 @@ def create(thread_id: str, message: MessageCreate, assistant_id: str = None, run
         run_id=run_id
     )
 
-    dbo = create_model(object="thread.message", meta_model=message, db_model=db_model, session=session)
-    r = MessageRead(**dbo.dict())
-    r.metadata = dbo.metadata_
-    return r
+    dbo = _models.create(object="thread.message", meta_model=message, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
+    return dbo.to_read(MessageRead)
 
 
-@auto_session
-def get(id: str, session: Session = None) -> Union[MessageRead, None]:
-    r = None
-    dbo = session.get(Message, id)
-    if dbo:
-        r = MessageRead(**dbo.dict())
-        r.metadata = dbo.metadata_
-
-    return r
+@_models.auto_session
+def get(id: str, thread_id: str = None, user_id: str = None, session: Session = None) -> Union[MessageRead, None]:
+    r = _models.get(db_cls=Message, read_cls=MessageRead, id=id, user_id=user_id, session=session)
+    if thread_id is not None and thread_id != r.thread_id:
+        return None
 
 
-@auto_session
-def modify(id: str, message: MessageModify, session: Session = None):
-    r = None
-
-    dbo = session.get(Message, id)
-    if dbo:
-        for k, v in message.dict(exclude_unset=True).items():
-            if k == 'metadata':
-                dbo.metadata_ = v
-            else:
-                setattr(dbo, k, v)
-
-        session.add(dbo)
-        session.commit()
-        session.refresh(dbo)
-
-        r = MessageRead(**dbo.dict())
-        r.metadata = dbo.metadata_
-
-    return r
+@_models.auto_session
+def modify(id: str, message: MessageModify, thread_id: str = None, user_id: str = None, session: Session = None) -> Union[MessageRead, None]:
+    if thread_id is not None:
+        msg = get(id=id, thread_id=thread_id, user_id=user_id, session=session)
+        if not msg:
+            return None
+    return _models.modify(db_cls=Message, read_cls=MessageRead, id=id, to_update=message.dict(exclude_unset=True), user_id=user_id, session=session)
 
 
-@auto_session
-def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
-    dbo = session.get(Message, id)
-    if dbo:
-        session.delete(dbo)
-        session.commit()
-    return DeletionStatus(id=id, object="thread.message.deleted", deleted=True)
+@_models.auto_session
+def delete(id: str, thread_id: str = None, user_id: str = None, session: Optional[Session] = None) -> _models.DeletionStatus:
+    if thread_id is not None:
+        msg = get(id=id, thread_id=thread_id, user_id=user_id, session=session)
+        if not msg:
+            return None
+    return _models.delete(db_cls=Message, id=id, user_id=user_id, session=session)
 
 
-@auto_session
-def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None, session: Optional[Session] = None) -> MessageList:
+@_models.auto_session
+def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None, user_id: str = None, session: Optional[Session] = None) -> MessageList:
+    if user_id is not None:
+        thread = threads.get(id=thread_id, user_id=user_id, session=session)
+        if not thread:
+            return MessageList()
+
     select_stmt = select(Message)
     select_stmt = select_stmt.where(Message.thread_id == thread_id)
 

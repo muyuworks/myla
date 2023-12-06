@@ -162,4 +162,4 @@ def list(db_cls: DBModel,
     rs = []
     for dbo in dbos:
         rs.append(dbo.to_read(read_cls))
-    return list_cls(data=rs)
+    return list_cls(data=rs, first_id=rs[0].id if len(rs) > 0 else None, last_id=rs[-1].id if len(rs) > 0 else None)

@@ -141,16 +141,14 @@ async def list_threads(request: Request, limit: int = 20, order: str = "desc", a
 @api.post("/v1/threads/{thread_id}/messages", response_model=messages.MessageRead, tags=['Messages'])
 @requires(['authenticated'])
 async def create_message(thread_id: str, message: messages.MessageCreate, request: Request):
-    # TODO: check permissions
-    r = messages.create(thread_id=thread_id, message=message)
+    r = messages.create(thread_id=thread_id, message=message, user_id=request.user.id)
     return r
 
 
 @api.get("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
 @requires(['authenticated'])
 async def retrieve_message(thread_id: str, message_id: str, request: Request):
-    # TODO: check permissions
-    t = messages.get(id=message_id)
+    t = messages.get(id=message_id, thread_id=thread_id, user_id=request.user.id)
     if not t:
         raise HTTPException(status_code=404, detail="Thread not found")
     return t
@@ -159,21 +157,18 @@ async def retrieve_message(thread_id: str, message_id: str, request: Request):
 @api.post("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
 @requires(['authenticated'])
 async def modify_message(thread_id: str, message_id: str, message: messages.MessageModify, request: Request):
-    # TODO: check permissions
-    return messages.modify(id=message_id, message=message)
+    return messages.modify(id=message_id, message=message, thread_id=thread_id, user_id=request.user.id)
 
 
 @api.delete("/v1/threads/{thread_id}/messages/{message_id}", tags=['Messages'])
 async def delete_message(thread_id: str, message_id: str, request: Request):
-    # TODO: check permissions
-    return messages.delete(id=message_id)
+    return messages.delete(id=message_id, thread_id=thread_id, user_id=request.user.id)
 
 
 @api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Messages'])
 @requires(['authenticated'])
 async def list_messages(request: Request, thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
-    # TODO: check permissions
-    return messages.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before)
+    return messages.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before, user_id=request.user.id)
 
 # Runs
 
