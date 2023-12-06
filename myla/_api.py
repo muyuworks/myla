@@ -176,8 +176,10 @@ async def list_messages(request: Request, thread_id: str, limit: int = 20, order
 @api.post("/v1/threads/{thread_id}/runs", tags=['Runs'])
 @requires(['authenticated'])
 async def create_run(request: Request, thread_id: str, run: runs.RunCreate, stream: bool = False, timeout: int = 30):
-    # TODO: check permissions
-    r = runs.create(thread_id=thread_id, run=run)
+    r = runs.create(thread_id=thread_id, run=run, user_id=request.user.id)
+
+    if not r:
+        raise HTTPException(status_code=403, detail='Forbidden.')
 
     # Submit run to run
     RunScheduler.default().submit_run(r)
@@ -191,8 +193,7 @@ async def create_run(request: Request, thread_id: str, run: runs.RunCreate, stre
 @api.get("/v1/threads/{thread_id}/runs/{run_id}", response_model=runs.RunRead, tags=['Runs'])
 @requires(['authenticated'])
 async def retrieve_run(thread_id: str, run_id: str, request: Request):
-    # TODO: check permissions
-    t = runs.get(thread_id=thread_id, run_id=run_id)
+    t = runs.get(thread_id=thread_id, run_id=run_id, user_id=request.user.id)
     if not t:
         raise HTTPException(status_code=404, detail="Run not found")
     return t
@@ -201,22 +202,19 @@ async def retrieve_run(thread_id: str, run_id: str, request: Request):
 @api.post("/v1/threads/{thread_id}/runs/{run_id}", response_model=runs.RunRead, tags=['Runs'])
 @requires(['authenticated'])
 async def modify_run(thread_id: str, run_id: str, run: runs.RunModify, request: Request):
-    # TODO: check permissions
-    return runs.modify(id=run_id, run=run)
+    return runs.modify(id=run_id, run=run, user_id=request.user.id)
 
 
 @api.delete("/v1/threads/{thread_id}/runs/{run_id}", tags=['Runs'])
 @requires(['authenticated'])
 async def delete_run(thread_id: str, run_id: str, request: Request):
-    # TODO: check permissions
-    return runs.delete(id=run_id)
+    return runs.delete(id=run_id, user_id=request.user.id)
 
 
 @api.get("/v1/threads/{thread_id}/runs", response_model=runs.RunList, tags=['Runs'])
 @requires(['authenticated'])
 async def list_runs(request: Request, thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
-    # TODO: check permissions
-    return runs.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before)
+    return runs.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before, user_id=request.user.id)
 
 
 @api.post("/v1/threads/{thread_id}/runs/{run_id}/cancel", response_model=runs.RunRead, tags=['Runs'])
