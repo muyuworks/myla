@@ -105,7 +105,6 @@ async def list_assistants(request: Request, limit: int = 20, order: str = "desc"
 @api.post("/v1/threads", response_model=threads.ThreadRead, tags=['Threads'])
 @requires(['authenticated'])
 async def create_thread(thread: threads.ThreadCreate, request: Request):
-    # TODO: organization header
     r = threads.create(thread=thread, user_id=request.user.id)
     return r
 
@@ -113,8 +112,7 @@ async def create_thread(thread: threads.ThreadCreate, request: Request):
 @api.get("/v1/threads/{thread_id}", response_model=threads.ThreadRead, tags=['Threads'])
 @requires(['authenticated'])
 async def retrieve_thread(thread_id: str, request: Request):
-    # TODO: check permissions
-    t = threads.get(id=thread_id)
+    t = threads.get(id=thread_id, user_id=request.user.id)
     if not t:
         raise HTTPException(status_code=404, detail="Thread not found")
     return t
@@ -123,21 +121,18 @@ async def retrieve_thread(thread_id: str, request: Request):
 @api.post("/v1/threads/{thread_id}", response_model=threads.ThreadRead, tags=['Threads'])
 @requires(['authenticated'])
 async def modify_thread(thread_id: str, thread: threads.ThreadModify, request: Request):
-    # TODO: check permissions
-    return threads.modify(id=thread_id, thread=thread)
+    return threads.modify(id=thread_id, thread=thread, user_id=request.user.id)
 
 
 @api.delete("/v1/threads/{thread_id}", tags=['Threads'])
 @requires(['authenticated'])
 async def delete_thread(thread_id: str, request: Request):
-    # TODO: check permissions
-    return threads.delete(id=thread_id)
+    return threads.delete(id=thread_id, user_id=request.user.id)
 
 
 @api.get("/v1/threads", response_model=threads.ThreadList, tags=['Threads'])
 @requires(['authenticated'])
 async def list_threads(request: Request, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
-    # TODO: organization header
     return threads.list(limit=limit, order=order, after=after, before=before, user_id=request.user.id)
 
 # Messages
