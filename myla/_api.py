@@ -46,12 +46,13 @@ class Version(BaseModel):
     version: str
 
 
-@api.get('/version', response_model=Version)
-async def get_version():
+@api.get('/version', response_model=Version, tags=['System'])
+@requires(['authenticated'])
+async def get_version(request: Request):
     return Version(version=API_VERSION)
 
 
-@api.get("/v1/models")
+@api.get("/v1/models", tags=['System'])
 @requires(['authenticated'])
 async def list_models(request: Request):
     return {
