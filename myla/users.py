@@ -167,6 +167,25 @@ def get_user(id: str, session: Session = None):
 
 
 @_models.auto_session
+def get_user_by_uername(username: str, session: Session) -> Union[UserRead, None]:
+    stmt = select(User).where(User.username == username)
+
+    from sqlalchemy.exc import NoResultFound
+    try:
+        dbo = session.exec(statement=stmt).one() # raise exception if none
+        return dbo
+    except NoResultFound:
+        return None
+
+@_models.auto_session
+def delete_user(id: str, session: Session = None) -> _models.DeletionStatus:
+    dbo = get_user_dbo(id=id, session=session)
+    session.delete(dbo)
+    session.commit()
+    return _models.DeletionStatus(id=id, object="user", deleted=True)
+
+
+@_models.auto_session
 def list_orgs(user_id: str, session: Session = None):
     stmt = select(Organization, UserOrgLink).where(Organization.id == UserOrgLink.org_id).filter(UserOrgLink.user_id == user_id)
     dbos = session.exec(statement=stmt).all()

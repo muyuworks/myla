@@ -446,6 +446,19 @@ async def create_user(user: users.UserCreate, request: Request) -> users.UserRea
     return users.create_user(user=user)
 
 
+@api.delete("/v1/users/{username}", response_model=DeletionStatus, tags=['Users'])
+@requires(['authenticated'])
+async def delete_user(username: str, request: Request) -> DeletionStatus:
+    check_sa(user_id=request.user.id)
+    user = users.get_user_by_uername(username=username)
+    if not user:
+        raise HTTPException(status_code=404, detail='User not found.')
+
+    if user.id == request.user.id:
+        raise HTTPException(status_code=409, detail="Delete conflict.")
+    return users.delete_user(id=user.id)
+
+
 @api.get("/v1/secret_keys", response_model=users.SecrectKeyList, tags=['Users'])
 @requires(['authenticated'])
 async def list_secret_keys(request: Request) -> users.SecrectKeyList:

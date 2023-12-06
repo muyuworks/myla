@@ -1,14 +1,16 @@
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons"
-import create from "@ant-design/icons/lib/components/IconFont"
 import { Button, Form, Input, Space, Table, message } from "antd"
 import Link from "antd/es/typography/Link"
 import { useEffect, useState } from "react"
+import { getUser } from "./user"
 
 export const UserAdmin = () => {
     const [users, setUsers] = useState()
     const [msg, msgContext] = message.useMessage()
     const [formView, setFormView] = useState(false)
     const [createUserForm] = Form.useForm()
+
+    let user = getUser()
 
     const loadUsers = () => {
         fetch('/api/v1/users').then(r => {
@@ -24,7 +26,20 @@ export const UserAdmin = () => {
         })
     }
 
-    const onDelete = () => {}
+    const onDelete = (username) => {
+        fetch(`/api/v1/users/${username}`, {
+            method: 'DELETE'
+        }).then(r => {
+            if (r.status === 200) {
+                msg.success("OK");
+                loadUsers();
+            } else {
+                throw new Error("Status: " + r.status)
+            }
+        }).catch(err => {
+            msg.error(err.message);
+        })
+    }
 
     const onCreate = () => {
         let username = createUserForm.getFieldValue('username');
@@ -83,7 +98,7 @@ export const UserAdmin = () => {
                                 title: '',
                                 key: 'actions',
                                 render: (_, r) => (
-                                    <DeleteOutlined onClick={() => onDelete(r.id)} />
+                                    user.username != r.username ? <DeleteOutlined onClick={() => onDelete(r.username)} /> : null
                                 )
                             }
                         ]}
