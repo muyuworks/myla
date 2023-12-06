@@ -66,7 +66,6 @@ async def list_models(request: Request):
 @api.post("/v1/assistants", response_model=assistants.AssistantRead, tags=['Assistants'])
 @requires(['authenticated'])
 async def create_assistant(assistant: assistants.AssistantCreate, request: Request):
-    # TODO: organization header
     r = assistants.create(assistant=assistant, user_id=request.user.id)
     return r
 
@@ -74,33 +73,31 @@ async def create_assistant(assistant: assistants.AssistantCreate, request: Reque
 @api.get("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
 @requires(['authenticated'])
 async def retrieve_assistant(assistant_id: str, request: Request):
-    # TOD: check permissions
-    a = assistants.get(id=assistant_id)
+    a = assistants.get(id=assistant_id, user_id=request.user.id)
     if not a:
-        raise HTTPException(status_code=404, detail="Thread not found")
+        raise HTTPException(status_code=404, detail="Assistant not found")
     return a
 
 
 @api.post("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
 @requires(['authenticated'])
 async def modify_assistant(assistant_id: str, assistant: assistants.AssistantModify, request: Request):
-    # TODO: check permissions
-    return assistants.modify(id=assistant_id, assistant=assistant)
+    a = assistants.modify(id=assistant_id, assistant=assistant, user_id=request.user.id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Assistant not found")
+    return a
 
 
 @api.delete("/v1/assistants/{assistant_id}", tags=['Assistants'])
 @requires(['authenticated'])
 async def delete_assistant(assistant_id: str, request: Request):
-    # TODO: check permissions
-    return assistants.delete(id=assistant_id)
+    return assistants.delete(id=assistant_id, user_id=request.user.id)
 
 
 @api.get("/v1/assistants", response_model=assistants.AssistantList, tags=['Assistants'])
 @requires(['authenticated'])
 async def list_assistants(request: Request, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
-    # TOD: oranization header
-    user_id = request.user.id
-    return assistants.list(limit=limit, order=order, after=after, before=before, user_id=user_id)
+    return assistants.list(limit=limit, order=order, after=after, before=before, user_id=request.user.id)
 
 # Threads
 

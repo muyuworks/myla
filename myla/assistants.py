@@ -1,9 +1,8 @@
 import os
 from typing import List, Dict, Any, Optional, Union
-from sqlmodel import Field, Session, Column, JSON, select
+from sqlmodel import Field, Session, Column, JSON
 from pydantic import BaseModel
-from ._models import auto_session, DeletionStatus, MetadataModel, ReadModel, DBModel, ListModel
-from ._models import create as create_model
+from . import _models
 
 
 class AssistantBase(BaseModel):
@@ -15,7 +14,7 @@ class AssistantBase(BaseModel):
     file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
 
 
-class AssistantEdit(MetadataModel, AssistantBase):
+class AssistantEdit(_models.MetadataModel, AssistantBase):
     pass
 
 
@@ -27,22 +26,21 @@ class AssistantModify(AssistantEdit):
     pass
 
 
-class AssistantRead(ReadModel, AssistantBase):
+class AssistantRead(_models.ReadModel, AssistantBase):
     pass
 
 
-class AssistantList(ListModel):
+class AssistantList(_models.ListModel):
     data: List[AssistantRead] = []
 
 
-class Assistant(DBModel, AssistantBase, table=True):
+class Assistant(_models.DBModel, AssistantBase, table=True):
     """
     Represents an assistant that can call the model and use tools.
     """
-    pass
 
 
-@auto_session
+@_models.auto_session
 def create(assistant: AssistantCreate, user_id: str = None, org_id: str = None, session: Session = None) -> AssistantRead:
     db_model = Assistant.from_orm(assistant)
     if not db_model.model or db_model == '':
@@ -50,29 +48,21 @@ def create(assistant: AssistantCreate, user_id: str = None, org_id: str = None, 
         if default_model:
             db_model.model = default_model
 
-    dbo = create_model(object="assistant", meta_model=assistant, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
-    r = AssistantRead(**dbo.dict())
-    r.metadata = dbo.metadata_
-    return r
+    dbo = _models.create(object="assistant", meta_model=assistant, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
+    return dbo.to_read(AssistantRead)
 
 
-@auto_session
-def get(id: str, session: Session = None) -> Union[AssistantRead, None]:
-    r = None
+@_models.auto_session
+def get(id: str, user_id: str = None, session: Session = None) -> Union[AssistantRead, None]:
     dbo = session.get(Assistant, id)
-    if dbo:
-        r = AssistantRead(**dbo.dict())
-        r.metadata = dbo.metadata_
-
-    return r
+    if dbo and (not user_id or user_id == dbo.user_id):
+        return dbo.to_read(AssistantRead)
 
 
-@auto_session
-def modify(id: str, assistant: AssistantModify, session: Session = None):
-    r = None
-
+@_models.auto_session
+def modify(id: str, assistant: AssistantModify, user_id: str = None, session: Session = None) -> Union[AssistantRead, None]:
     dbo = session.get(Assistant, id)
-    if dbo:
+    if dbo and (not user_id or user_id == dbo.user_id):
         for k, v in assistant.dict(exclude_unset=True).items():
             if k == 'metadata':
                 dbo.metadata_ = v
@@ -83,43 +73,37 @@ def modify(id: str, assistant: AssistantModify, session: Session = None):
         session.commit()
         session.refresh(dbo)
 
-        r = AssistantRead(**dbo.dict())
-        r.metadata = dbo.metadata_
-
-    return r
+        return dbo.to_read(AssistantRead)
 
 
-@auto_session
-def delete(id: str, session: Optional[Session] = None) -> DeletionStatus:
+@_models.auto_session
+def delete(id: str, user_id: str = None, session: Optional[Session] = None) -> _models.DeletionStatus:
     dbo = session.get(Assistant, id)
-    if dbo:
+    if dbo and (not user_id or user_id == dbo.user_id):
         session.delete(dbo)
         session.commit()
-    return DeletionStatus(id=id, object="assistant.deleted", deleted=True)
+    return _models.DeletionStatus(id=id, object="assistant.deleted", deleted=True)
 
 
-@auto_session
-def list(limit: int = 20, order: str = "desc", after: str = None, before: str = None, user_id: str = None, org_id: str = None, session: Optional[Session] = None) -> AssistantList:
-    select_stmt = select(Assistant)
-
-    select_stmt = select_stmt.order_by(-Assistant.created_at if order == "desc" else Assistant.created_at)
-    if after:
-        select_stmt = select_stmt.filter(Assistant.id > after)
-    if before:
-        select_stmt = select_stmt.filter(Assistant.id < before)
-
-    if user_id:
-        select_stmt = select_stmt.filter(Assistant.user_id == user_id)
-    if org_id:
-        select_stmt = select_stmt.filter(Assistant.org_id == org_id)
-
-    select_stmt = select_stmt.limit(limit)
-
-    dbos = session.exec(select_stmt).all()
-    rs = []
-    for dbo in dbos:
-        a = AssistantRead(**dbo.dict())
-        a.metadata = dbo.metadata_
-        rs.append(a)
-    r = AssistantList(data=rs)
-    return r
+@_models.auto_session
+def list(
+        limit: int = 20,
+        order: str = "desc",
+        after: str = None,
+        before: str = None,
+        user_id: str = None,
+        org_id: str = None,
+        session: Optional[Session] = None
+    ) -> AssistantList:
+    return _models.list(
+        db_cls=Assistant,
+        read_cls=AssistantRead,
+        list_cls=AssistantList,
+        limit=limit,
+        order=order,
+        after=after,
+        before=before,
+        user_id=user_id,
+        org_id=org_id,
+        session=session
+    )
