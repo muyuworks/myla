@@ -47,7 +47,7 @@ def get(id: str, user_id: str = None, session: Optional[Session] = None) -> Unio
     Returns:
         if file exists return FileRead object else return None
     """
-    return _models.get(db_cls=File, read_cls=FileRead, id=id, user_id=user_id)
+    return _models.get(db_cls=File, read_cls=FileRead, id=id, user_id=user_id, session=session)
 
 
 @_models.auto_session
