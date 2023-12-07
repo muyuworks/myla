@@ -69,7 +69,7 @@ class FAISS(VectorStore):
         vs = self._get_vectorstore(name=collection_name)
 
         if vector:
-            docs = vs.asimilarity_search_with_score_by_vector(
+            docs = vs.similarity_search_with_score_by_vector(
                 embedding=vector,
                 k=k,
                 filter=filter,
