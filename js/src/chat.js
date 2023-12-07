@@ -202,6 +202,7 @@ export const Chat = (props) => {
                 if (props.onMessageReceived) {
                     props.onMessageReceived(thread_id, reply);
                 }
+                document.getElementById('chat-input').focus();
             }
         });
     };
@@ -209,6 +210,7 @@ export const Chat = (props) => {
     const abort = () => {
         abortController.abort();
         setGenerating(false);
+        document.getElementById('chat-input').focus();
     };
 
     useEffect(() => {
@@ -255,7 +257,7 @@ export const Chat = (props) => {
                             name="prompt"
                             style={{ marginBottom: 0 }}
                         >
-                            <TextArea autoSize onKeyDown={onKeyDown} placeholder="" disabled={generating} />
+                            <TextArea id="chat-input" autoSize onKeyDown={onKeyDown} placeholder="" readOnly={generating} autoFocus={true} />
                         </Form.Item>
                     </Col>
                     <Col flex='none'>
