@@ -11,7 +11,7 @@ export const Settings = () => {
         let password = changePasswordForm.getFieldValue('password');
         let confirm_pwd = changePasswordForm.getFieldValue("confirm_pwd");
 
-        if (password != confirm_pwd) {
+        if (password !== confirm_pwd) {
             msg.error("Password conflict.");
             return
         }

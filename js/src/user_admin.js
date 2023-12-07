@@ -98,7 +98,7 @@ export const UserAdmin = () => {
                                 title: '',
                                 key: 'actions',
                                 render: (_, r) => (
-                                    user.username != r.username ? <DeleteOutlined onClick={() => onDelete(r.username)} /> : null
+                                    user.username !== r.username ? <DeleteOutlined onClick={() => onDelete(r.username)} /> : null
                                 )
                             }
                         ]}

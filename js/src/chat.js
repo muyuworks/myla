@@ -284,7 +284,7 @@ const Message = (props) => {
                             verticalAlign: 'middle',
                         }}
                     >
-                        {props.role === 'user' ? (props.user && props.user.username) ? props.user.username.substring(0,2) : '🦤' : props.icon ?? 'AI'}
+                        {props.role === 'user' ? (props.user && props.user.username) ? props.user.username.substring(0,1) : '🦤' : props.icon ?? 'AI'}
                     </Avatar>
                 </div>
                 <div className='card mx-3 border-0'
