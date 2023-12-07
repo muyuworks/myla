@@ -55,12 +55,13 @@ class ListModel(BaseModel):
 def auto_session(func):
     """Ensure that a session is available."""
     def inner(*args, **kwargs):
-        ss = kwargs['session'] if kwargs.get('session') else Persistence.default().create_session()
+        session_exists = kwargs.get('session') is not None
+        ss = kwargs['session'] if session_exists else Persistence.default().create_session()
         try:
             kwargs['session'] = ss
             return func(*args, **kwargs)
         finally:
-            if 'session' not in kwargs:
+            if not session_exists:
                 ss.close()
     return inner
 
