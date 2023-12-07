@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useState } from 'react'
-import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin, Select } from 'antd'
+import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin, Select, Drawer } from 'antd'
 import {
     MenuUnfoldOutlined,
     MenuFoldOutlined,
@@ -322,22 +322,29 @@ export const Aify = (props) => {
 
             </Layout>
 
-            <Sider
-                collapsible
-                collapsed={rightCollapsed}
-                onCollapse={(value) => setRightCollapsed(value)}
+            <Drawer
+                //collapsible
+                //collapsed={rightCollapsed}
+                //onCollapse={(value) => setRightCollapsed(value)}
                 //breakpoint="lg"
                 theme="light"
                 style={{
-                    height: '100vh',
+                    //height: '100vh',
                     backgroundColor: '#FBFCFC',
-                    borderLeft: '1px solid #eee',
+                    borderLeft: '1px solid #eee'
                 }}
                 className='overflow-auto'
                 width={500}
-                collapsedWidth={0}
-                trigger={null}
-                reverseArrow
+                //collapsedWidth={0}
+                //trigger={null}
+                //reverseArrow
+                placement="right"
+                open={!rightCollapsed}
+                onClose={() => setRightCollapsed(true)}
+                styles={{
+                    header: {display: 'none'},
+                    body: {padding: 0}
+                }}
             >
                 <Tabs
                     defaultActiveKey="1"
@@ -378,7 +385,7 @@ export const Aify = (props) => {
                     ]}
                     style={{ paddingLeft: 15, paddingRight: 15 }}
                 />
-            </Sider>
+            </Drawer>
         </Layout>
     );
 }
