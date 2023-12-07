@@ -27,14 +27,24 @@ class FAISS(VectorStore):
         vs = vectorstores.FAISS.from_texts(texts=[''], embedding=self.get_embeddings(), normalize_L2=True)
         vs.save_local(os.path.join(self._db_path, collection))
 
-    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None):
+    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None, vectors: List[List[float]] = None):
         vs = self._get_vectorstore(collection)
 
         text_to_embed = []
         for r in records:
             text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
 
-        vs.add_texts(texts=text_to_embed, metadatas=records)
+        if vectors:
+            if len(vectors) != len(text_to_embed):
+                raise ValueError("The length of records must be the same as the length of vecotors.")
+
+            text_embeddings = []
+            for i in range(len(text_to_embed)):
+                text_embeddings.append((text_to_embed[i], vectors[i]))
+            vs.add_embeddings(text_embeddings=text_embeddings, metadatas=records)
+        else:
+            vs.add_texts(texts=text_to_embed, metadatas=records)
+
         vs.save_local(os.path.join(self._db_path, collection))
 
     def delete(self, collection: str, query: str):
@@ -57,14 +67,23 @@ class FAISS(VectorStore):
         **kwargs: Any
     ) -> Dict:
         vs = self._get_vectorstore(name=collection_name)
-        # TODO: asimilarity_search_with_score_by_vector
-        docs = vs.similarity_search_with_score(
-            query=query,
-            k=k,
-            filter=filter,
-            fetch_k=fetch_k,
-            **kwargs
-        )
+
+        if vector:
+            docs = vs.asimilarity_search_with_score_by_vector(
+                embedding=vector,
+                k=k,
+                filter=filter,
+                fetch_k=fetch_k,
+                **kwargs
+            )
+        else:
+            docs = vs.similarity_search_with_score(
+                query=query,
+                k=k,
+                filter=filter,
+                fetch_k=fetch_k,
+                **kwargs
+            )
 
         d = []
         for doc in docs:

@@ -44,16 +44,21 @@ class LanceDB(VectorStore):
 
         self._db.create_table(collection, schema=s, mode=mode)
 
-    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None):
+    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None, vectors: List[List[float]] = None):
         tbl = self._db.open_table(collection)
 
-        text_to_embed = []
-        for r in records:
-            text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
+        if not vectors:
+            text_to_embed = []
+            for r in records:
+                text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
 
-        embeds = self._embeddings.embed_batch(texts=text_to_embed)
+            vectors = self._embeddings.embed_batch(texts=text_to_embed)
+
+        if len(vectors) != records:
+            raise ValueError("The length of records must be the same as the length of vecotors.")
+
         for i in range(len(records)):
-            records[i][VECTOR_COLUMN_NAME] = embeds[i]
+            records[i][VECTOR_COLUMN_NAME] = vectors[i]
 
         tbl.add(records)
 
