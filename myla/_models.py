@@ -88,7 +88,7 @@ def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = 
         id = "user-" + id
 
     db_model.id = id
-    db_model.created_at = int(round(datetime.now().timestamp()))
+    db_model.created_at = int(datetime.now().timestamp()*1000)
     db_model.object = object
     db_model.metadata_ = meta_model.metadata
     db_model.user_id = user_id
