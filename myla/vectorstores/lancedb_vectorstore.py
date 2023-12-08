@@ -54,7 +54,7 @@ class LanceDB(VectorStore):
 
             vectors = self._embeddings.embed_batch(texts=text_to_embed)
 
-        if len(vectors) != records:
+        if len(vectors) != len(records):
             raise ValueError("The length of records must be the same as the length of vecotors.")
 
         for i in range(len(records)):
@@ -125,7 +125,7 @@ class LanceDB(VectorStore):
             if isinstance(v, float):
                 t = pa.float64()
             if isinstance(v, int):
-                t = pa.int64
+                t = pa.int64()
             if isinstance(v, bool):
                 t = pa.bool_()
 
