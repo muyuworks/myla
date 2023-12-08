@@ -94,7 +94,7 @@ def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None
     if user_id is not None:
         thread = threads.get(id=thread_id, user_id=user_id, session=session)
         if not thread:
-            return MessageList()
+            return MessageList(data=[])
 
     select_stmt = select(Message)
     select_stmt = select_stmt.where(Message.thread_id == thread_id)
