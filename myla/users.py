@@ -177,6 +177,7 @@ def get_user_by_uername(username: str, session: Session) -> Union[UserRead, None
     except NoResultFound:
         return None
 
+
 @_models.auto_session
 def delete_user(id: str, session: Session = None) -> _models.DeletionStatus:
     dbo = get_user_dbo(id=id, session=session)
