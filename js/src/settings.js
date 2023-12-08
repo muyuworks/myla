@@ -1,5 +1,5 @@
-import { Button, Form, Input, message } from "antd"
-import { getUser } from "./user"
+import { Button, Divider, Form, Input, Space, message } from "antd"
+import { getUser, logout } from "./user"
 
 export const Settings = () => {
     const [changePasswordForm] = Form.useForm()
@@ -35,13 +35,14 @@ export const Settings = () => {
     return (
         <div>
             {msgContext}
-            <strong>Change password</strong>
+            <div style={{marginBottom: 15}}><strong>Change password</strong></div>
             <Form
                 form={changePasswordForm}
-                layout='vertical'
+                labelCol={{ flex: '120px' }}
+                colon={false}
                 onFinish={changePassword}
             >
-                <Form.Item label="Password" name='password'
+                <Form.Item label="New password" name='password'
                     rules={[
                         {
                             required: true
@@ -50,7 +51,7 @@ export const Settings = () => {
                 >
                     <Input.Password style={{width: 200}}/>
                 </Form.Item>
-                <Form.Item label="Confirm your password" name='confirm_pwd'
+                <Form.Item label="Confirm" name='confirm_pwd'
                     rules={[
                         {
                             required: true
@@ -59,12 +60,19 @@ export const Settings = () => {
                 >
                     <Input.Password style={{width: 200}} />
                 </Form.Item>
-                <Form.Item>
+                <Form.Item label=' '>
                     <Button type="primary" htmlType="submit">
                         Change password
                     </Button>
                 </Form.Item>
             </Form>
+
+            <Divider />
+            <div style={{textAlign: 'center'}}>
+                <Button type="primary" danger onClick={logout}>
+                    Logout
+                </Button>
+            </div>
         </div>
     )
 }

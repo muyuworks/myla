@@ -18,6 +18,12 @@ export const getSecretKey = () => {
     return sk
 }
 
+export const logout = () => {
+    Cookies.remove('user');
+    Cookies.remove('secret_key');
+    window.location.href = '/';
+}
+
 export const Login = (props) => {
     const [loginForm] = Form.useForm();
     const [msg, msgContextHolder] = message.useMessage();
