@@ -438,12 +438,17 @@ const Assistants = (props) => {
 
     const onModify = (assistant) => {
         createAssistantForm.setFieldValue('name', assistant.name);
-        createAssistantForm.setFieldValue('desc', assistant.desc);
+        createAssistantForm.setFieldValue('desc', assistant.description);
         createAssistantForm.setFieldValue('instructions', assistant.instructions);
         createAssistantForm.setFieldValue('model', assistant.model);
-        createAssistantForm.setFieldValue('icon', assistant.metadata.icon);
         createAssistantForm.setFieldValue('file_ids', assistant.file_ids);
-        createAssistantForm.setFieldValue('metadata', JSON.stringify(assistant.metadata, null, 4));
+
+        let icon = assistant.metadata.icon;
+        let metadata = structuredClone(assistant.metadata);
+        delete metadata.icon;
+
+        createAssistantForm.setFieldValue('icon', icon);
+        createAssistantForm.setFieldValue('metadata', JSON.stringify(metadata, null, 4));
 
         let tools = [];
         for (let i = 0; assistant.tools && i < assistant.tools.length; i++) {
