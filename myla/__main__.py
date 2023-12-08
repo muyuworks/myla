@@ -43,9 +43,14 @@ def runserver(args):
         os.environ['WEBUI'] = args.webui
         register_webui(args.webui)
 
-    uvicorn.run('myla:entry', host=args.host, port=args.port,
-                workers=args.workers, reload=args.reload, h11_max_incomplete_event_size=0,
-                log_config=LOGGING_CONFIG, reload_dirs=reload_dirs)
+    uvicorn.run('myla:entry',
+                host=args.host,
+                port=args.port,
+                workers=args.workers,
+                reload=args.reload,
+                log_config=LOGGING_CONFIG,
+                reload_dirs=reload_dirs
+            )
 
 
 parser = argparse.ArgumentParser()
