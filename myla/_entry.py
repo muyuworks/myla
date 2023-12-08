@@ -6,7 +6,6 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.middleware import Middleware
 from starlette.middleware.authentication import AuthenticationMiddleware
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from .persistence import Persistence
@@ -34,7 +33,7 @@ def import_extensions():
 
 
 @asynccontextmanager
-async def lifespan(api: FastAPI):
+async def lifespan(app: Starlette):
     try:
         # Load extensions
         import_extensions()
