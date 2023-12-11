@@ -14,7 +14,7 @@ os.environ['EMBEDDINGS_MODEL_NAME'] = '/Users/shellc/Downloads/bge-large-zh-v1.5
 os.environ['EMBEDDINGS_DEVICE'] = 'mps'
 
 os.environ['VECTORSTORE_DIR'] = os.path.join(here, 'vs')
-os.environ['VECTOR_STORE_IMPL'] = 'lancedb'
+os.environ['VECTOR_STORE_IMPL'] = 'chromadb'
 
 data_input = os.path.join(here, 'bq.csv')
 embeds_output = os.path.join(here, 'embeds.pkl')
@@ -139,7 +139,7 @@ def test_search_multi_trehads():
 def test_multi_vs():
     records = load_records()
     vectors = pickle.load(open(embeds_output, 'rb'))
-    print(records[0])
+
     cols = []
     for i in range(100):
         rs = records[:100].copy()
@@ -150,6 +150,7 @@ def test_multi_vs():
     import time
     time.sleep(100)
 
+
 if __name__ == '__main__':
     #records_stat()
 
@@ -158,7 +159,7 @@ if __name__ == '__main__':
     #test_add_batch()
     #test_add()
 
-    #test_search()
+    test_search()
     #test_search_multi_trehads()
 
-    test_multi_vs()
+    #test_multi_vs()

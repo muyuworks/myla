@@ -5,6 +5,7 @@ from ._embeddings import Embeddings
 from .sentence_transformers_embeddings import SentenceTransformerEmbeddings
 from .lancedb_vectorstore import LanceDB
 from .faiss_vectorstore import FAISS
+from .chromadb_vectorstore import Chromadb
 from . import pandas_loader, pdf_loader
 from .._logging import logger
 from ..utils import create_instance
@@ -41,6 +42,8 @@ def get_default_vectorstore():
             vs = FAISS(db_path=vs_dir, embeddings=embeddings)
         elif impl == 'lancedb':
             vs = LanceDB(db_uri=vs_dir, embeddings=embeddings)
+        elif impl == 'chromadb':
+            vs = Chromadb(path=vs_dir, embeddings=embeddings)
         else:
             raise ValueError(f"VectorStore not suported: {impl}")
         _default_vs[impl] = vs
