@@ -2,6 +2,7 @@ import os
 import sys
 import importlib
 from starlette.applications import Starlette
+from starlette.responses import RedirectResponse
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.middleware import Middleware
@@ -13,7 +14,7 @@ from ._run_scheduler import RunScheduler
 from . import _tools
 from . import _env
 from ._api import api
-from ._web_template import render, get_templates
+from .webui._web_template import render, get_templates
 from ._logging import logger
 from .vectorstores import load_loaders
 from . import webui
@@ -70,14 +71,19 @@ routes = [
         app=api
     ),
     Mount(
-        '/static',
-        name='static',
-        app=StaticFiles(directory=os.path.join(_env.webui_dir(), 'static'), check_dir=False),
+        '/webui/statics',
+        name='statics',
+        app=StaticFiles(directory=os.path.join(_env.webui_dir(), 'statics'), check_dir=False),
+    ),
+    Route(
+        '/webui/',
+        name='webui',
+        endpoint=render('index.html', context={'version': _version.VERSION})
     ),
     Route(
         '/',
         name='home',
-        endpoint=render('index.html', context={'version': _version.VERSION})
+        endpoint=lambda r: RedirectResponse('/webui')
     ),
     Route(
         '/assistants/{assistant_id}',

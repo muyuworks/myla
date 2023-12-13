@@ -2,7 +2,7 @@ import os
 from starlette.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
 from starlette.exceptions import HTTPException
-from ._env import webui_dir
+from .._env import webui_dir
 
 
 def get_templates(templates_dir=None):

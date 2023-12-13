@@ -1,4 +1,4 @@
-from .._web_template import render
+from ._web_template import render
 from starlette.requests import Request
 
 

@@ -135,7 +135,7 @@ export const Aify = (props) => {
     }
 
     const loadWelcomeMessage = () => {
-        fetch('/static/welcome.md')
+        fetch('/webui/statics/welcome.md')
             .then(r => {
                 if (r.status === 200) {
                     return r.text();
