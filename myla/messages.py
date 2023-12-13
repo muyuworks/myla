@@ -69,6 +69,7 @@ def get(id: str, thread_id: str = None, user_id: str = None, session: Session = 
     r = _models.get(db_cls=Message, read_cls=MessageRead, id=id, user_id=user_id, session=session)
     if thread_id is not None and thread_id != r.thread_id:
         return None
+    return r
 
 
 @_models.auto_session
