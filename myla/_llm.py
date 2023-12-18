@@ -120,8 +120,7 @@ async def chat_complete(run: runs.RunRead, iter):
         )
         await iter.put(None) # Completed
     except Exception as e:
-        log.warn(f"LLM Failed: {e}")
-        log.debug("LLM exc: ", exc_info=e)
+        log.warn(f"LLM Failed: ", exc_info=e)
 
         runs.update(id=run.id,
             status="failed",
