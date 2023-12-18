@@ -191,6 +191,11 @@ class FAISSGroup(VectorStore):
         if group_ids is None:
             group_ids = [self._group_id()]
 
+        if filter is not None:
+            filter = {
+                key: [value] if not isinstance(value, list) else value for key, value in filter.items()
+            }
+
         data, indexes, ids = self._load(collection=collection)
 
         r_records = []
@@ -208,10 +213,23 @@ class FAISSGroup(VectorStore):
                 _id = id_map[i]
                 _distance = distances[0][j]
                 record = data[_id]
-                record['_distance'] = _distance
-                r_records.append(record)
+                record['_distance'] = float(_distance)
 
-        return r_records
+                if filter:
+                    if all(record.get(key) in value for key, value in filter.items()):
+                        r_records.append(record)
+                else:
+                    r_records.append(record)
+
+        distance_threshold = kwargs.get("distance_threshold")
+        if distance_threshold is not None:
+            r_records = [
+                r for r in r_records if r['_distance'] < distance_threshold
+            ]
+
+        r_records.sort(key=lambda r: r['_distance'])
+
+        return r_records[:limit]
 
     def drop(self, collection: str):
         """"""
