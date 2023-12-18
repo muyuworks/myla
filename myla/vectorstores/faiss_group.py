@@ -3,7 +3,7 @@ import threading
 import pickle
 import gc
 import numpy as np
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
 from .. import utils
@@ -62,8 +62,8 @@ class FAISSGroup(VectorStore):
             self,
             collection: str,
             records: List[Record],
-            embeddings_columns: List[str] = None,
-            vectors: List[List[float]] = None,
+            embeddings_columns: Optional[List[str]] = None,
+            vectors: Optional[List[List[float]]] = None,
             group_by: str = None
         ):
         """Add records to the collection."""
@@ -122,7 +122,7 @@ class FAISSGroup(VectorStore):
             for gid in gid_to_saved:
                 self._save_group(collection=collection, gid=gid, index=indexes[gid], ids=ids[gid])
 
-    def _group_id(self, v):
+    def _group_id(self, v=None):
         if v is None:
             v = ""
         return utils.sha256(v.encode()).hex()
@@ -169,16 +169,49 @@ class FAISSGroup(VectorStore):
             vector: List = None,
             filter: Any = None,
             limit: int = 20,
-            columns: List[str] | None = None,
+            columns: Optional[List[str]] = None,
             with_vector: bool = False,
             with_distance: bool = False,
-            **kwarg
-        ) -> List[Record] | None:
+            group_ids: Optional[List[str]] = None,
+            **kwargs
+        ) -> Optional[List[Record]]:
         self._check_collection_exists(collection=collection)
+
+        if not query and not vector:
+            raise FAISSGroupException("FAISSGroup search must provide query or vector.")
+
+        if query and not vector and self._embeddings:
+            vector = self._embeddings.embed(text=query)
+        if not vector:
+            raise FAISSGroupException("FAISSGroup search must provide Embeddings function.")
+
+        vector = np.array([vector], dtype=np.float32)
+        self._faiss.normalize_L2(vector)
+
+        if group_ids is None:
+            group_ids = [self._group_id()]
 
         data, indexes, ids = self._load(collection=collection)
 
-        return super().search(collection, query, vector, filter, limit, columns, with_vector, with_distance, **kwargs)
+        r_records = []
+        for gid in group_ids:
+            index = indexes.get(gid)
+            id_map = ids.get(gid)
+            if not index or not id_map:
+                raise FAISSGroupException(f"group_id not exists: {gid}")
+
+            distances, indices = index.search(vector, limit)
+            for j, i in enumerate(indices[0]):
+                if i == -1:
+                    # This happens when not enough docs are returned.
+                    continue
+                _id = id_map[i]
+                _distance = distances[0][j]
+                record = data[_id]
+                record['_distance'] = _distance
+                r_records.append(record)
+
+        return r_records
 
     def drop(self, collection: str):
         """"""

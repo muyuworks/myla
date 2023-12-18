@@ -98,3 +98,29 @@ class FAISSGroupTests(unittest.TestCase):
         vs._load(collection='col')
         self.assertIsNotNone(vs._data.get('col'))
         self.assertEqual(vs._data.get('col'), self._records)
+
+    def test_search(self):
+        vs = FAISSGroup(path=self._data)
+        vs.create_collection(collection='col')
+
+        vs.add(collection='col', records=self._records, vectors=self._vectors, group_by='gid')
+
+        records = vs.search(collection='col', vector=self._vectors[0], group_ids=[vs._group_id('g0')])
+        self.assertEqual(records[0]['id'], 0)
+        self.assertEqual(records[0]['_distance'], 0.0)
+
+        records = vs.search(collection='col', vector=self._vectors[1], group_ids=[vs._group_id('g0')])
+        self.assertEqual(records[0]['id'], 1)
+        self.assertEqual(records[0]['_distance'], 0.0)
+
+        records = vs.search(collection='col', vector=self._vectors[0], group_ids=[vs._group_id('g2')])
+        self.assertEqual(records[0]['id'], 2)
+        self.assertGreaterEqual(records[0]['_distance'], 0.5)
+
+        records = vs.search(collection='col', vector=self._vectors[0], group_ids=None)
+        self.assertEqual(records[0]['id'], 4)
+        self.assertGreaterEqual(records[0]['_distance'], 0.5)
+
+        records = vs.search(collection='col', vector=self._vectors[1], group_ids=[vs._group_id('g0'), vs._group_id('g2'), vs._group_id('g0'), vs._group_id()])
+        self.assertEqual(records[0]['id'], 1)
+        self.assertEqual(records[0]['_distance'], 0.0)
