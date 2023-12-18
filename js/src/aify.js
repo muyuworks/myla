@@ -750,7 +750,7 @@ const Files = (props) => {
                                                 <div><strong>Purpose: </strong><Tag color='blue'>{file.purpose}</Tag></div>
                                                 <div><strong>Id: </strong>{file.id}</div>
                                                 <div><strong>Bytes: </strong>{file.bytes}</div>
-                                                <div><strong>Created: </strong>{new Date(file.created_at * 1000).toLocaleString()}</div>
+                                                <div><strong>Created: </strong>{new Date(file.created_at).toLocaleString()}</div>
                                                 <div><strong>Metadata: </strong>{JSON.stringify(file.metadata)}</div>
                                             </Space>
                                         }
