@@ -99,4 +99,10 @@ def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddin
 
     vs.create_collection(collection=collection, schema=records[0], mode='overwrite')
 
-    vs.add(collection=collection, records=records, embeddings_columns=embeddings_columns, instruction=kwargs.get('instruction'))
+    vs.add(
+        collection=collection,
+        records=records,
+        embeddings_columns=embeddings_columns,
+        group_by=kwargs.get('group_by'),
+        instruction=kwargs.get('instruction')
+    )

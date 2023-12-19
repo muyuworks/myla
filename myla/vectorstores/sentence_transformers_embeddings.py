@@ -45,8 +45,8 @@ class SentenceTransformerEmbeddings(Embeddings):
     def embed_batch(self, texts: List[str], **kwargs) -> List[List[float]]:
         import sentence_transformers
 
-        instruction = self.instruction if 'instruction' not in kwargs else kwargs['instruction']
-        print(instruction)
+        instruction = kwargs['instruction'] if kwargs.get('instruction') else self.instruction
+
         texts = list(map(lambda x: (instruction if self.is_bge_model else '') + x.replace("\n", " "), texts))
 
         if self.multi_process:

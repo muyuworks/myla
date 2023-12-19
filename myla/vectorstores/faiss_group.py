@@ -3,6 +3,7 @@ import threading
 import pickle
 import gc
 import numpy as np
+import pandas as pd
 from typing import Any, Dict, List, Optional
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
@@ -125,7 +126,7 @@ class FAISSGroup(VectorStore):
                 self._save_group(collection=collection, gid=gid, index=indexes[gid], ids=ids[gid])
 
     def _group_id(self, v=None):
-        if v is None:
+        if v is None or pd.isnull(v):
             v = ""
         if not isinstance(v, str):
             v = str(v)
@@ -145,7 +146,6 @@ class FAISSGroup(VectorStore):
                     g = []
                     groups[gid] = g
                 g.append(i)
-
         return groups
 
     def _save_data(self, collection, data):

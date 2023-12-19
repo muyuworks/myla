@@ -124,3 +124,7 @@ class FAISSGroupTests(unittest.TestCase):
         records = vs.search(collection='col', vector=self._vectors[1], group_ids=['g0', 'g2', 'g0', None])
         self.assertEqual(records[0]['id'], 1)
         self.assertEqual(records[0]['_distance'], 0.0)
+
+    def test_group_id(self):
+        vs = FAISSGroup(path=self._data)
+        print(vs._group_id())
