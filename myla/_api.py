@@ -360,7 +360,7 @@ async def upload_file(request: Request, file: UploadFile):
     if purpose == "assistants":
         logger.info(f"Build vectorstore: id={id}, ftype={ftype}")
         async def _vs_load_task():
-            load_vectorstore_from_file(collection=id, fname=fname, ftype=ftype, embeddings_columns=embeddings_columns, loader=loader)
+            load_vectorstore_from_file(collection=id, fname=fname, ftype=ftype, embeddings_columns=embeddings_columns, loader=loader, instruction=metadata.get('instruction'))
         try:
             await _vs_load_task()
         except Exception as e:

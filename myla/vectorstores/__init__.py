@@ -77,7 +77,7 @@ def get_loader_instance(name: str):
     """Get configured Loader."""
     return _loaders.get(name)
 
-def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns = None, loader: str = None):
+def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns = None, loader: str = None, **kwargs):
     vs = get_default_vectorstore()
 
     if loader:
@@ -99,4 +99,4 @@ def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddin
 
     vs.create_collection(collection=collection, schema=records[0], mode='overwrite')
 
-    vs.add(collection=collection, records=records, embeddings_columns=embeddings_columns)
+    vs.add(collection=collection, records=records, embeddings_columns=embeddings_columns, instruction=kwargs.get('instruction'))

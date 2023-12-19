@@ -64,9 +64,11 @@ class FAISSGroup(VectorStore):
             records: List[Record],
             embeddings_columns: Optional[List[str]] = None,
             vectors: Optional[List[List[float]]] = None,
-            group_by: str = None
+            **kwargs
         ):
         """Add records to the collection."""
+        group_by = kwargs.get('group_by')
+
         self._check_collection_exists(collection=collection)
 
         if records is None:
@@ -84,7 +86,7 @@ class FAISSGroup(VectorStore):
             text_to_embed = []
             for r in records:
                 text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
-            vectors = self._embeddings.embed_batch(texts=text_to_embed)
+            vectors = self._embeddings.embed_batch(texts=text_to_embed, instruction=kwargs.get('instruction'))
 
         with self._get_collection_lock(collection=collection):
             data, indexes, ids = self._load(collection=collection)
@@ -171,16 +173,17 @@ class FAISSGroup(VectorStore):
             columns: Optional[List[str]] = None,
             with_vector: bool = False,
             with_distance: bool = False,
-            group_ids: Optional[List[str]] = None,
             **kwargs
         ) -> Optional[List[Record]]:
+        group_ids = kwargs.get('group_ids')
+
         self._check_collection_exists(collection=collection)
 
         if not query and not vector:
             raise FAISSGroupException("FAISSGroup search must provide query or vector.")
 
         if query and not vector and self._embeddings:
-            vector = self._embeddings.embed(text=query)
+            vector = self._embeddings.embed(text=query, instruction=kwargs.get('instruction'))
         if not vector:
             raise FAISSGroupException("FAISSGroup search must provide Embeddings function.")
 

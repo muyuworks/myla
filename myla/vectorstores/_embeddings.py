@@ -6,21 +6,21 @@ import asyncio
 class Embeddings(ABC):
 
     @abstractmethod
-    def embed_batch(self, texts: List[str]) -> List[List[float]]:
+    def embed_batch(self, texts: List[str], **kwargs) -> List[List[float]]:
         """Embed text batch."""
 
-    def embed(self, text: str) -> List[float]:
+    def embed(self, text: str, **kwargs) -> List[float]:
         """Embed text."""
-        return self.embed_batch(texts=[text])[0]
+        return self.embed_batch(texts=[text], **kwargs)[0]
 
-    async def aembed(self, text: str) -> List[float]:
+    async def aembed(self, text: str, **kwargs) -> List[float]:
         """Asynchronous Embed text."""
         return await asyncio.get_running_loop().run_in_executor(
-            None, self.embed, text
+            None, self.embed, text, **kwargs
         )
 
-    async def aembed_batch(self, texts: [str]) -> List[List[float]]:
+    async def aembed_batch(self, texts: [str], **kwargs) -> List[List[float]]:
         """Asynchronous Embed text."""
         return await asyncio.get_running_loop().run_in_executor(
-            None, self.embed_batch, texts
+            None, self.embed_batch, texts, **kwargs
         )

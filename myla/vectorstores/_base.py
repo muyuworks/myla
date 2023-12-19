@@ -38,7 +38,14 @@ class VectorStore(ABC):
         """Create a new collection"""
 
     @abstractmethod
-    def add(self, collection: str, records: List[Record], embeddings_columns: Optional[List[str]] = None, vectors: Optional[List[List[float]]] = None):
+    def add(
+        self,
+        collection: str,
+        records: List[Record],
+        embeddings_columns: Optional[List[str]] = None,
+        vectors: Optional[List[List[float]]] = None,
+        **kwargs
+    ):
         """Add record to the vectorsotre"""
 
     @abstractmethod
