@@ -73,9 +73,10 @@ def get(id: str, thread_id: str = None, user_id: str = None, session: Session = 
     if thread_id is not None and thread_id != r.thread_id:
         return None
 
-    thread = threads.get(id=thread_id, user_id=user_id, session=session)
-    if not thread:
-        return None
+    if thread_id is not None:
+        thread = threads.get(id=thread_id, user_id=user_id, session=session)
+        if not thread:
+            return None
 
     return r
 
