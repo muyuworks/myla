@@ -105,15 +105,15 @@ class FAISSGroupTests(unittest.TestCase):
 
         vs.add(collection='col', records=self._records, vectors=self._vectors, group_by='gid')
 
-        records = vs.search(collection='col', vector=self._vectors[0], group_ids=[vs._group_id('g0')])
+        records = vs.search(collection='col', vector=self._vectors[0], group_ids=['g0'])
         self.assertEqual(records[0]['id'], 0)
         self.assertEqual(records[0]['_distance'], 0.0)
 
-        records = vs.search(collection='col', vector=self._vectors[1], group_ids=[vs._group_id('g0')])
+        records = vs.search(collection='col', vector=self._vectors[1], group_ids=['g0'])
         self.assertEqual(records[0]['id'], 1)
         self.assertEqual(records[0]['_distance'], 0.0)
 
-        records = vs.search(collection='col', vector=self._vectors[0], group_ids=[vs._group_id('g2')])
+        records = vs.search(collection='col', vector=self._vectors[0], group_ids=['g2'])
         self.assertEqual(records[0]['id'], 2)
         self.assertGreaterEqual(records[0]['_distance'], 0.5)
 
@@ -121,6 +121,6 @@ class FAISSGroupTests(unittest.TestCase):
         self.assertEqual(records[0]['id'], 4)
         self.assertGreaterEqual(records[0]['_distance'], 0.5)
 
-        records = vs.search(collection='col', vector=self._vectors[1], group_ids=[vs._group_id('g0'), vs._group_id('g2'), vs._group_id('g0'), vs._group_id()])
+        records = vs.search(collection='col', vector=self._vectors[1], group_ids=['g0', 'g2', 'g0', None])
         self.assertEqual(records[0]['id'], 1)
         self.assertEqual(records[0]['_distance'], 0.0)

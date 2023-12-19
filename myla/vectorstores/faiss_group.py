@@ -125,6 +125,8 @@ class FAISSGroup(VectorStore):
     def _group_id(self, v=None):
         if v is None:
             v = ""
+        if not isinstance(v, str):
+            v = str(v)
         return utils.sha256(v.encode()).hex()
 
     def _group_records(self, records: List[Record], group_by: str):
@@ -135,9 +137,6 @@ class FAISSGroup(VectorStore):
         else:
             for i in range(len(records)):
                 gid = records[i].get(group_by)
-                if not gid:
-                    gid = ""
-
                 gid = self._group_id(gid)
                 g = groups.get(gid)
                 if not g:
@@ -190,6 +189,8 @@ class FAISSGroup(VectorStore):
 
         if group_ids is None:
             group_ids = [self._group_id()]
+        else:
+            group_ids = [self._group_id(v) for v in group_ids]
 
         if filter is not None:
             filter = {
