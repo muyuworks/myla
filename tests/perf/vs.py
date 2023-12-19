@@ -14,9 +14,9 @@ os.environ['EMBEDDINGS_MODEL_NAME'] = '/Users/shellc/Downloads/bge-large-zh-v1.5
 os.environ['EMBEDDINGS_DEVICE'] = 'mps'
 
 os.environ['VECTORSTORE_DIR'] = os.path.join(here, 'vs')
-os.environ['VECTOR_STORE_IMPL'] = 'chromadb'
+os.environ['VECTOR_STORE_IMPL'] = 'faissg'
 
-data_input = os.path.join(here, 'bq.csv')
+data_input = os.path.join(here, 'bq1.csv')
 embeds_output = os.path.join(here, 'embeds.pkl')
 
 embeddings = get_default_embeddings()
@@ -99,11 +99,11 @@ def test_search():
 
     col_name = create_col(records=records, vectors=vectors)
 
-    vs.add(collection=col_name, records=records, vectors=vectors)
+    vs.add(collection=col_name, records=records, vectors=vectors, group_by='label')
 
     begin = datetime.now().timestamp()
     for i in range(1000):
-        vs.search(collection=col_name, vector=vectors[i])
+        vs.search(collection=col_name, vector=vectors[i], group_ids=[0])
     end = datetime.now().timestamp()
 
     print(os.environ['VECTOR_STORE_IMPL'], "elapsed", end-begin)
@@ -152,6 +152,9 @@ def test_multi_vs():
 
 
 if __name__ == '__main__':
+    #records = load_records()
+    #vectors = pickle.load(open(embeds_output, 'rb'))
+
     #records_stat()
 
     #test_embed()
@@ -159,7 +162,10 @@ if __name__ == '__main__':
     #test_add_batch()
     #test_add()
 
-    test_search()
+    #test_search()
     #test_search_multi_trehads()
 
     #test_multi_vs()
+
+    import time
+    time.sleep(100000)
