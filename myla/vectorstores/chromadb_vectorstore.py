@@ -23,7 +23,14 @@ class Chromadb(VectorStore):
         """Create a new collection"""
         self._db.create_collection(name=collection)
 
-    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None, vectors: List[List[float]] = None):
+    def add(
+            self,
+            collection: str,
+            records: List[Record],
+            embeddings_columns: List[str] = None,
+            vectors: List[List[float]] = None,
+            **kwargs
+        ):
         """Add record to the vectorsotre"""
         col = self._db.get_collection(name=collection)
 

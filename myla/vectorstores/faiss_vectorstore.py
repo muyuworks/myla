@@ -27,7 +27,14 @@ class FAISS(VectorStore):
         vs = vectorstores.FAISS.from_texts(texts=[''], embedding=self.get_embeddings(), normalize_L2=True)
         vs.save_local(os.path.join(self._db_path, collection))
 
-    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None, vectors: List[List[float]] = None):
+    def add(
+            self,
+            collection: str,
+            records: List[Record],
+            embeddings_columns: List[str] = None,
+            vectors: List[List[float]] = None,
+            **kwargs
+        ):
         vs = self._get_vectorstore(collection)
 
         text_to_embed = []
@@ -50,7 +57,18 @@ class FAISS(VectorStore):
     def delete(self, collection: str, query: str):
         raise RuntimeError("Not implemented.")
 
-    def search(self, collection: str = None, query: str = None, vector: List = None, filter: Any = None, limit: int = 20, columns: List[str] = None, with_vector: bool = False, with_distance: bool = False, **kwargs) -> List[Record]:
+    def search(
+            self,
+            collection: str = None,
+            query: str = None,
+            vector: List = None,
+            filter: Any = None,
+            limit: int = 20,
+            columns: List[str] = None,
+            with_vector: bool = False,
+            with_distance: bool = False,
+            **kwargs
+        ) -> List[Record]:
         fetch_k = kwargs['fetch_k'] if 'fetch_k' in kwargs else None
         if not fetch_k:
             fetch_k = limit * 10

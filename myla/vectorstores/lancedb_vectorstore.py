@@ -44,7 +44,14 @@ class LanceDB(VectorStore):
 
         self._db.create_table(collection, schema=s, mode=mode)
 
-    def add(self, collection: str, records: List[Record], embeddings_columns: List[str] = None, vectors: List[List[float]] = None):
+    def add(
+            self,
+            collection: str,
+            records: List[Record],
+            embeddings_columns: List[str] = None,
+            vectors: List[List[float]] = None,
+            **kwargs
+        ):
         tbl = self._db.open_table(collection)
 
         if not vectors:
