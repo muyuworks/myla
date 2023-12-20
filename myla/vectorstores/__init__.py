@@ -11,18 +11,24 @@ from . import pandas_loader, pdf_loader
 from .._logging import logger
 from ..utils import create_instance
 
+_default_embeddings = None
+
 def get_default_embeddings():
-    impl = os.environ.get("EMBEDDINGS_IMPL")
-    model_name = os.environ.get("EMBEDDINGS_MODEL_NAME")
-    device = os.environ.get("EMBEDDINGS_DEVICE")
-    instruction = os.environ.get("EMBEDDINGS_INSTRUCTION")
+    global _default_embeddings
 
-    model_kwargs={'device': device if device else "cpu"}
+    if _default_embeddings is None:
+        impl = os.environ.get("EMBEDDINGS_IMPL")
+        model_name = os.environ.get("EMBEDDINGS_MODEL_NAME")
+        device = os.environ.get("EMBEDDINGS_DEVICE")
+        instruction = os.environ.get("EMBEDDINGS_INSTRUCTION")
 
-    if not impl or impl == 'sentence_transformers':
-        return SentenceTransformerEmbeddings(model_name=model_name, model_kwargs=model_kwargs, instruction=instruction)
-    else:
-        raise ValueError(f"Embedding implement not supported: {impl}")
+        model_kwargs={'device': device if device else "cpu"}
+
+        if not impl or impl == 'sentence_transformers':
+            _default_embeddings = SentenceTransformerEmbeddings(model_name=model_name, model_kwargs=model_kwargs, instruction=instruction)
+        else:
+            raise ValueError(f"Embedding implement not supported: {impl}")
+    return _default_embeddings
 
 _default_vs = {}
 
