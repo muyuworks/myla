@@ -117,6 +117,7 @@ def list(
         session: Optional[Session] = None
     ) -> RunList:
     select_stmt = select(Run)
+    select_stmt = select_stmt.filter(Run.is_deleted == False)
 
     if thread_id:
         select_stmt = select_stmt.filter(Run.thread_id == thread_id)

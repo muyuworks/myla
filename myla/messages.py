@@ -107,6 +107,7 @@ def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None
             return MessageList(data=[])
 
     select_stmt = select(Message)
+    select_stmt = select_stmt.filter(Message.is_deleted == False)
     select_stmt = select_stmt.where(Message.thread_id == thread_id)
 
     select_stmt = select_stmt.order_by(-Message.created_at if order == "desc" else Message.created_at)

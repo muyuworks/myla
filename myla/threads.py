@@ -1,5 +1,6 @@
+from datetime import datetime
 from typing import Optional, Union, List
-from sqlmodel import Session
+from sqlmodel import Session, update
 from . import _models
 from .messages import Message
 
@@ -49,15 +50,23 @@ def modify(id: str, thread: ThreadEdit, user_id: str = None, session: Session = 
 
 
 @_models.auto_session
-def delete(id: str, delete_message: bool = False, user_id: str = None, session: Optional[Session] = None) -> _models.DeletionStatus:
+def delete(id: str, user_id: str = None, session: Optional[Session] = None, mode="soft") -> _models.DeletionStatus:
     dbo = session.get(Thread, id)
     if dbo and (not user_id or user_id == dbo.user_id):
-        # delete all messages that belong to this thread
-        if delete_message:
-            session.query(Message).where(Message.thread_id == id).delete()
+        deleted_at = int(datetime.now().timestamp()*1000)
+        if mode is not None and mode == 'soft':
+            dbo.is_deleted = True
+            dbo.deleted_at = deleted_at
+            session.add(dbo)
 
-        session.delete(dbo)
-        session.commit()
+            session.query(Message).where(Message.thread_id == id).update({Message.is_deleted: True, Message.deleted_at: deleted_at})
+
+            session.commit()
+            session.refresh(dbo)
+        else:
+            session.delete(dbo)
+            session.query(Message).where(Message.thread_id == id).delete()
+            session.commit()
     return _models.DeletionStatus(id=id, object="thread.deleted", deleted=True)
 
 

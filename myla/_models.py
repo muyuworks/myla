@@ -105,14 +105,14 @@ def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = 
 @auto_session
 def get(db_cls: DBModel, read_cls: ReadModel, id: str, user_id: str = None, session: Session = None) -> Union[ReadModel, None]:
     dbo = session.get(db_cls, id)
-    if dbo and (not user_id or user_id == dbo.user_id):
+    if dbo and (not user_id or user_id == dbo.user_id) and not dbo.is_deleted:
         return dbo.to_read(read_cls)
 
 
 @auto_session
 def modify(db_cls: DBModel, read_cls: ReadModel, id: str, to_update: Dict, user_id: str = None, session: Session = None) -> Union[ReadModel, None]:
     dbo = session.get(db_cls, id)
-    if dbo and (not user_id or user_id == dbo.user_id):
+    if dbo and (not user_id or user_id == dbo.user_id) and not dbo.is_deleted:
         for k, v in to_update.items():
             if k == 'metadata':
                 dbo.metadata_ = v
@@ -127,11 +127,18 @@ def modify(db_cls: DBModel, read_cls: ReadModel, id: str, to_update: Dict, user_
 
 
 @auto_session
-def delete(db_cls: DBModel, id: str, user_id: str = None, session: Optional[Session] = None) -> DeletionStatus:
+def delete(db_cls: DBModel, id: str, user_id: str = None, session: Optional[Session] = None, mode="soft") -> DeletionStatus:
     dbo = session.get(db_cls, id)
-    if dbo and (not user_id or user_id == dbo.user_id):
-        session.delete(dbo)
-        session.commit()
+    if dbo and (not user_id or user_id == dbo.user_id) and not dbo.is_deleted:
+        if mode is not None and mode == 'soft':
+            dbo.is_deleted = True
+            dbo.deleted_at = int(datetime.now().timestamp()*1000)
+            session.add(dbo)
+            session.commit()
+            session.refresh(dbo)
+        else:
+            session.delete(dbo)
+            session.commit()
     return DeletionStatus(id=id, object=f"{dbo.object}.deleted", deleted=True)
 
 
@@ -148,6 +155,8 @@ def list(db_cls: DBModel,
          session: Optional[Session] = None
     ) -> ListModel:
     select_stmt = select(db_cls)
+
+    select_stmt = select_stmt.filter(db_cls.is_deleted == False)
 
     select_stmt = select_stmt.order_by(-db_cls.created_at if order == "desc" else db_cls.created_at)
     if after:

@@ -58,6 +58,7 @@ def delete(id: str, user_id: str = None, session: Optional[Session] = None) -> _
 @_models.auto_session
 def list(purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None, user_id: str = None, org_id: str = None, session: Optional[Session] = None) -> FileList:
     select_stmt = select(File)
+    select_stmt = select_stmt.filter(File.is_deleted == False)
 
     if purpose:
         select_stmt = select_stmt.filter(File.purpose == purpose)
