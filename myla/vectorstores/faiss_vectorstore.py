@@ -76,7 +76,7 @@ class FAISS(VectorStore):
         if vector is None:
             vector = self._embeddings.embed(text=query, instruction=kwargs.get('instruction'))
 
-        return self._faiss_search(collection_name=collection, query=query, vector=vector, filter=filter, k=limit, fetch_k=fetch_k)
+        return self._faiss_search(collection_name=collection, query=query, vector=vector, filter=filter, k=limit, fetch_k=fetch_k, **kwargs)
 
     def _faiss_search(
         self,
