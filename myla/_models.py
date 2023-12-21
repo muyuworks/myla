@@ -127,7 +127,7 @@ def modify(db_cls: DBModel, read_cls: ReadModel, id: str, to_update: Dict, user_
 
 
 @auto_session
-def delete(db_cls: DBModel, id: str, user_id: str = None, session: Optional[Session] = None, mode="soft") -> DeletionStatus:
+def delete(db_cls: DBModel, id: str, user_id: str = None, mode="soft", session: Optional[Session] = None) -> DeletionStatus:
     dbo = session.get(db_cls, id)
     if dbo and (not user_id or user_id == dbo.user_id) and not dbo.is_deleted:
         if mode is not None and mode == 'soft':

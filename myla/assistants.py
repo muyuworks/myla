@@ -63,8 +63,8 @@ def modify(id: str, assistant: AssistantModify, user_id: str = None, session: Se
 
 
 @_models.auto_session
-def delete(id: str, user_id: str = None, session: Optional[Session] = None) -> _models.DeletionStatus:
-    return _models.delete(db_cls=Assistant, id=id, user_id=user_id, session=session)
+def delete(id: str, user_id: str = None, mode="soft", session: Optional[Session] = None) -> _models.DeletionStatus:
+    return _models.delete(db_cls=Assistant, id=id, user_id=user_id, mode=mode, session=session)
 
 
 @_models.auto_session

@@ -91,12 +91,12 @@ def modify(id: str, message: MessageModify, thread_id: str = None, user_id: str 
 
 
 @_models.auto_session
-def delete(id: str, thread_id: str = None, user_id: str = None, session: Optional[Session] = None) -> _models.DeletionStatus:
+def delete(id: str, thread_id: str = None, user_id: str = None, mode="soft", session: Optional[Session] = None) -> _models.DeletionStatus:
     if thread_id is not None:
         msg = get(id=id, thread_id=thread_id, user_id=user_id, session=session)
         if not msg:
             return None
-    return _models.delete(db_cls=Message, id=id, user_id=user_id, session=session)
+    return _models.delete(db_cls=Message, id=id, user_id=user_id, mode=mode, session=session)
 
 
 @_models.auto_session

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Union, List
-from sqlmodel import Session, update
+from sqlmodel import Session
 from . import _models
 from .messages import Message
 
@@ -50,7 +50,7 @@ def modify(id: str, thread: ThreadEdit, user_id: str = None, session: Session = 
 
 
 @_models.auto_session
-def delete(id: str, user_id: str = None, session: Optional[Session] = None, mode="soft") -> _models.DeletionStatus:
+def delete(id: str, user_id: str = None, mode="soft", session: Optional[Session] = None) -> _models.DeletionStatus:
     dbo = session.get(Thread, id)
     if dbo and (not user_id or user_id == dbo.user_id):
         deleted_at = int(datetime.now().timestamp()*1000)

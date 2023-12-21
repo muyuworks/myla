@@ -42,6 +42,14 @@ api = FastAPI(
 )
 
 
+def _delete_mode():
+    mode = os.environ.get('MYLA_DELETE_MODE')
+    if mode is not None and isinstance(mode, str) and mode.lower().strip() == 'soft':
+        return 'soft'
+    else:
+        return 'hard'
+
+
 class Version(BaseModel):
     version: str
 
@@ -93,7 +101,7 @@ async def modify_assistant(assistant_id: str, assistant: assistants.AssistantMod
 @api.delete("/v1/assistants/{assistant_id}", tags=['Assistants'])
 @requires(['authenticated'])
 async def delete_assistant(assistant_id: str, request: Request):
-    return assistants.delete(id=assistant_id, user_id=request.user.id)
+    return assistants.delete(id=assistant_id, user_id=request.user.id, mode=_delete_mode())
 
 
 @api.get("/v1/assistants", response_model=assistants.AssistantList, tags=['Assistants'])
@@ -129,7 +137,7 @@ async def modify_thread(thread_id: str, thread: threads.ThreadModify, request: R
 @api.delete("/v1/threads/{thread_id}", tags=['Threads'])
 @requires(['authenticated'])
 async def delete_thread(thread_id: str, request: Request):
-    return threads.delete(id=thread_id, user_id=request.user.id)
+    return threads.delete(id=thread_id, user_id=request.user.id, mode=_delete_mode())
 
 
 @api.get("/v1/threads", response_model=threads.ThreadList, tags=['Threads'])
@@ -164,7 +172,7 @@ async def modify_message(thread_id: str, message_id: str, message: messages.Mess
 
 @api.delete("/v1/threads/{thread_id}/messages/{message_id}", tags=['Messages'])
 async def delete_message(thread_id: str, message_id: str, request: Request):
-    return messages.delete(id=message_id, thread_id=thread_id, user_id=request.user.id)
+    return messages.delete(id=message_id, thread_id=thread_id, user_id=request.user.id, mode=_delete_mode())
 
 
 @api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Messages'])
@@ -212,7 +220,7 @@ async def modify_run(thread_id: str, run_id: str, run: runs.RunModify, request: 
 @api.delete("/v1/threads/{thread_id}/runs/{run_id}", tags=['Runs'])
 @requires(['authenticated'])
 async def delete_run(thread_id: str, run_id: str, request: Request):
-    return runs.delete(id=run_id, user_id=request.user.id)
+    return runs.delete(id=run_id, user_id=request.user.id, mode=_delete_mode())
 
 
 @api.get("/v1/threads/{thread_id}/runs", response_model=runs.RunList, tags=['Runs'])
@@ -398,7 +406,7 @@ async def retrieve_file(file_id: str, request: Request):
 @requires(['authenticated'])
 async def delete_file(file_id: str, request: Request):
     # TODO: check permissions
-    return files.delete(id=file_id)
+    return files.delete(id=file_id, mode=_delete_mode())
 
 
 @api.post("/v1/users/{username}/login", response_model=users.UserLoginResult, tags=['Users'])

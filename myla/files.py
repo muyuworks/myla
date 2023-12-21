@@ -51,8 +51,8 @@ def get(id: str, user_id: str = None, session: Optional[Session] = None) -> Unio
 
 
 @_models.auto_session
-def delete(id: str, user_id: str = None, session: Optional[Session] = None) -> _models.DeletionStatus:
-    return _models.delete(db_cls=File, id=id, user_id=user_id, session=session)
+def delete(id: str, user_id: str = None, mode="soft", session: Optional[Session] = None) -> _models.DeletionStatus:
+    return _models.delete(db_cls=File, id=id, user_id=user_id, mode=mode, session=session)
 
 
 @_models.auto_session
