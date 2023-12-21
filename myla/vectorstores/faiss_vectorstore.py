@@ -41,16 +41,16 @@ class FAISS(VectorStore):
         for r in records:
             text_to_embed.append(Record.values_to_text(r, props=embeddings_columns))
 
-        if vectors:
-            if len(vectors) != len(text_to_embed):
-                raise ValueError("The length of records must be the same as the length of vecotors.")
+        if vectors is None:
+            vectors = self._embeddings.embed_batch(texts=text_to_embed, instruction=kwargs.get('instruction'))
 
-            text_embeddings = []
-            for i in range(len(text_to_embed)):
-                text_embeddings.append((text_to_embed[i], vectors[i]))
-            vs.add_embeddings(text_embeddings=text_embeddings, metadatas=records)
-        else:
-            vs.add_texts(texts=text_to_embed, metadatas=records)
+        if len(vectors) != len(text_to_embed):
+            raise ValueError("The length of records must be the same as the length of vecotors.")
+
+        text_embeddings = []
+        for i in range(len(text_to_embed)):
+            text_embeddings.append((text_to_embed[i], vectors[i]))
+        vs.add_embeddings(text_embeddings=text_embeddings, metadatas=records)
 
         vs.save_local(os.path.join(self._db_path, collection))
 
@@ -72,6 +72,10 @@ class FAISS(VectorStore):
         fetch_k = kwargs['fetch_k'] if 'fetch_k' in kwargs else None
         if not fetch_k:
             fetch_k = limit * 10
+
+        if vector is None:
+            vector = self._embeddings.embed(text=query, instruction=kwargs.get('instruction'))
+
         return self._faiss_search(collection_name=collection, query=query, vector=vector, filter=filter, k=limit, fetch_k=fetch_k)
 
     def _faiss_search(
