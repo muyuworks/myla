@@ -51,7 +51,7 @@ async def chat_complete(run: runs.RunRead, iter):
         llm_args = run_metadata['llm_args'] if 'llm_args' in run_metadata else {"temperature": 0.0}
 
         # Laod history
-        history_limit = run_metadata['history_limit'] if 'history_limit' in run_metadata else 4
+        history_limit = run_metadata['history_limit'] if 'history_limit' in run_metadata else 7
         if not isinstance(history_limit, int):
             history_limit = 0
         history = list_messages(thread_id=thread_id, order="desc", limit=history_limit).data
