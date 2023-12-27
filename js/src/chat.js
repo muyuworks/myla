@@ -14,7 +14,7 @@ import {
     Spin
 } from 'antd';
 
-import { BulbOutlined } from '@ant-design/icons'
+import { BulbOutlined, RedoOutlined } from '@ant-design/icons'
 
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import ReactMarkdown from 'react-markdown'
@@ -54,28 +54,16 @@ export const Chat = (props) => {
         abortController = new AbortController();
 
         let values = form.getFieldsValue();
-        if (!values.prompt) {
-            //setError("Prompt required!");
+        if (values.prompt) {
             setGenerating(false);
-            return;
+            createMesage(props.thread_id, values.prompt);
+            history.push({ role: 'user', message: values.prompt });
         }
 
-        let prompt_variable = props.prompt_variable;
-        if (!prompt_variable) {
-            prompt_variable = 'prompt';
-        }
-
-        createMesage(props.thread_id, values.prompt);
-        //createRun(props.name, props.thread_id)
         createRunStream(props.name, props.thread_id);
-
-        //let req = {}
-        //req[prompt_variable] = values.prompt;
-
-        history.push({ role: 'user', message: values.prompt });
+        
         setHistoryScroll();
         form.setFieldValue('prompt', '');
-        //getReply(req);
     }
 
     const createMesage = (thread_id, content) => {
@@ -249,8 +237,13 @@ export const Chat = (props) => {
                 onFinish={onSubmit}
                 style={{
                 }}
-                className='mb-0 p-3 border-top border-light'
+                className='mb-0 px-3 py-3 border-top border-light'
             >
+                <div style={{display: 'none'}}>
+                    <Button style={{border: 0, margin: 5, padding: 0}} size='small' shape='circle' >
+                        <RedoOutlined />
+                    </Button>
+                </div>
                 <Row wrap={false} align="bottom">
                     <Col flex="auto">
                         <Form.Item

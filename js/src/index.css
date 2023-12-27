@@ -6,7 +6,7 @@
 a {
     text-decoration: none;
 }
-.thread-close, .anticon-plus,  .anticon-bulb, .anticon-menu-fold, .anticon-menu-unfold{
+.thread-close, .anticon {
     transform: translate(-0.5px, -3px);
 }
 
