@@ -66,7 +66,8 @@ async def chat_complete(run: runs.RunRead, iter):
             messages.append({
                 "role": role,
                 "content": content,
-                "metadata": h.metadata
+                "metadata": h.metadata,
+                "created_at": h.created_at
             })
 
         # Message file_ids
