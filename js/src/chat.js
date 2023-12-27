@@ -55,7 +55,6 @@ export const Chat = (props) => {
 
         let values = form.getFieldsValue();
         if (values.prompt) {
-            setGenerating(false);
             createMesage(props.thread_id, values.prompt);
             history.push({ role: 'user', message: values.prompt });
         }
