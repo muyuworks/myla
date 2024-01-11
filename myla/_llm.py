@@ -1,3 +1,4 @@
+import os
 import datetime
 import asyncio
 from ._tools import get_tool
@@ -87,6 +88,14 @@ async def chat_complete(run: runs.RunRead, iter):
         # Run tools
         context: Context = await run_tools(tools=tools, messages=messages, run_metadata=run_metadata, file_ids=file_ids)
         llm_args.update(context.llm_args)
+
+        # llm timeout
+        if 'timeout' not in llm_args and 'LLM_HTTP_TIMEOUT' in os.environ:
+            try:
+                timeout = int(os.environ.get('LLM_HTTP_TIMEOUT'))
+                llm_args['timeout'] = timeout
+            except:
+                pass
 
         log.debug(f"Context after tools: {context}")
 

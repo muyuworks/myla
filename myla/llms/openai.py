@@ -43,7 +43,6 @@ async def chat(messages: List[Dict], model=None, stream=False, api_key=None, bas
             model=model,
             messages=messages,
             stream=stream,
-            timeout=120,
             **kwargs
         )
         if stream:
