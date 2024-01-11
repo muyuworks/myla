@@ -1,7 +1,9 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 from pydantic import BaseModel
 import aiohttp
 from ._logging import logger
+from .assistants import AssistantRead
+from .runs import RunRead
 
 
 class Context(BaseModel):
@@ -26,6 +28,9 @@ class Context(BaseModel):
     # 是否完成当前 Run, 如果是则会忽略后续所有 Tools 和 LLM 执行，直接将最后一条消息作为生成消息返回
     # 最后一条消息必须 role 为 assistant, 否则忽略
     is_completed: bool = False
+
+    assistant: Optional[AssistantRead] = None
+    run: Optional[RunRead] = None
 
     def get_last_message(self):
         """

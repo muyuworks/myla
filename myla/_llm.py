@@ -86,7 +86,14 @@ async def chat_complete(run: runs.RunRead, iter):
         )
 
         # Run tools
-        context: Context = await run_tools(tools=tools, messages=messages, run_metadata=run_metadata, file_ids=file_ids)
+        context: Context = await run_tools(
+                assistant=assistant,
+                run=run,
+                tools=tools,
+                messages=messages,
+                run_metadata=run_metadata,
+                file_ids=file_ids
+            )
         llm_args.update(context.llm_args)
 
         # llm timeout
@@ -144,10 +151,16 @@ async def chat_complete(run: runs.RunRead, iter):
         await iter.put(None) #DONE
 
 
-async def run_tools(tools, messages, run_metadata, file_ids=[]):
+async def run_tools(assistant, run, tools, messages, run_metadata, file_ids=[]):
     run_metadata = run_metadata if run_metadata else {}
 
-    context = Context(messages=messages, run_metadata=run_metadata, file_ids=file_ids)
+    context = Context(
+            messages=messages,
+            run_metadata=run_metadata,
+            file_ids=file_ids,
+            assistant=assistant,
+            run=run
+        )
 
     if not tools:
         tools = []
