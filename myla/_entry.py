@@ -119,3 +119,8 @@ def register_webui(webui_dir):
         name='home',
         endpoint=render('index.html', templates=templates)
     ))
+
+
+if os.environ.get("WEBUI"):
+    webui_dir = os.environ.get("WEBUI")
+    register_webui(webui_dir=webui_dir)
