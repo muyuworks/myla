@@ -160,9 +160,13 @@ def list(db_cls: DBModel,
 
     select_stmt = select_stmt.order_by(-db_cls.created_at if order == "desc" else db_cls.created_at)
     if after:
-        select_stmt = select_stmt.filter(db_cls.id > after)
+        obj = get(db_cls=db_cls, read_cls=read_cls, id=after, session=session)
+        if obj:
+            select_stmt = select_stmt.filter(db_cls.created_at > obj.created_at)
     if before:
-        select_stmt = select_stmt.filter(db_cls.id < before)
+        obj = get(db_cls=db_cls, read_cls=read_cls, id=before, session=session)
+        if obj:
+            select_stmt = select_stmt.filter(db_cls.created_at < obj.created_at)
 
     if user_id:
         select_stmt = select_stmt.filter(db_cls.user_id == user_id)

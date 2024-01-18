@@ -65,9 +65,13 @@ def list(purpose: str = None, limit: int = 20, order: str = "desc", after: str =
 
     select_stmt = select_stmt.order_by(-File.created_at if order == "desc" else File.created_at)
     if after:
-        select_stmt = select_stmt.filter(File.id > after)
+        f = get(id=after, user_id=user_id, session=session)
+        if f:
+            select_stmt = select_stmt.filter(File.created_at > f.created_at)
     if before:
-        select_stmt = select_stmt.filter(File.id < before)
+        f = get(id=before, user_id=user_id, session=session)
+        if f:
+            select_stmt = select_stmt.filter(File.created_at < f.created_at)
 
     if user_id:
         select_stmt = select_stmt.filter(File.user_id == user_id)

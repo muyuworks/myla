@@ -112,9 +112,13 @@ def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None
 
     select_stmt = select_stmt.order_by(-Message.created_at if order == "desc" else Message.created_at)
     if after:
-        select_stmt = select_stmt.filter(Message.id > after)
+        m = get(id=after, thread_id=thread_id, user_id=user_id, session=session)
+        if m:
+            select_stmt = select_stmt.filter(Message.created_at > m.created_at)
     if before:
-        select_stmt = select_stmt.filter(Message.id < before)
+        m = get(id=before, thread_id=thread_id, user_id=user_id, session=session)
+        if m:
+            select_stmt = select_stmt.filter(Message.created_at < m.created_at)
 
     select_stmt = select_stmt.limit(limit)
 

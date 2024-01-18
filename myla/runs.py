@@ -125,9 +125,13 @@ def list(
     select_stmt = select_stmt.order_by(-Run.created_at if order == "desc" else Run.created_at)
 
     if after:
-        select_stmt = select_stmt.filter(Run.id > after)
+        r = get(run_id=after, thread_id=thread_id, user_id=user_id, session=session)
+        if r:
+            select_stmt = select_stmt.filter(Run.created_at > r.created_at)
     if before:
-        select_stmt = select_stmt.filter(Run.id < before)
+        r = get(run_id=before, thread_id=thread_id, user_id=user_id, session=session)
+        if r:
+            select_stmt = select_stmt.filter(Run.created_at < r.created_at)
 
     if user_id:
         select_stmt = select_stmt.filter(Run.user_id == user_id)
