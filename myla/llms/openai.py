@@ -12,12 +12,15 @@ class OpenAI(LLM):
         self.base_url = base_url
 
     async def chat(self, messages: List[Dict], model=None, stream=False, **kwargs):
+        if "api_key" not in kwargs:
+            kwargs["api_key"] = self.api_key
+        if "base_url" not in kwargs:
+            kwargs["base_url"] = self.base_url
+
         return await chat(
             messages=messages,
             model=model if model else self.model,
             stream=stream,
-            api_key=self.api_key,
-            base_url=self.base_url,
             **kwargs
         )
 
