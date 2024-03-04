@@ -1,29 +1,25 @@
-import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
-import { useState } from 'react'
-import { Layout, List, Avatar, Space, Typography, Button, Form, Input, Skeleton, Tabs, Alert, Popover, Tag, message, Upload, Spin, Select, Drawer } from 'antd'
 import {
-    MenuUnfoldOutlined,
-    MenuFoldOutlined,
-    PlusOutlined,
     CloseCircleOutlined,
-    SettingOutlined,
     DeleteOutlined,
-    UploadOutlined,
-    ReloadOutlined
-} from '@ant-design/icons'
-import {
-
+    MenuFoldOutlined,
+    MenuUnfoldOutlined,
+    PlusOutlined,
+    ReloadOutlined,
+    SettingOutlined,
+    UploadOutlined
 } from '@ant-design/icons';
-import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm'
-import { Chat } from './chat'
-import Link from 'antd/es/typography/Link';
+import { Alert, Avatar, Button, Drawer, Form, Input, Layout, List, Popover, Select, Skeleton, Space, Spin, Tabs, Tag, Typography, Upload, message } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
+import Link from 'antd/es/typography/Link';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom/client';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Chat } from './chat';
 import { SecretKeySettings } from './secret_key';
-import { UserAdmin } from './user_admin';
 import { Settings } from './settings';
 import { getUser } from './user';
+import { UserAdmin } from './user_admin';
 
 const { Sider } = Layout
 const { Text } = Typography
@@ -615,12 +611,6 @@ const Assistants = (props) => {
                                 style={{ width: 50, height: 50, fontSize: 24 }}
                             />
                         </Form.Item>
-
-                        {assistantToModify ? (
-                            <div style={{ marginBottom: 10 }}>
-                                <Link href={`/assistants/${assistantToModify.id}`} target='_blank'>Share this assistant with others.</Link>
-                            </div>
-                        ) : null}
 
                         {error ? (<Alert message={error} type="error" showIcon style={{ marginBottom: 10 }} />) : null}
 

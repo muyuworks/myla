@@ -1,4 +1,4 @@
-import { Button, Divider, Form, Input, Space, message } from "antd"
+import { Button, Divider, Form, Input, message } from "antd"
 import { getUser, logout } from "./user"
 
 export const Settings = () => {
@@ -32,9 +32,24 @@ export const Settings = () => {
         })
     }
 
+    const changeProfile = () => {
+        
+    }
+
     return (
         <div>
             {msgContext}
+            <div style={{marginBottom: 15}}><strong>Profile</strong></div>
+            <Form>
+                <Form.Item name='icon' initialValue={'🐼'}>
+                    <Input
+                        type='text'
+                        style={{ width: 50, height: 50, fontSize: 24 }}
+                    />
+                </Form.Item>
+            </Form>
+
+            <Divider />
             <div style={{marginBottom: 15}}><strong>Change password</strong></div>
             <Form
                 form={changePasswordForm}
