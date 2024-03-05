@@ -20,3 +20,4 @@ openai
 python-multipart
 
 pandas
+aiofiles
