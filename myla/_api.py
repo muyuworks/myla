@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+import aiofiles
 from typing import List
 from datetime import datetime
 from pydantic import BaseModel
@@ -352,12 +353,12 @@ async def upload_file(request: Request, file: UploadFile):
     id = "file-" + utils.random_id()
     fname = os.path.join(files_dir, id)
 
-    with open(fname, "wb") as f:
+    async with aiofiles.open(fname, "wb") as f:
         read_bytes = None
         while True:
             read_bytes = await file.read(512)
             if read_bytes:
-                f.write(read_bytes)
+                await f.write(read_bytes)
             else:
                 break
 
@@ -367,18 +368,18 @@ async def upload_file(request: Request, file: UploadFile):
 
     if purpose == "assistants":
         logger.info(f"Build vectorstore: id={id}, ftype={ftype}")
-        async def _vs_load_task():
-            load_vectorstore_from_file(
-                collection=id,
-                fname=fname,
-                ftype=ftype,
-                embeddings_columns=embeddings_columns,
-                loader=loader,
-                group_by=metadata.get('group_by'),
-                instruction=metadata.get('instruction')
-            )
         try:
-            await _vs_load_task()
+            def _load_vs():
+                return load_vectorstore_from_file(
+                    collection=id,
+                    fname=fname,
+                    ftype=ftype,
+                    embeddings_columns=embeddings_columns,
+                    loader=loader,
+                    group_by=metadata.get('group_by'),
+                    instruction=metadata.get('instruction')
+                )
+            await asyncio.get_running_loop().run_in_executor(None, _load_vs)
         except Exception as e:
             logger.warn(f"Build vectorstore failed:", exc_info=e)
             raise HTTPException(status_code=400, detail=f"Can't build vectorstore. {e}")
