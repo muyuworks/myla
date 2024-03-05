@@ -13,13 +13,15 @@ class SentenceTransformerEmbeddings(Embeddings):
             model_kwargs: Optional[Dict[str, Any]] = {},
             encode_kwargs: Optional[Dict[str, Any]] = {},
             multi_process: bool = False,
-            instruction: str = None
+            multi_process_devices: Optional[List[str]] = None,
+            instruction: Optional[str] = None
     ) -> None:
         super().__init__()
         self.model_name = model_name
         self.model_kwargs = model_kwargs
         self.encode_kwargs = encode_kwargs
         self.multi_process = multi_process
+        self.multi_process_devices = multi_process_devices
 
         if not self.model_name:
             raise ValueError("Can't found embeddings model, EMBEDDINGS_MODEL_NAME required.")
@@ -41,6 +43,12 @@ class SentenceTransformerEmbeddings(Embeddings):
         self.tansformer = sentence_transformers.SentenceTransformer(
             self.model_name, **self.model_kwargs
         )
+        #self.tansformer.share_memory()
+
+        if self.multi_process:
+            self._pool = self.tansformer.start_multi_process_pool(
+                target_devices=self.multi_process_devices
+            )
 
     def embed_batch(self, texts: List[str], **kwargs) -> List[List[float]]:
         import sentence_transformers
@@ -50,10 +58,7 @@ class SentenceTransformerEmbeddings(Embeddings):
         texts = list(map(lambda x: (instruction if self.is_bge_model else '') + x.replace("\n", " "), texts))
 
         if self.multi_process:
-            pool = self.tansformer.start_multi_process_pool()
-            embeddings = self.tansformer.encode_multi_process(texts, pool)
-            sentence_transformers.SentenceTransformer.stop_multi_process_pool(
-                pool)
+            embeddings = self.tansformer.encode_multi_process(texts, self._pool)
         else:
             embeddings = self.tansformer.encode(texts, **self.encode_kwargs)
 

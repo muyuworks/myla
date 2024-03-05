@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Optional
 from ._base import Record, VectorStore
 from ._embeddings import Embeddings
 from .sentence_transformers_embeddings import SentenceTransformerEmbeddings
@@ -21,11 +22,26 @@ def get_default_embeddings():
         model_name = os.environ.get("EMBEDDINGS_MODEL_NAME")
         device = os.environ.get("EMBEDDINGS_DEVICE")
         instruction = os.environ.get("EMBEDDINGS_INSTRUCTION")
+        multi_process = os.environ.get("EMBEDDINGS_MULTI_PROCESS")
+        multi_process_devices = os.environ.get("EMBEDDINGS_MULTI_PROCESS_DEVICES")
 
+        if multi_process is not None and multi_process.lower() == "true":
+            multi_process = True
+        else:
+            multi_process = False
+
+        if multi_process_devices is not None:
+            multi_process_devices = multi_process_devices.split(",")
         model_kwargs={'device': device if device else "cpu"}
 
         if not impl or impl == 'sentence_transformers':
-            _default_embeddings = SentenceTransformerEmbeddings(model_name=model_name, model_kwargs=model_kwargs, instruction=instruction)
+            _default_embeddings = SentenceTransformerEmbeddings(
+                model_name=model_name,
+                model_kwargs=model_kwargs,
+                instruction=instruction,
+                multi_process=multi_process,
+                multi_process_devices=multi_process_devices
+            )
         else:
             raise ValueError(f"Embedding implement not supported: {impl}")
     return _default_embeddings
@@ -83,7 +99,7 @@ def get_loader_instance(name: str):
     """Get configured Loader."""
     return _loaders.get(name)
 
-def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns = None, loader: str = None, **kwargs):
+def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns = None, loader: Optional[str] = None, **kwargs):
     vs = get_default_vectorstore()
 
     if loader:
