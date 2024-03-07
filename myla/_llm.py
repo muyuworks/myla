@@ -1,13 +1,14 @@
 import os
 import datetime
 import asyncio
+import inspect
+from typing import Optional
 from ._tools import get_tool
 from .tools import Tool, Context
 from . import runs, assistants
 from .messages import list as list_messages, create as create_message, MessageCreate
 from ._logging import logger as log
 from . import llms
-
 
 async def chat_complete(run: runs.RunRead, iter):
     try:
@@ -171,13 +172,21 @@ async def run_tools(assistant, run, tools, messages, run_metadata, file_ids=[]):
         #if tool_name.startswith("$"):
         #    # 由 LLM 决定是否执行, 并确定执行参数
 
-        tool_instance: Tool = get_tool(tool_name)
+        tool_instance: Optional[Tool] = get_tool(tool_name)
 
-        if not isinstance(tool_instance, Tool):
+        if tool_instance is None or not isinstance(tool_instance, Tool):
             log.warn(f"tool instance is not a Tool: name={tool_name}, instance={tool_instance}")
             continue
 
-        await tool_instance.execute(context=context)
+        if inspect.iscoroutinefunction(tool_instance.execute):
+            await tool_instance.execute(context=context)
+        else:
+            await asyncio.get_running_loop().run_in_executor(
+                None,
+                tool_instance.execute,
+                context
+            )
+
         if context.is_completed:
             return context
 

@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import Any, List, Dict, Optional
 from pydantic import BaseModel
 import aiohttp
 from ._logging import logger
@@ -51,7 +51,7 @@ class Tool:
     名称以 $ 开始的 tool 一定会被执行, 执行顺序为定义 Assistant/Run tools 的顺序
     名称不以 $ 开始的 tool 将由系统决定是否执行
     """
-    async def execute(self, context: Context) -> None:
+    def execute(self, context: Context) -> Any:
         pass
 
 
