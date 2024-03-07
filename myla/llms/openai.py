@@ -29,6 +29,23 @@ class OpenAI(LLM):
             model = self.model
         return await generate(instructions=instructions, model=model, stream=stream, **kwargs)
 
+    def sync_chat(self, messages: List[Dict], model=None, stream=False, **kwargs):
+        if "api_key" not in kwargs:
+            kwargs["api_key"] = self.api_key
+        if "base_url" not in kwargs:
+            kwargs["base_url"] = self.base_url
+
+        return sync_chat(
+            messages=messages,
+            model=model if model else self.model,
+            stream=stream,
+            **kwargs
+        )
+
+    def sync_generate(self, instructions: str, model=None, stream=False, **kwargs):
+        if not model:
+            model = self.model
+        return sync_generate(instructions=instructions, model=model, stream=stream, **kwargs)
 
 async def chat(messages: List[Dict], model=None, stream=False, api_key=None, base_url=None, **kwargs):
     if not api_key:
@@ -62,6 +79,42 @@ async def chat(messages: List[Dict], model=None, stream=False, api_key=None, bas
 
 async def generate(instructions: str, model=None, stream=False, **kwargs):
     r = await chat(messages=[{
+        "role": "system",
+        "content": instructions
+    }], model=model, stream=stream, **kwargs)
+    return r
+
+def sync_chat(messages: List[Dict], model=None, stream=False, api_key=None, base_url=None, **kwargs):
+    if not api_key:
+        api_key = os.environ.get("LLM_API_KEY")
+    if not base_url:
+        base_url = os.environ.get("LLM_ENDPOINT")
+    if not model:
+        model = os.environ.get("DEFAULT_LLM_MODEL_NAME")
+
+    llm = openai.OpenAI(api_key=api_key, base_url=base_url)
+
+    @utils.retry
+    def _call():
+        resp = llm.chat.completions.create(
+            model=model,
+            messages=messages,
+            stream=stream,
+            **kwargs
+        )
+        if stream:
+            def iter():
+                for r in resp:
+                    yield r.choices[0].delta.content if r.choices else 'Unexpected LLM error, possibly due to context being too long.'
+            return iter()
+        else:
+            genereated = resp.choices[0].message.content
+            return genereated
+
+    return _call()
+
+def sync_generate(instructions: str, model=None, stream=False, **kwargs):
+    r = sync_chat(messages=[{
         "role": "system",
         "content": instructions
     }], model=model, stream=stream, **kwargs)

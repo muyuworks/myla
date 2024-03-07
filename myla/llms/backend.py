@@ -6,7 +6,13 @@ class LLM:
         self.model = model
 
     async def chat(self, messages: List[Dict], model=None, stream=False, **kwargs):
-        pass
+        raise NotImplemented()
 
     async def generate(self, instructions: str, model=None, stream=False, **kwargs):
-        pass
+        raise NotImplemented()
+
+    def sync_chat(self, messages: List[Dict], model=None, stream=False, **kwargs):
+        raise NotImplemented()
+
+    def sync_generate(self, instructions: str, model=None, stream=False, **kwargs):
+        raise NotImplemented()
