@@ -49,7 +49,16 @@ class Message(_models.DBModel, table=True):
 
 
 @_models.auto_session
-def create(thread_id: str, message: MessageCreate, assistant_id: str = None, run_id: str=None, user_id: str = None, org_id: str = None, session: Session = None) -> MessageRead:
+def create(
+    thread_id: str,
+    message: MessageCreate,
+    assistant_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    tag: Optional[str] = None,
+    user_id: Optional[str] = None,
+    org_id: Optional[str] = None,
+    session: Session = None
+) -> MessageRead:
     db_model = Message(
         thread_id=thread_id,
         role=message.role,
@@ -60,7 +69,15 @@ def create(thread_id: str, message: MessageCreate, assistant_id: str = None, run
         run_id=run_id
     )
 
-    dbo = _models.create(object="thread.message", meta_model=message, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
+    dbo = _models.create(
+        object="thread.message",
+        meta_model=message,
+        db_model=db_model,
+        tag=tag,
+        user_id=user_id,
+        org_id=org_id,
+        session=session
+    )
     return dbo.to_read(MessageRead)
 
 
@@ -100,7 +117,16 @@ def delete(id: str, thread_id: str = None, user_id: str = None, mode="soft", ses
 
 
 @_models.auto_session
-def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None, user_id: str = None, session: Optional[Session] = None) -> MessageList:
+def list(
+    thread_id: str,
+    limit: Optional[int] = 20,
+    order: Optional[str] = "desc",
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    tag: Optional[str] = None,
+    user_id: Optional[str] = None,
+    session: Session = None
+) -> MessageList:
     if user_id is not None:
         thread = threads.get(id=thread_id, user_id=user_id, session=session)
         if not thread:
@@ -119,6 +145,9 @@ def list(thread_id: str, limit: int = 20, order: str = "desc", after: str = None
         m = get(id=before, thread_id=thread_id, user_id=user_id, session=session)
         if m:
             select_stmt = select_stmt.filter(Message.created_at < m.created_at)
+
+    if tag:
+        select_stmt = select_stmt.filter(Message.tag == tag)
 
     select_stmt = select_stmt.limit(limit)
 

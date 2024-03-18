@@ -2,7 +2,7 @@ import os
 import json
 import asyncio
 import aiofiles
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Request, UploadFile
@@ -115,8 +115,8 @@ async def list_assistants(request: Request, limit: int = 20, order: str = "desc"
 
 @api.post("/v1/threads", response_model=threads.ThreadRead, tags=['Threads'])
 @requires(['authenticated'])
-async def create_thread(thread: threads.ThreadCreate, request: Request):
-    r = threads.create(thread=thread, user_id=request.user.id)
+async def create_thread(thread: threads.ThreadCreate, request: Request, tag: Optional[str] = None):
+    r = threads.create(thread=thread, tag=tag, user_id=request.user.id)
     return r
 
 
@@ -143,16 +143,23 @@ async def delete_thread(thread_id: str, request: Request):
 
 @api.get("/v1/threads", response_model=threads.ThreadList, tags=['Threads'])
 @requires(['authenticated'])
-async def list_threads(request: Request, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
-    return threads.list(limit=limit, order=order, after=after, before=before, user_id=request.user.id)
+async def list_threads(
+    request: Request,
+    limit: int = 20,
+    order: str = "desc",
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    tag: Optional[str] = None
+):
+    return threads.list(limit=limit, order=order, after=after, before=before, tag=tag, user_id=request.user.id)
 
 # Messages
 
 
 @api.post("/v1/threads/{thread_id}/messages", response_model=messages.MessageRead, tags=['Messages'])
 @requires(['authenticated'])
-async def create_message(thread_id: str, message: messages.MessageCreate, request: Request):
-    r = messages.create(thread_id=thread_id, message=message, user_id=request.user.id)
+async def create_message(thread_id: str, message: messages.MessageCreate, request: Request, tag: Optional[str] = None):
+    r = messages.create(thread_id=thread_id, message=message, tag=tag, user_id=request.user.id)
     return r
 
 
@@ -178,8 +185,24 @@ async def delete_message(thread_id: str, message_id: str, request: Request):
 
 @api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Messages'])
 @requires(['authenticated'])
-async def list_messages(request: Request, thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
-    return messages.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before, user_id=request.user.id)
+async def list_messages(
+    request: Request,
+    thread_id: str,
+    limit: Optional[int] = 20,
+    order: Optional[str] = "desc",
+    after: Optional[str] = None,
+    before: Optional[str] = None,
+    tag: Optional[str] = None
+):
+    return messages.list(
+        thread_id=thread_id,
+        tag=tag,
+        limit=limit,
+        order=order,
+        after=after,
+        before=before,
+        user_id=request.user.id
+    )
 
 # Runs
 

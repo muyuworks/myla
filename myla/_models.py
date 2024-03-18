@@ -28,6 +28,7 @@ class DBModel(SQLModel):
     user_id: Optional[str] = Field(index=True)
     is_deleted: Optional[bool] = Field(index=True, default=False)
     deleted_at: Optional[int]
+    tag: Optional[str] = Field(index=True, nullable=True)
 
     def to_read(self, read_cls: ReadModel) -> ReadModel:
         """Convert to a ReadModel object."""
@@ -67,7 +68,17 @@ def auto_session(func):
 
 
 @auto_session
-def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = None, user_id: str = None, org_id: str = None, session: Session = None, auto_commit=True):
+def create(
+    object: str,
+    meta_model: MetadataModel,
+    db_model: DBModel,
+    id: Optional[str] = None,
+    tag: Optional[str] = None,
+    user_id: Optional[str] = None,
+    org_id: Optional[str] = None,
+    session: Session = None,
+    auto_commit=True
+):
     id = id if id else utils.random_id()
 
     if object == "secret_key":
@@ -88,6 +99,7 @@ def create(object: str, meta_model: MetadataModel, db_model: DBModel, id: str = 
         id = "user-" + id
 
     db_model.id = id
+    db_model.tag = tag
     db_model.created_at = int(datetime.now().timestamp()*1000)
     db_model.object = object
     db_model.metadata_ = meta_model.metadata
@@ -148,11 +160,12 @@ def list(db_cls: DBModel,
          list_cls: ListModel,
          limit: int = 20,
          order: str = "desc",
-         after: str = None,
-         before: str = None,
-         user_id: str = None,
-         org_id: str = None,
-         session: Optional[Session] = None
+         after: Optional[str] = None,
+         before: Optional[str] = None,
+         tag: Optional[str] = None,
+         user_id: Optional[str] = None,
+         org_id: Optional[str] = None,
+         session: Session = None
     ) -> ListModel:
     select_stmt = select(db_cls)
 
@@ -172,6 +185,9 @@ def list(db_cls: DBModel,
         select_stmt = select_stmt.filter(db_cls.user_id == user_id)
     if org_id:
         select_stmt = select_stmt.filter(db_cls.org_id == org_id)
+
+    if tag:
+        select_stmt = select_stmt.filter(db_cls.tag == tag)
 
     select_stmt = select_stmt.limit(limit)
 

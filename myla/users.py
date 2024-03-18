@@ -67,16 +67,17 @@ class User(_models.DBModel, UserBase, table=True):
 
 class SecretKeyBase(BaseModel):
     display_name: Optional[str]
-    tag: Optional[str] = Field(index=True)
 
 
 class SecrectKeyCreate(_models.MetadataModel, SecretKeyBase):
     """Secrect object to be created."""
+    tag: Optional[str] = None
 
 
 class SecretKeyRead(_models.ReadModel, SecretKeyBase):
     """The SecrectKey read."""
     user_id: str
+    tag: Optional[str] = None
 
 
 class SecrectKeyList(_models.ListModel):
@@ -225,7 +226,15 @@ def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = No
 
     secret_key = utils.random_key()
 
-    dbo = _models.create(object="secret_key", meta_model=key, db_model=db_model, id=secret_key, user_id=user_id, session=session)
+    dbo = _models.create(
+        object="secret_key",
+        meta_model=key,
+        db_model=db_model,
+        id=secret_key,
+        tag=key.tag,
+        user_id=user_id,
+        session=session
+    )
 
     r = SecretKeyRead(**dbo.dict())
     r.metadata = dbo.metadata_

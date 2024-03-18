@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Union, List
-from sqlmodel import Session
+from sqlmodel import Session, Field
 from . import _models
 from .messages import Message
 
@@ -33,9 +33,24 @@ class Thread(_models.DBModel, table=True):
 
 
 @_models.auto_session
-def create(thread: ThreadCreate, user_id: str = None, org_id: str = None, session: Session = None) -> ThreadRead:
+def create(
+    thread: ThreadCreate,
+    tag: Optional[str] = None,
+    user_id: Optional[str] = None,
+    org_id: Optional[str] = None,
+    session: Optional[Session] = None
+) -> ThreadRead:
     db_model = Thread.from_orm(thread)
-    dbo = _models.create(object="thread", meta_model=thread, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
+
+    dbo = _models.create(
+        object="thread",
+        meta_model=thread,
+        db_model=db_model,
+        tag=tag,
+        user_id=user_id,
+        org_id=org_id,
+        session=session
+    )
     return dbo.to_read(ThreadRead)
 
 
@@ -74,11 +89,12 @@ def delete(id: str, user_id: str = None, mode="soft", session: Optional[Session]
 def list(
         limit: int = 20,
         order: str = "desc",
-        after: str = None,
-        before: str = None,
-        user_id: str = None,
-        org_id: str = None,
-        session: Optional[Session] = None
+        after: Optional[str] = None,
+        before: Optional[str] = None,
+        tag: Optional[str] = None,
+        user_id: Optional[str] = None,
+        org_id: Optional[str] = None,
+        session: Session = None
     ) -> ThreadList:
     return _models.list(
         db_cls=Thread,
@@ -88,6 +104,7 @@ def list(
         order=order,
         after=after,
         before=before,
+        tag=tag,
         user_id=user_id,
         org_id=org_id,
         session=session
