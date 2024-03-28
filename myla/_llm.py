@@ -5,7 +5,7 @@ import inspect
 from typing import Optional
 from ._tools import get_tool
 from .tools import Tool, Context
-from . import runs, assistants
+from . import runs, assistants, threads
 from .messages import list as list_messages, create as create_message, MessageCreate
 from ._logging import logger as log
 from . import llms
@@ -41,6 +41,9 @@ async def chat_complete(run: runs.RunRead, iter):
 
             if assistant.file_ids:
                 file_ids.extend(assistant.file_ids)
+
+        # Get Thread
+        thread = threads.get(id=thread_id)
 
         # set instructions
         if instructions is not None:
@@ -90,6 +93,7 @@ async def chat_complete(run: runs.RunRead, iter):
         context: Context = await run_tools(
                 assistant=assistant,
                 run=run,
+                thread=thread,
                 tools=tools,
                 messages=messages,
                 run_metadata=run_metadata,
@@ -152,7 +156,7 @@ async def chat_complete(run: runs.RunRead, iter):
         await iter.put(None) #DONE
 
 
-async def run_tools(assistant, run, tools, messages, run_metadata, file_ids=[]):
+async def run_tools(assistant, run, thread, tools, messages, run_metadata, file_ids=[]):
     run_metadata = run_metadata if run_metadata else {}
 
     context = Context(
@@ -160,7 +164,8 @@ async def run_tools(assistant, run, tools, messages, run_metadata, file_ids=[]):
             run_metadata=run_metadata,
             file_ids=file_ids,
             assistant=assistant,
-            run=run
+            run=run,
+            thread=thread
         )
 
     if not tools:

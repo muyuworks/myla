@@ -4,6 +4,7 @@ import aiohttp
 from ._logging import logger
 from .assistants import AssistantRead
 from .runs import RunRead
+from .threads import ThreadRead
 
 
 class Context(BaseModel):
@@ -31,6 +32,7 @@ class Context(BaseModel):
 
     assistant: Optional[AssistantRead] = None
     run: Optional[RunRead] = None
+    thread: Optional[ThreadRead] = None
 
     def get_last_message(self):
         """
