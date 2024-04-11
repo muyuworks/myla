@@ -114,7 +114,7 @@ def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddin
     if not loader_:
         raise RuntimeError(f"Loader not found: {loader}")
 
-    records = list(loader_.load(file=fname))
+    records = list(loader_.load(file=fname, metadata=kwargs.get("metadata")))
 
     if len(records) == 0:
         return

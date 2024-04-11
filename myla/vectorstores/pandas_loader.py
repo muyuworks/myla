@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Iterator
+from typing import Iterator, Optional, Dict
 from ._base import Record
 from .loaders import Loader
 
@@ -9,7 +9,7 @@ class PandasLoader(Loader):
         super().__init__()
         self._ftype = ftype
 
-    def load(self, file) -> Iterator[Record]:
+    def load(self, file, metadata: Optional[Dict] = None) -> Iterator[Record]:
         if self._ftype == 'csv':
             df = pd.read_csv(file)
         elif self._ftype == 'xls' or self._ftype == 'xlsx':

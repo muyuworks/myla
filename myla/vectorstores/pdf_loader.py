@@ -1,5 +1,5 @@
 import math
-from typing import Iterator
+from typing import Iterator, Optional, Dict
 from myla.vectorstores._base import Record
 from .loaders import Loader
 
@@ -10,7 +10,7 @@ class PDFLoader(Loader):
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
 
-    def load(self, file) -> Iterator[Record]:
+    def load(self, file, metadata: Optional[Dict] = None) -> Iterator[Record]:
         try:
             import pypdf
         except ImportError as e:

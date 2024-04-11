@@ -400,7 +400,8 @@ async def upload_file(request: Request, file: UploadFile):
                     embeddings_columns=embeddings_columns,
                     loader=loader,
                     group_by=metadata.get('group_by'),
-                    instruction=metadata.get('instruction')
+                    instruction=metadata.get('instruction'),
+                    metadata=metadata
                 )
             await asyncio.get_running_loop().run_in_executor(None, _load_vs)
         except Exception as e:
