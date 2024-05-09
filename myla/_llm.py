@@ -1,14 +1,17 @@
-import os
-import datetime
 import asyncio
+import datetime
 import inspect
+import os
 from typing import Optional
-from ._tools import get_tool
-from .tools import Tool, Context
-from . import runs, assistants, threads
-from .messages import list as list_messages, create as create_message, MessageCreate
+
+from . import assistants, llms, runs, threads
 from ._logging import logger as log
-from . import llms
+from ._tools import get_tool
+from .messages import MessageCreate
+from .messages import create as create_message
+from .messages import list as list_messages
+from .tools import Context, Tool
+
 
 async def chat_complete(run: runs.RunRead, iter):
     try:
@@ -133,7 +136,7 @@ async def chat_complete(run: runs.RunRead, iter):
             content=''.join(genereated),
             metadata=context.message_metadata
         )
-        create_message(thread_id=thread_id, message=msg_create, assistant_id=assistant_id, run_id=run.id)
+        create_message(thread_id=thread_id, message=msg_create, assistant_id=assistant_id, run_id=run.id, user_id=run_metadata.get("user_id"))
 
         runs.update(
             id=run.id,

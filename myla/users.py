@@ -1,8 +1,9 @@
-from typing import Optional, List, Union
+from typing import List, Optional, Union
+
 from pydantic import BaseModel
-from sqlmodel import SQLModel, Field, Session, select
-from . import _models
-from . import utils
+from sqlmodel import Field, Session, SQLModel, select
+
+from . import _models, utils
 
 
 class UserOrgLink(SQLModel, table=True):
@@ -12,7 +13,7 @@ class UserOrgLink(SQLModel, table=True):
 
 class OrganizationBase(BaseModel):
     """Represents the basic information of an organization."""
-    display_name: Optional[str]
+    display_name: Optional[str] = None
 
 
 class OrganizationCreate(_models.MetadataModel, OrganizationBase):
@@ -38,7 +39,7 @@ class Organization(_models.DBModel, OrganizationBase, table=True):
 class UserBase(BaseModel):
     """Represents the basic information of a user."""
     username: str = Field(index=True, unique=True)
-    display_name: Optional[str]
+    display_name: Optional[str] = None
 
 
 class UserCreate(_models.MetadataModel, UserBase):
@@ -48,7 +49,7 @@ class UserCreate(_models.MetadataModel, UserBase):
 
 class UserRead(_models.ReadModel, UserBase):
     """Represents the user read."""
-    is_sa: Optional[bool]
+    is_sa: Optional[bool] = False
     orgs: List[Organization] = []
 
 
@@ -66,7 +67,7 @@ class User(_models.DBModel, UserBase, table=True):
 
 
 class SecretKeyBase(BaseModel):
-    display_name: Optional[str]
+    display_name: Optional[str] = None
 
 
 class SecrectKeyCreate(_models.MetadataModel, SecretKeyBase):
@@ -99,12 +100,12 @@ class UserLoginResult(BaseModel):
 
 
 def create_organization(org: OrganizationCreate, is_primary: bool = False, user_id: str = None, session: Optional[Session] = None, auto_commit=True) -> OrganizationRead:
-    db_model = Organization.from_orm(org)
+    db_model = Organization.model_validate(org)
     db_model.is_primary = is_primary
     db_model.user_id = user_id
 
     dbo = _models.create(object="organization", meta_model=org, db_model=db_model, session=session, auto_commit=auto_commit)
-    r = OrganizationRead(**dbo.dict())
+    r = OrganizationRead(**dbo.model_dump())
     r.metadata = dbo.metadata_
     return r
 
@@ -114,7 +115,7 @@ def get_organization(id: str, session: Optional[Session] = None):
     r = None
     dbo = session.get(Organization, id)
     if dbo:
-        r = OrganizationRead(**dbo.dict())
+        r = OrganizationRead(**dbo.model_dump())
         r.metadata = dbo.metadata_
 
     return r
@@ -130,7 +131,7 @@ def create_user(user: UserCreate, is_sa: bool = False, session: Session = None) 
     salt = utils.random_key()
     password = generate_password(user.password, salt)
 
-    db_model = User(salt=salt, is_sa=is_sa, **user.dict())
+    db_model = User(salt=salt, is_sa=is_sa, **user.model_dump())
     db_model.password = password
 
     if not user.display_name:
@@ -144,7 +145,7 @@ def create_user(user: UserCreate, is_sa: bool = False, session: Session = None) 
     link = UserOrgLink(org_id=org_created.id, user_id=user_created.id)
     session.add(link)
 
-    r = UserRead(**user_created.dict())
+    r = UserRead(**user_created.model_dump())
     r.metadata = user_created.metadata_
 
     session.commit()
@@ -161,7 +162,7 @@ def get_user(id: str, session: Session = None):
     r = None
     dbo = get_user_dbo(id=id, session=session)
     if dbo:
-        r = UserRead(**dbo.dict())
+        r = UserRead(**dbo.model_dump())
         r.metadata = dbo.metadata_
 
     return r
@@ -194,7 +195,7 @@ def list_orgs(user_id: str, session: Session = None):
 
     rs = []
     for dbo in dbos:
-        a = OrganizationRead(**dbo[0].dict())
+        a = OrganizationRead(**dbo[0].model_dump())
         rs.append(a)
     r = OrganizationList(data=rs)
     return r
@@ -209,7 +210,7 @@ def list_users(sa_only: bool = False, session: Session = None) -> UserList:
 
     rs = []
     for dbo in dbos:
-        a = UserRead(**dbo.dict())
+        a = UserRead(**dbo.model_dump())
         rs.append(a)
     r = UserList(data=rs)
     return r
@@ -222,7 +223,7 @@ def list_sa_users(session: Session = None) -> UserList:
 
 @_models.auto_session
 def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = None) -> SecretKeyRead:
-    db_model = SecretKey.from_orm(key)
+    db_model = SecretKey.model_validate(key)
 
     secret_key = utils.random_key()
 
@@ -236,7 +237,7 @@ def create_secret_key(key: SecrectKeyCreate, user_id: str, session: Session = No
         session=session
     )
 
-    r = SecretKeyRead(**dbo.dict())
+    r = SecretKeyRead(**dbo.model_dump())
     r.metadata = dbo.metadata_
 
     return r
@@ -247,7 +248,7 @@ def get_secret_key(id: str, session: Session = None) -> SecretKeyRead:
     r = None
     dbo = session.get(SecretKey, id)
     if dbo:
-        r = SecretKeyRead(**dbo.dict())
+        r = SecretKeyRead(**dbo.model_dump())
         r.metadata = dbo.metadata_
 
     return r
@@ -260,7 +261,7 @@ def list_secret_keys(user_id: str, session: Session = None):
 
     rs = []
     for dbo in dbos:
-        a = SecretKeyRead(**dbo.dict())
+        a = SecretKeyRead(**dbo.model_dump())
         rs.append(a)
     r = SecrectKeyList(data=rs)
     return r
@@ -304,7 +305,7 @@ def login(user: UserLogin, session: Session = None) -> Union[UserLoginResult, No
 
     pwd_g = generate_password(password=user.password, salt=dbo.salt)
     if pwd_g == dbo.password:
-        r = UserRead(**dbo.dict())
+        r = UserRead(**dbo.model_dump())
         r.metadata = dbo.metadata_
 
         sks = list_secret_keys(user_id=r.id, session=session)
@@ -330,6 +331,6 @@ def change_password(user_id: str, new_password: str, session: Session = None) ->
         session.add(dbo)
         session.commit()
         session.refresh(dbo)
-        r = UserRead(**dbo.dict())
+        r = UserRead(**dbo.model_dump())
         r.metadata = dbo.metadata_
         return r

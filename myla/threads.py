@@ -1,6 +1,8 @@
 from datetime import datetime
-from typing import Optional, Union, List
-from sqlmodel import Session, Field
+from typing import List, Optional, Union
+
+from sqlmodel import Session
+
 from . import _models
 from .messages import Message
 
@@ -40,7 +42,7 @@ def create(
     org_id: Optional[str] = None,
     session: Optional[Session] = None
 ) -> ThreadRead:
-    db_model = Thread.from_orm(thread)
+    db_model = Thread.model_validate(thread)
 
     dbo = _models.create(
         object="thread",
@@ -61,7 +63,7 @@ def get(id: str, user_id: str = None, session: Session = None) -> Union[ThreadRe
 
 @_models.auto_session
 def modify(id: str, thread: ThreadEdit, user_id: str = None, session: Session = None):
-    return _models.modify(db_cls=Thread, read_cls=ThreadRead, id=id, to_update=thread.dict(exclude_unset=True), user_id=user_id, session=session)
+    return _models.modify(db_cls=Thread, read_cls=ThreadRead, id=id, to_update=thread.model_dump(exclude_unset=True), user_id=user_id, session=session)
 
 
 @_models.auto_session

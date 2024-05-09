@@ -1,8 +1,9 @@
-from typing import List, Dict, Any, Optional, Union
-from sqlmodel import Field, Session, Column, JSON, select
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel
-from . import _models
-from . import threads
+from sqlmodel import JSON, Field, Session, select
+
+from . import _models, threads
 
 
 class RunEdit(_models.MetadataModel):
@@ -11,8 +12,8 @@ class RunEdit(_models.MetadataModel):
 
 class RunCreate(RunEdit):
     assistant_id: str
-    model: Optional[str]
-    instructions: Optional[str]
+    model: Optional[str] = None
+    instructions: Optional[str] = None
     tools: Optional[List[Dict[str, Any]]] = []
 
 
@@ -21,22 +22,22 @@ class RunModify(RunEdit):
 
 
 class RunBase(BaseModel):
-    thread_id: Optional[str] = Field(index=True)
+    thread_id: Optional[str] = Field(index=True, default=None)
     assistant_id: str = Field(index=True)
-    model: Optional[str]
-    instructions: Optional[str]
-    tools: Optional[List[Dict]] = Field(sa_column=Column(JSON))
-    status: Optional[str] = Field(index=True, nullable=True)
-    required_action: Optional[Dict] = Field(sa_column=Column(JSON))
-    last_error: Optional[Dict] = Field(sa_column=Column(JSON))
-    expires_at: Optional[int]
-    started_at: Optional[int]
-    failed_at: Optional[int]
-    completed_at: Optional[int]
+    model: Optional[str] = None
+    instructions: Optional[str] = None
+    tools: Optional[List[Dict]] = Field(sa_type=JSON, default=None)
+    status: Optional[str] = Field(index=True, nullable=True, default=None)
+    required_action: Optional[Dict] = Field(sa_type=JSON, default=None)
+    last_error: Optional[Dict] = Field(sa_type=JSON, default=None)
+    expires_at: Optional[int] = None
+    started_at: Optional[int] = None
+    failed_at: Optional[int] = None
+    completed_at: Optional[int] = None
 
 
 class RunRead(_models.ReadModel, RunBase):
-    file_ids: Optional[List[str]]
+    file_ids: Optional[List[str]] = None
 
 
 class RunList(_models.ListModel):
@@ -97,7 +98,7 @@ def get(thread_id: str, run_id: str, user_id: str = None, session: Session = Non
 
 @_models.auto_session
 def modify(id: str, run: RunModify, user_id: str = None, session: Session = None) -> Union[RunRead, None]:
-    return _models.modify(db_cls=Run, read_cls=RunRead, id=id, to_update=run.dict(exclude_unset=True), user_id=user_id, session=session)
+    return _models.modify(db_cls=Run, read_cls=RunRead, id=id, to_update=run.model_dump(exclude_unset=True), user_id=user_id, session=session)
 
 
 @_models.auto_session

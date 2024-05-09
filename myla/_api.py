@@ -1,21 +1,21 @@
-import os
-import json
 import asyncio
-import aiofiles
-from typing import List, Optional
+import json
+import os
 from datetime import datetime
-from pydantic import BaseModel
+from typing import List, Optional
+
+import aiofiles
 from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from starlette.authentication import requires
-from ._models import ListModel, DeletionStatus
-from . import _tools, assistants, files, threads, messages, runs, users
-from ._run_scheduler import RunScheduler
-from . import tools
+
+from . import (_tools, assistants, files, llms, messages, runs, threads, tools,
+               users, utils)
 from ._logging import logger
-from . import utils
+from ._models import DeletionStatus, ListModel
+from ._run_scheduler import RunScheduler
 from .vectorstores import load_vectorstore_from_file
-from . import llms
 
 API_VERSION = "v1"
 
@@ -217,6 +217,9 @@ async def create_run(request: Request, thread_id: str, run: runs.RunCreate, stre
         raise HTTPException(status_code=403, detail='Forbidden.')
 
     # Submit run to run
+    if r.metadata is None:
+        r.metadata = {}
+    r.metadata["user_id"] = request.user.id
     RunScheduler.default().submit_run(r)
 
     if stream:

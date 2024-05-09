@@ -1,14 +1,16 @@
 from datetime import datetime
-from typing import Optional, Dict, Any, List, Union
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel
-from sqlmodel import SQLModel, Field, Column, JSON, Session, select
-from .persistence import Persistence
+from sqlmodel import JSON, Field, Session, SQLModel, select
+
 from . import utils
+from .persistence import Persistence
 
 
 class MetadataModel(BaseModel):
     """Represents an object that has metadata."""
-    metadata: Optional[Dict[str, Any]]
+    metadata: Optional[Dict[str, Any]] = None
 
 
 class ReadModel(MetadataModel):
@@ -20,19 +22,19 @@ class ReadModel(MetadataModel):
 
 class DBModel(SQLModel):
     """Represents an object stored in database."""
-    id: Optional[str] = Field(primary_key=True)
-    object: Optional[str]
-    created_at: Optional[int] = Field(index=True)
-    metadata_: Optional[Dict[str, Any]] = Field(sa_column=Column(JSON))
-    org_id: Optional[str] = Field(index=True)
-    user_id: Optional[str] = Field(index=True)
+    id: Optional[str] = Field(primary_key=True, default=None)
+    object: Optional[str] = Field(default=None)
+    created_at: Optional[int] = Field(index=True, default=None)
+    metadata_: Optional[Dict[str, Any]] = Field(sa_type=JSON, default=None)
+    org_id: Optional[str] = Field(index=True, default=None)
+    user_id: Optional[str] = Field(index=True, default=None)
     is_deleted: Optional[bool] = Field(index=True, default=False)
-    deleted_at: Optional[int]
-    tag: Optional[str] = Field(index=True, nullable=True)
+    deleted_at: Optional[int] = Field(default=None)
+    tag: Optional[str] = Field(index=True, nullable=True, default=None)
 
     def to_read(self, read_cls: ReadModel) -> ReadModel:
         """Convert to a ReadModel object."""
-        r = read_cls(**self.dict())
+        r = read_cls(**self.model_dump())
         r.metadata = self.metadata_
         return r
 
@@ -48,8 +50,8 @@ class ListModel(BaseModel):
     """Represents a list of objects that represent the results of a data query."""
     object: str = "list"
     data: List[Any] = []
-    first_id: Optional[str]
-    last_id: Optional[str]
+    first_id: Optional[str] = None
+    last_id: Optional[str] = None
     has_more: bool = False
 
 

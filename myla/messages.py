@@ -1,7 +1,9 @@
-from typing import List, Dict, Optional, Union
-from sqlmodel import Field, Session, Column, JSON, select
+from typing import Dict, List, Optional, Union
+
 from pydantic import BaseModel
-from . import _models, threads
+from sqlmodel import JSON, Column, Field, Session, select
+
+from . import _models
 
 
 class MessageText(BaseModel):
@@ -16,7 +18,7 @@ class MessageContent(BaseModel):
 class MessageCreate(_models.MetadataModel):
     role: str
     content: str
-    file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
+    file_ids: Optional[List[str]] = None
 
 
 class MessageModify(_models.MetadataModel):
@@ -25,10 +27,10 @@ class MessageModify(_models.MetadataModel):
 
 class MessageRead(_models.ReadModel):
     thread_id: str
-    assistant_id: Optional[str]
-    run_id: Optional[str]
-    role: Optional[str]
-    content: Optional[List[MessageContent]]
+    assistant_id: Optional[str] = None
+    run_id: Optional[str] = None
+    role: Optional[str] = None
+    content: Optional[List[MessageContent]] = None
     file_ids: Optional[List[str]] = []
 
 
@@ -40,12 +42,12 @@ class Message(_models.DBModel, table=True):
     """
     Represents an assistant that can call the model and use tools.
     """
-    thread_id: Optional[str] = Field(index=True)
-    assistant_id: Optional[str] = Field(index=True, nullable=True)
-    run_id: Optional[str] = Field(index=True, nullable=True)
+    thread_id: Optional[str] = Field(index=True, default=None)
+    assistant_id: Optional[str] = Field(index=True, nullable=True, default=None)
+    run_id: Optional[str] = Field(index=True, nullable=True, default=None)
     role: str
-    content: List[Dict] = Field(sa_column=Column(JSON))
-    file_ids: Optional[List[str]] = Field(sa_column=Column(JSON))
+    content: List[Dict] = Field(sa_type=JSON)
+    file_ids: Optional[List[str]] = Field(sa_type=JSON, default=None)
 
 
 @_models.auto_session
@@ -63,12 +65,12 @@ def create(
         thread_id=thread_id,
         role=message.role,
         content=[
-            MessageContent(type="text", text=[MessageText(value=message.content)]).dict()
+            MessageContent(type="text", text=[MessageText(value=message.content)]).model_dump()
         ],
         assistant_id=assistant_id,
         run_id=run_id
     )
-
+    print(f"create message: user_id={user_id}")
     dbo = _models.create(
         object="thread.message",
         meta_model=message,
@@ -90,10 +92,10 @@ def get(id: str, thread_id: str = None, user_id: str = None, session: Session = 
     if thread_id is not None and thread_id != r.thread_id:
         return None
 
-    if thread_id is not None:
-        thread = threads.get(id=thread_id, user_id=user_id, session=session)
-        if not thread:
-            return None
+    #if thread_id is not None:
+    #    thread = threads.get(id=thread_id, user_id=user_id, session=session)
+    #    if not thread:
+    #        return None
 
     return r
 
@@ -104,7 +106,7 @@ def modify(id: str, message: MessageModify, thread_id: str = None, user_id: str 
         msg = get(id=id, thread_id=thread_id, user_id=user_id, session=session)
         if not msg:
             return None
-    return _models.modify(db_cls=Message, read_cls=MessageRead, id=id, to_update=message.dict(exclude_unset=True), user_id=user_id, session=session)
+    return _models.modify(db_cls=Message, read_cls=MessageRead, id=id, to_update=message.model_dump(exclude_unset=True), user_id=user_id, session=session)
 
 
 @_models.auto_session
@@ -127,10 +129,10 @@ def list(
     user_id: Optional[str] = None,
     session: Session = None
 ) -> MessageList:
-    if user_id is not None:
-        thread = threads.get(id=thread_id, user_id=user_id, session=session)
-        if not thread:
-            return MessageList(data=[])
+    #if user_id is not None:
+    #    thread = threads.get(id=thread_id, user_id=user_id, session=session)
+    #    if not thread:
+    #        return MessageList(data=[])
 
     select_stmt = select(Message)
     select_stmt = select_stmt.filter(Message.is_deleted == False)
