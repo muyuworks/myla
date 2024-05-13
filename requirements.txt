@@ -21,3 +21,6 @@ python-multipart
 
 pandas
 aiofiles
+
+sentence_transformers
+faiss-cpu
