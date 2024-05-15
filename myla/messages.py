@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
-from sqlmodel import JSON, Column, Field, Session, select
+from sqlmodel import JSON, Field, Session, select
 
 from . import _models
 
@@ -70,7 +70,7 @@ def create(
         assistant_id=assistant_id,
         run_id=run_id
     )
-    print(f"create message: user_id={user_id}")
+
     dbo = _models.create(
         object="thread.message",
         meta_model=message,

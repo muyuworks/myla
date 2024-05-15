@@ -1,13 +1,17 @@
-from starlette.authentication import (
-    AuthCredentials, AuthenticationBackend, SimpleUser
-)
+from typing import Dict, Optional
+
+from starlette.authentication import (AuthCredentials, AuthenticationBackend,
+                                      SimpleUser)
+
 from . import users
 
 
 class AuthenticatedUser(SimpleUser):
-    def __init__(self, id: str, username: str = None) -> None:
+    def __init__(self, id: str, username: str = None, orgs: Optional[Dict[str, users.OrganizationRead]] = None, primary_org_id: str = None) -> None:
         super().__init__(username)
         self.id = id
+        self.orgs = orgs
+        self.primary_org_id = primary_org_id
 
     @property
     def userid(self):
@@ -29,7 +33,16 @@ class BasicAuthBackend(AuthenticationBackend):
         if secret_key:
             sk = users.get_secret_key(id=secret_key)
             if sk:
-                auser = AuthenticatedUser(id=sk.user_id)
+                orgs = users.list_orgs(user_id=sk.user_id).data
+
+                org_map = {}
+                primary_org_id = None
+                for org in orgs:
+                    org_map[org.id] = org
+                    if org.is_primary:
+                        primary_org_id = org.id
+
+                auser = AuthenticatedUser(id=sk.user_id, orgs=org_map, primary_org_id=primary_org_id)
 
                 scopes = ["authenticated"]
                 credentials = AuthCredentials(scopes=scopes)

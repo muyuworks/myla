@@ -9,6 +9,7 @@ from . import _models, utils
 class UserOrgLink(SQLModel, table=True):
     org_id: str = Field(foreign_key="organization.id", primary_key=True)
     user_id: str = Field(foreign_key="user.id", primary_key=True)
+    role: str
 
 
 class OrganizationBase(BaseModel):
@@ -23,6 +24,7 @@ class OrganizationCreate(_models.MetadataModel, OrganizationBase):
 class OrganizationRead(_models.ReadModel, OrganizationBase):
     """Represents the Organization read."""
     is_primary: bool
+    role: Optional[str] = None
 
 
 class OrganizationList(_models.ListModel):
@@ -142,7 +144,7 @@ def create_user(user: UserCreate, is_sa: bool = False, session: Session = None) 
     org = OrganizationCreate(display_name=user.username)
     org_created = create_organization(org=org, is_primary=True, user_id=user_created.id, session=session, auto_commit=False)
 
-    link = UserOrgLink(org_id=org_created.id, user_id=user_created.id)
+    link = UserOrgLink(org_id=org_created.id, user_id=user_created.id, role="owner")
     session.add(link)
 
     r = UserRead(**user_created.model_dump())
@@ -196,6 +198,7 @@ def list_orgs(user_id: str, session: Session = None):
     rs = []
     for dbo in dbos:
         a = OrganizationRead(**dbo[0].model_dump())
+        a.role = dbo[1].role
         rs.append(a)
     r = OrganizationList(data=rs)
     return r

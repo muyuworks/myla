@@ -136,7 +136,7 @@ async def chat_complete(run: runs.RunRead, iter):
             content=''.join(genereated),
             metadata=context.message_metadata
         )
-        create_message(thread_id=thread_id, message=msg_create, assistant_id=assistant_id, run_id=run.id, user_id=run_metadata.get("user_id"))
+        create_message(thread_id=thread_id, message=msg_create, assistant_id=assistant_id, run_id=run.id, user_id=run.user_id, org_id=run.org_id)
 
         runs.update(
             id=run.id,

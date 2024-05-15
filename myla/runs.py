@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel
 from sqlmodel import JSON, Field, Session, select
 
-from . import _models, threads
+from . import _models
 
 
 class RunEdit(_models.MetadataModel):
@@ -74,16 +74,12 @@ class RunStep(_models.DBModel, _models.MetadataModel):
 
 
 @_models.auto_session
-def create(thread_id: str, run: RunCreate, user_id: str = None, session: Session = None) -> Union[RunRead, None]:
-    thread = threads.get(id=thread_id, user_id=user_id, session=session)
-    if not thread:
-        return None
-
-    db_model = Run.from_orm(run)
+def create(thread_id: str, run: RunCreate, user_id: str = None, org_id: str = None, session: Session = None) -> Union[RunRead, None]:
+    db_model = Run.model_validate(run)
     db_model.thread_id = thread_id
     db_model.status = "queued"
 
-    dbo = _models.create(object="thread.run", meta_model=run, db_model=db_model, user_id=user_id, session=session)
+    dbo = _models.create(object="thread.run", meta_model=run, db_model=db_model, user_id=user_id, org_id=org_id, session=session)
 
     return dbo.to_read(RunRead)
 

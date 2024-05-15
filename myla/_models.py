@@ -19,6 +19,9 @@ class ReadModel(MetadataModel):
     object: str
     created_at: int
 
+    user_id: Optional[str] = None
+    org_id: Optional[str] = None
+
 
 class DBModel(SQLModel):
     """Represents an object stored in database."""
@@ -121,6 +124,13 @@ def get(db_cls: DBModel, read_cls: ReadModel, id: str, user_id: str = None, sess
     dbo = session.get(db_cls, id)
     if dbo and (not user_id or user_id == dbo.user_id) and not dbo.is_deleted:
         return dbo.to_read(read_cls)
+
+
+@auto_session
+def get_dbo(db_cls: DBModel, id: str, session: Session = None):
+    dbo = session.get(db_cls, id)
+    if dbo and not dbo.is_deleted:
+        return dbo
 
 
 @auto_session

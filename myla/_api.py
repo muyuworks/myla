@@ -10,8 +10,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from starlette.authentication import requires
 
-from . import (_tools, assistants, files, llms, messages, runs, threads, tools,
-               users, utils)
+from . import (_tools, assistants, files, llms, messages, permissions, runs,
+               threads, tools, users, utils)
 from ._logging import logger
 from ._models import DeletionStatus, ListModel
 from ._run_scheduler import RunScheduler
@@ -55,6 +55,61 @@ class Version(BaseModel):
     version: str
 
 
+class Headers(BaseModel):
+    orgnization: Optional[str]
+    project: Optional[str]
+
+
+def get_headers(request: Request):
+    return Headers(
+        orgnization=request.headers.get('OpenAI-Organization'),
+        project=request.headers.get('OpenAI-Project')
+    )
+
+
+def check_permission(
+        resource_type: str,
+        resource_id: str,
+        org_id: str,
+        project_id: str,
+        owner_id: str,
+        user_id: str,
+        orgs: List[users.OrganizationRead],
+        permission: str
+    ) -> bool:
+    r = permissions.check(resource_type, resource_id, org_id, project_id, owner_id, user_id, orgs, permission)
+    if not r:
+        raise HTTPException(status_code=403, detail=f"User {user_id} does not have permission {permission} on {resource_type} {resource_id}")
+
+
+def check_resources_permission(resource_type, request, permission):
+    headers = get_headers(request)
+
+    check_permission(
+        resource_type=resource_type,
+        resource_id=None,
+        org_id=headers.orgnization or request.user.primary_org_id,
+        project_id=headers.project,
+        owner_id=request.user.id,
+        user_id=request.user.id,
+        orgs=request.user.orgs,
+        permission=permission
+    )
+
+
+def check_object_permission(obj, request, permission):
+    check_permission(
+        resource_type="/assistants",
+        resource_id=obj.id,
+        org_id=obj.org_id,
+        project_id=None,
+        owner_id=obj.user_id,
+        user_id=request.user.id,
+        orgs=request.user.orgs,
+        permission=permission
+    )
+
+
 @api.get('/version', response_model=Version, tags=['System'])
 @requires(['authenticated'])
 async def get_version(request: Request):
@@ -75,74 +130,108 @@ async def list_models(request: Request):
 @api.post("/v1/assistants", response_model=assistants.AssistantRead, tags=['Assistants'])
 @requires(['authenticated'])
 async def create_assistant(assistant: assistants.AssistantCreate, request: Request):
-    # TODO: check files permissions
-    r = assistants.create(assistant=assistant, user_id=request.user.id)
+    check_resources_permission("assistants", request, "write")
+
+    headers = get_headers(request)
+
+    r = assistants.create(assistant=assistant, user_id=request.user.id, org_id=headers.orgnization or request.user.primary_org_id)
     return r
 
 
-@api.get("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
-@requires(['authenticated'])
+@ api.get("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
+@ requires(['authenticated'])
 async def retrieve_assistant(assistant_id: str, request: Request):
-    a = assistants.get(id=assistant_id, user_id=request.user.id)
+    a = assistants.get(id=assistant_id)
     if not a:
         raise HTTPException(status_code=404, detail="Assistant not found")
+
+    check_object_permission(a, request, "read")
+
     return a
 
 
-@api.post("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
-@requires(['authenticated'])
+@ api.post("/v1/assistants/{assistant_id}", response_model=assistants.AssistantRead, tags=['Assistants'])
+@ requires(['authenticated'])
 async def modify_assistant(assistant_id: str, assistant: assistants.AssistantModify, request: Request):
-    # TODO: check files permissions
-    a = assistants.modify(id=assistant_id, assistant=assistant, user_id=request.user.id)
+    a = assistants.get(assistant_id)
     if not a:
         raise HTTPException(status_code=404, detail="Assistant not found")
+
+    check_object_permission(a, request, "write")
+
+    a = assistants.modify(id=assistant_id, assistant=assistant)
     return a
 
 
-@api.delete("/v1/assistants/{assistant_id}", tags=['Assistants'])
-@requires(['authenticated'])
+@ api.delete("/v1/assistants/{assistant_id}", tags=['Assistants'])
+@ requires(['authenticated'])
 async def delete_assistant(assistant_id: str, request: Request):
-    return assistants.delete(id=assistant_id, user_id=request.user.id, mode=_delete_mode())
+    a = assistants.get(assistant_id)
+    if a is not None:
+        check_object_permission(a, request, "write")
+    return assistants.delete(id=assistant_id, mode=_delete_mode())
 
 
-@api.get("/v1/assistants", response_model=assistants.AssistantList, tags=['Assistants'])
-@requires(['authenticated'])
+@ api.get("/v1/assistants", response_model=assistants.AssistantList, tags=['Assistants'])
+@ requires(['authenticated'])
 async def list_assistants(request: Request, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
-    return assistants.list(limit=limit, order=order, after=after, before=before, user_id=request.user.id)
+    headers = get_headers(request)
+
+    check_resources_permission("assistants", request, "read")
+
+    return assistants.list(limit=limit, order=order, after=after, before=before, org_id=headers.orgnization or request.user.primary_org_id)
 
 # Threads
 
 
-@api.post("/v1/threads", response_model=threads.ThreadRead, tags=['Threads'])
-@requires(['authenticated'])
-async def create_thread(thread: threads.ThreadCreate, request: Request, tag: Optional[str] = None):
-    r = threads.create(thread=thread, tag=tag, user_id=request.user.id)
-    return r
-
-
-@api.get("/v1/threads/{thread_id}", response_model=threads.ThreadRead, tags=['Threads'])
-@requires(['authenticated'])
-async def retrieve_thread(thread_id: str, request: Request):
-    t = threads.get(id=thread_id, user_id=request.user.id)
+def check_thread_permission(thread_id, request, permission):
+    t = threads.get(id=thread_id)
     if not t:
         raise HTTPException(status_code=404, detail="Thread not found")
+
+    check_object_permission(t, request, permission)
+
     return t
 
 
-@api.post("/v1/threads/{thread_id}", response_model=threads.ThreadRead, tags=['Threads'])
-@requires(['authenticated'])
+@ api.post("/v1/threads", response_model=threads.ThreadRead, tags=['Threads'])
+@ requires(['authenticated'])
+async def create_thread(thread: threads.ThreadCreate, request: Request, tag: Optional[str] = None):
+    headers = get_headers(request)
+
+    check_resources_permission("threads", request, "write")
+
+    r = threads.create(thread=thread, tag=tag, user_id=request.user.id, org_id=headers.orgnization or request.user.primary_org_id)
+    return r
+
+
+@ api.get("/v1/threads/{thread_id}", response_model=threads.ThreadRead, tags=['Threads'])
+@ requires(['authenticated'])
+async def retrieve_thread(thread_id: str, request: Request):
+    t = check_thread_permission(thread_id, request, "read")
+
+    return t
+
+
+@ api.post("/v1/threads/{thread_id}", response_model=threads.ThreadRead, tags=['Threads'])
+@ requires(['authenticated'])
 async def modify_thread(thread_id: str, thread: threads.ThreadModify, request: Request):
-    return threads.modify(id=thread_id, thread=thread, user_id=request.user.id)
+    check_thread_permission(thread_id, request, "write")
+
+    return threads.modify(id=thread_id, thread=thread)
 
 
-@api.delete("/v1/threads/{thread_id}", tags=['Threads'])
-@requires(['authenticated'])
+@ api.delete("/v1/threads/{thread_id}", tags=['Threads'])
+@ requires(['authenticated'])
 async def delete_thread(thread_id: str, request: Request):
-    return threads.delete(id=thread_id, user_id=request.user.id, mode=_delete_mode())
+    t = threads.get(thread_id)
+    if t is not None:
+        check_object_permission(t, request, "write")
+    return threads.delete(id=thread_id, mode=_delete_mode())
 
 
-@api.get("/v1/threads", response_model=threads.ThreadList, tags=['Threads'])
-@requires(['authenticated'])
+@ api.get("/v1/threads", response_model=threads.ThreadList, tags=['Threads'])
+@ requires(['authenticated'])
 async def list_threads(
     request: Request,
     limit: int = 20,
@@ -151,40 +240,65 @@ async def list_threads(
     before: Optional[str] = None,
     tag: Optional[str] = None
 ):
-    return threads.list(limit=limit, order=order, after=after, before=before, tag=tag, user_id=request.user.id)
+    headers = get_headers(request)
+    check_resources_permission("threads", request, "read")
+
+    return threads.list(limit=limit, order=order, after=after, before=before, tag=tag, org_id=headers.orgnization or request.user.primary_org_id)
+
 
 # Messages
 
 
-@api.post("/v1/threads/{thread_id}/messages", response_model=messages.MessageRead, tags=['Messages'])
-@requires(['authenticated'])
+@ api.post("/v1/threads/{thread_id}/messages", response_model=messages.MessageRead, tags=['Messages'])
+@ requires(['authenticated'])
 async def create_message(thread_id: str, message: messages.MessageCreate, request: Request, tag: Optional[str] = None):
-    r = messages.create(thread_id=thread_id, message=message, tag=tag, user_id=request.user.id)
+    t = check_thread_permission(thread_id, request, "write")
+
+    r = messages.create(thread_id=thread_id, message=message, tag=tag, user_id=request.user.id, org_id=t.org_id)
     return r
 
 
-@api.get("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
-@requires(['authenticated'])
+@ api.get("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
+@ requires(['authenticated'])
 async def retrieve_message(thread_id: str, message_id: str, request: Request):
-    t = messages.get(id=message_id, thread_id=thread_id, user_id=request.user.id)
-    if not t:
-        raise HTTPException(status_code=404, detail="Thread not found")
-    return t
+    check_thread_permission(thread_id, request, "read")
+
+    m = messages.get(id=message_id, thread_id=thread_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    check_object_permission(m, request, "read")
+
+    return m
 
 
-@api.post("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
-@requires(['authenticated'])
+@ api.post("/v1/threads/{thread_id}/messages/{message_id}", response_model=messages.MessageRead, tags=['Messages'])
+@ requires(['authenticated'])
 async def modify_message(thread_id: str, message_id: str, message: messages.MessageModify, request: Request):
-    return messages.modify(id=message_id, message=message, thread_id=thread_id, user_id=request.user.id)
+    check_thread_permission(thread_id, request, "write")
+
+    m = messages.get(id=message_id, thread_id=thread_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    check_object_permission(m, request, "write")
+
+    return messages.modify(id=message_id, message=message, thread_id=thread_id)
 
 
-@api.delete("/v1/threads/{thread_id}/messages/{message_id}", tags=['Messages'])
+@ api.delete("/v1/threads/{thread_id}/messages/{message_id}", tags=['Messages'])
 async def delete_message(thread_id: str, message_id: str, request: Request):
+    check_thread_permission(thread_id, request, "write")
+
+    m = messages.get(id=message_id, thread_id=thread_id)
+    if m is not None:
+        check_object_permission(m, request, "write")
+
     return messages.delete(id=message_id, thread_id=thread_id, user_id=request.user.id, mode=_delete_mode())
 
 
-@api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Messages'])
-@requires(['authenticated'])
+@ api.get("/v1/threads/{thread_id}/messages", response_model=messages.MessageList, tags=['Messages'])
+@ requires(['authenticated'])
 async def list_messages(
     request: Request,
     thread_id: str,
@@ -194,14 +308,15 @@ async def list_messages(
     before: Optional[str] = None,
     tag: Optional[str] = None
 ):
+    check_thread_permission(thread_id, request, "read")
+
     return messages.list(
         thread_id=thread_id,
         tag=tag,
         limit=limit,
         order=order,
         after=after,
-        before=before,
-        user_id=request.user.id
+        before=before
     )
 
 # Runs
@@ -210,16 +325,14 @@ async def list_messages(
 @api.post("/v1/threads/{thread_id}/runs", tags=['Runs'])
 @requires(['authenticated'])
 async def create_run(request: Request, thread_id: str, run: runs.RunCreate, stream: bool = False, timeout: int = 30):
-    # TODO: check files permissions
-    r = runs.create(thread_id=thread_id, run=run, user_id=request.user.id)
+    t = check_thread_permission(thread_id, request, "write")
 
-    if not r:
-        raise HTTPException(status_code=403, detail='Forbidden.')
+    r = runs.create(thread_id=thread_id, run=run, user_id=request.user.id, org_id=t.org_id)
 
     # Submit run to run
     if r.metadata is None:
         r.metadata = {}
-    r.metadata["user_id"] = request.user.id
+    # r.metadata["user_id"] = request.user.id
     RunScheduler.default().submit_run(r)
 
     if stream:
@@ -231,28 +344,42 @@ async def create_run(request: Request, thread_id: str, run: runs.RunCreate, stre
 @api.get("/v1/threads/{thread_id}/runs/{run_id}", response_model=runs.RunRead, tags=['Runs'])
 @requires(['authenticated'])
 async def retrieve_run(thread_id: str, run_id: str, request: Request):
-    t = runs.get(thread_id=thread_id, run_id=run_id, user_id=request.user.id)
-    if not t:
+    check_thread_permission(thread_id, request, "read")
+
+    r = runs.get(thread_id=thread_id, run_id=run_id)
+    if not r:
         raise HTTPException(status_code=404, detail="Run not found")
-    return t
+    return r
 
 
 @api.post("/v1/threads/{thread_id}/runs/{run_id}", response_model=runs.RunRead, tags=['Runs'])
 @requires(['authenticated'])
 async def modify_run(thread_id: str, run_id: str, run: runs.RunModify, request: Request):
     # TODO: check files permissions
-    return runs.modify(id=run_id, run=run, user_id=request.user.id)
+    check_thread_permission(thread_id, request, "write")
+
+    r = runs.get(thread_id=thread_id, run_id=run_id)
+    if not r:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    return runs.modify(id=run_id, run=run)
 
 
 @api.delete("/v1/threads/{thread_id}/runs/{run_id}", tags=['Runs'])
 @requires(['authenticated'])
 async def delete_run(thread_id: str, run_id: str, request: Request):
-    return runs.delete(id=run_id, user_id=request.user.id, mode=_delete_mode())
+    check_thread_permission(thread_id, request, "write")
+    r = runs.get(thread_id=thread_id, run_id=run_id)
+    if r is not None:
+        check_object_permission(r, request, "write")
+
+    return runs.delete(id=run_id, mode=_delete_mode())
 
 
 @api.get("/v1/threads/{thread_id}/runs", response_model=runs.RunList, tags=['Runs'])
 @requires(['authenticated'])
 async def list_runs(request: Request, thread_id: str, limit: int = 20, order: str = "desc", after: str = None, before: str = None):
+    check_thread_permission(thread_id, request, "read")
     return runs.list(thread_id=thread_id, limit=limit, order=order, after=after, before=before, user_id=request.user.id)
 
 
@@ -340,6 +467,8 @@ async def execute_tool(tool_name: str, context: tools.Context, request: Request)
 @api.post("/v1/files", response_model=files.FileRead, tags=['Files'])
 @requires(['authenticated'])
 async def upload_file(request: Request, file: UploadFile):
+    headers = get_headers(request)
+
     form = await request.form()
     purpose = form.get("purpose")
     if purpose != "assistants":
@@ -411,29 +540,37 @@ async def upload_file(request: Request, file: UploadFile):
             logger.warn(f"Build vectorstore failed:", exc_info=e)
             raise HTTPException(status_code=400, detail=f"Can't build vectorstore. {e}")
 
-    return files.create(id=id, file=file_upload, bytes=bytes, filename=filename, user_id=request.user.id)
+    check_resources_permission("files", request, "write")
+    return files.create(id=id, file=file_upload, bytes=bytes, filename=filename, user_id=request.user.id, org_id=headers.orgnization or request.user.primary_org_id)
 
 
 @api.get("/v1/files", response_model=files.FileList, tags=["Files"])
 @requires(['authenticated'])
 async def list_files(request: Request, purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> files.FileList:
-    return files.list(purpose=purpose, limit=limit, order=order, after=after, before=before, user_id=request.user.id)
+    check_resources_permission("files", request, "read")
+    headers = get_headers(request)
+    return files.list(purpose=purpose, limit=limit, order=order, after=after, before=before, org_id=headers.orgnization or request.user.primary_org_id)
 
 
 @api.get("/v1/files/{file_id}", response_model=files.FileRead, tags=['Files'])
 @requires(['authenticated'])
 async def retrieve_file(file_id: str, request: Request):
-    # TODO: check permissions
     file = files.get(id=file_id)
     if not file:
         raise HTTPException(status_code=404, detail=f"File not found: {file_id}")
+
+    check_object_permission(file, request, "read")
+
     return file
 
 
 @api.delete("/v1/files/{file_id}", response_model=DeletionStatus, tags=['Files'])
 @requires(['authenticated'])
 async def delete_file(file_id: str, request: Request):
-    # TODO: check permissions
+    file = files.get(id=file_id)
+    if file is not None:
+        check_object_permission(file, request, "write")
+
     return files.delete(id=file_id, mode=_delete_mode())
 
 
@@ -520,3 +657,8 @@ async def delete_secret_key(secret_key: str, request: Request) -> DeletionStatus
 @requires(['authenticated'])
 async def create_secret_key(request: Request) -> users.SecretKeyRead:
     return users.create_secret_key(key=users.SecrectKeyCreate(), user_id=request.user.id)
+
+
+@api.get("/v1/orgnizations", response_model=users.OrganizationList, tags=['Users'])
+async def list_orgnizations(request: Request) -> users.OrganizationList:
+    return users.list_orgs(user_id=request.user.id)
