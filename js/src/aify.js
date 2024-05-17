@@ -16,11 +16,12 @@ import ReactDOM from 'react-dom/client';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Chat } from './chat';
+import { Members } from './members';
+import { OrgSelector } from './org_selector';
 import { SecretKeySettings } from './secret_key';
 import { Settings } from './settings';
 import { getUser } from './user';
 import { UserAdmin } from './user_admin';
-
 const { Sider } = Layout
 const { Text } = Typography
 
@@ -74,7 +75,8 @@ export const Aify = (props) => {
         const r = await fetch(assistant.id ? `/api/v1/assistants/${assistant.id}` : "/api/v1/assistants", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'OpenAI-Organization': `${localStorage.getItem('org_id') || ''}`
             },
             body: JSON.stringify(body)
         });
@@ -98,7 +100,13 @@ export const Aify = (props) => {
     }
 
     const loadAsistants = () => {
-        fetch('/api/v1/assistants')
+        fetch('/api/v1/assistants', {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'OpenAI-Organization': `${localStorage.getItem('org_id') || ''}`
+            }
+        })
             .then(r => r.json())
             .then(asis => {
                 let m = {};
@@ -118,7 +126,13 @@ export const Aify = (props) => {
     }
 
     const loadThreads = () => {
-        fetch('/api/v1/threads')
+        fetch('/api/v1/threads', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'OpenAI-Organization': `${localStorage.getItem('org_id') || ''}`
+            }
+        })
             .then(r => r.json())
             .then(threads => {
                 threads.data.forEach(t => {
@@ -160,7 +174,8 @@ export const Aify = (props) => {
         fetch('/api/v1/threads', {
             method: 'POST',
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                'OpenAI-Organization': `${localStorage.getItem('org_id') || ''}`
             },
             body: JSON.stringify({
                 'metadata': {
@@ -330,7 +345,7 @@ export const Aify = (props) => {
                     borderLeft: '1px solid #eee'
                 }}
                 className='overflow-auto'
-                width={500}
+                width={800}
                 //collapsedWidth={0}
                 //trigger={null}
                 //reverseArrow
@@ -342,6 +357,9 @@ export const Aify = (props) => {
                     body: {padding: 0}
                 }}
             >
+                <div style={{ paddingLeft: 15, paddingTop: 15 }}>
+                    <OrgSelector  />
+                </div>
                 <Tabs
                     defaultActiveKey="1"
                     items={[
@@ -374,10 +392,18 @@ export const Aify = (props) => {
                         props.chatMode ? null : (
                             {
                                 key: '5',
+                                label: <span>Members</span>,
+                                children: <Members />
+                            }
+                        ),
+                        props.chatMode ? null : (
+                            {
+                                key: '6',
                                 label: <span>Settings</span>,
                                 children: <Settings />
                             }
-                        )
+                        ),
+                        
                     ]}
                     style={{ paddingLeft: 15, paddingRight: 15 }}
                 />

@@ -1,6 +1,6 @@
-import { Button, Form, Input, message } from "antd"
+import { Button, Form, Input, message } from "antd";
 
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
 
 export const getUser = () => {
     let user = Cookies.get('user');
@@ -19,6 +19,7 @@ export const getSecretKey = () => {
 }
 
 export const logout = () => {
+    localStorage.removeItem("org_id");
     Cookies.remove('user');
     Cookies.remove('secret_key');
     window.location.href = '/';
