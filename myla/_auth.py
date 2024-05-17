@@ -39,7 +39,7 @@ class BasicAuthBackend(AuthenticationBackend):
                 primary_org_id = None
                 for org in orgs:
                     org_map[org.id] = org
-                    if org.is_primary:
+                    if org.user_id == sk.user_id:
                         primary_org_id = org.id
 
                 auser = AuthenticatedUser(id=sk.user_id, orgs=org_map, primary_org_id=primary_org_id)

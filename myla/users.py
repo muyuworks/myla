@@ -101,12 +101,17 @@ class UserLoginResult(BaseModel):
     secret_key: SecretKeyRead
 
 
+class OrgMemberCreate(BaseModel):
+    username: str
+    role: str
+
+
 def create_organization(org: OrganizationCreate, is_primary: bool = False, user_id: str = None, session: Optional[Session] = None, auto_commit=True) -> OrganizationRead:
     db_model = Organization.model_validate(org)
     db_model.is_primary = is_primary
     db_model.user_id = user_id
 
-    dbo = _models.create(object="organization", meta_model=org, db_model=db_model, session=session, auto_commit=auto_commit)
+    dbo = _models.create(object="organization", meta_model=org, db_model=db_model, user_id=user_id, session=session, auto_commit=auto_commit)
     r = OrganizationRead(**dbo.model_dump())
     r.metadata = dbo.metadata_
     return r
@@ -337,3 +342,30 @@ def change_password(user_id: str, new_password: str, session: Session = None) ->
         r = UserRead(**dbo.model_dump())
         r.metadata = dbo.metadata_
         return r
+
+
+@_models.auto_session
+def list_org_members(org_id: str, session: Session = None):
+    return session.exec(select(User, UserOrgLink).join(UserOrgLink, User.id == UserOrgLink.user_id).where(UserOrgLink.org_id == org_id)).all()
+
+
+@_models.auto_session
+def add_org_member(org_id: str, member: OrgMemberCreate, session: Session = None) -> Union[User, None]:
+    members = list_org_members(org_id, session=session)
+
+    exists = False
+    for m in members:
+        if m[0].username == member.username:
+            exists = True
+            break
+
+    if not exists:
+        user = get_user_by_uername(member.username, session=session)
+        if user is None:
+            return None
+
+        rel = UserOrgLink(user_id=user.id, org_id=org_id, role=member.role)
+        session.add(rel)
+        session.commit()
+
+        return user

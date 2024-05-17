@@ -56,13 +56,13 @@ class Version(BaseModel):
 
 
 class Headers(BaseModel):
-    orgnization: Optional[str]
+    organization: Optional[str]
     project: Optional[str]
 
 
 def get_headers(request: Request):
     return Headers(
-        orgnization=request.headers.get('OpenAI-Organization'),
+        organization=request.headers.get('OpenAI-Organization'),
         project=request.headers.get('OpenAI-Project')
     )
 
@@ -88,7 +88,7 @@ def check_resources_permission(resource_type, request, permission):
     check_permission(
         resource_type=resource_type,
         resource_id=None,
-        org_id=headers.orgnization or request.user.primary_org_id,
+        org_id=headers.organization or request.user.primary_org_id,
         project_id=headers.project,
         owner_id=request.user.id,
         user_id=request.user.id,
@@ -134,7 +134,7 @@ async def create_assistant(assistant: assistants.AssistantCreate, request: Reque
 
     headers = get_headers(request)
 
-    r = assistants.create(assistant=assistant, user_id=request.user.id, org_id=headers.orgnization or request.user.primary_org_id)
+    r = assistants.create(assistant=assistant, user_id=request.user.id, org_id=headers.organization or request.user.primary_org_id)
     return r
 
 
@@ -179,7 +179,7 @@ async def list_assistants(request: Request, limit: int = 20, order: str = "desc"
 
     check_resources_permission("assistants", request, "read")
 
-    return assistants.list(limit=limit, order=order, after=after, before=before, org_id=headers.orgnization or request.user.primary_org_id)
+    return assistants.list(limit=limit, order=order, after=after, before=before, org_id=headers.organization or request.user.primary_org_id)
 
 # Threads
 
@@ -201,7 +201,7 @@ async def create_thread(thread: threads.ThreadCreate, request: Request, tag: Opt
 
     check_resources_permission("threads", request, "write")
 
-    r = threads.create(thread=thread, tag=tag, user_id=request.user.id, org_id=headers.orgnization or request.user.primary_org_id)
+    r = threads.create(thread=thread, tag=tag, user_id=request.user.id, org_id=headers.organization or request.user.primary_org_id)
     return r
 
 
@@ -243,7 +243,7 @@ async def list_threads(
     headers = get_headers(request)
     check_resources_permission("threads", request, "read")
 
-    return threads.list(limit=limit, order=order, after=after, before=before, tag=tag, org_id=headers.orgnization or request.user.primary_org_id)
+    return threads.list(limit=limit, order=order, after=after, before=before, tag=tag, org_id=headers.organization or request.user.primary_org_id)
 
 
 # Messages
@@ -541,7 +541,7 @@ async def upload_file(request: Request, file: UploadFile):
             raise HTTPException(status_code=400, detail=f"Can't build vectorstore. {e}")
 
     check_resources_permission("files", request, "write")
-    return files.create(id=id, file=file_upload, bytes=bytes, filename=filename, user_id=request.user.id, org_id=headers.orgnization or request.user.primary_org_id)
+    return files.create(id=id, file=file_upload, bytes=bytes, filename=filename, user_id=request.user.id, org_id=headers.organization or request.user.primary_org_id)
 
 
 @api.get("/v1/files", response_model=files.FileList, tags=["Files"])
@@ -549,7 +549,7 @@ async def upload_file(request: Request, file: UploadFile):
 async def list_files(request: Request, purpose: str = None, limit: int = 20, order: str = "desc", after: str = None, before: str = None) -> files.FileList:
     check_resources_permission("files", request, "read")
     headers = get_headers(request)
-    return files.list(purpose=purpose, limit=limit, order=order, after=after, before=before, org_id=headers.orgnization or request.user.primary_org_id)
+    return files.list(purpose=purpose, limit=limit, order=order, after=after, before=before, org_id=headers.organization or request.user.primary_org_id)
 
 
 @api.get("/v1/files/{file_id}", response_model=files.FileRead, tags=['Files'])
@@ -662,3 +662,38 @@ async def create_secret_key(request: Request) -> users.SecretKeyRead:
 @api.get("/v1/orgnizations", response_model=users.OrganizationList, tags=['Users'])
 async def list_orgnizations(request: Request) -> users.OrganizationList:
     return users.list_orgs(user_id=request.user.id)
+
+
+@api.get("/v1/orgnizations/{org_id}/members", tags=['Users'])
+async def list_org_members(request: Request, org_id: str):
+    headers = get_headers(request=request)
+
+    if headers.organization != org_id:
+        raise HTTPException(status_code=403, detail="You are not authorized to access this resource")
+
+    check_resources_permission("members", request, "write")
+
+    results = users.list_org_members(org_id=org_id)
+
+    return {
+        "object": "list",
+        "data": [{"user": x[0].to_read(users.UserRead).model_dump(), "role": x[1].role} for x in results],
+        "has_more": False,
+    }
+
+
+@api.post("/v1/orgnizations/{org_id}/members", tags=['Users'])
+async def add_org_member(request: Request, org_id: str, member: users.OrgMemberCreate):
+    headers = get_headers(request=request)
+
+    if headers.organization != org_id:
+        raise HTTPException(status_code=403, detail="You are not authorized to access this resource")
+
+    check_resources_permission("members", request, "write")
+
+    user = users.add_org_member(org_id=org_id, member=member)
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
