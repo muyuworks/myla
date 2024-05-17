@@ -659,12 +659,12 @@ async def create_secret_key(request: Request) -> users.SecretKeyRead:
     return users.create_secret_key(key=users.SecrectKeyCreate(), user_id=request.user.id)
 
 
-@api.get("/v1/orgnizations", response_model=users.OrganizationList, tags=['Users'])
-async def list_orgnizations(request: Request) -> users.OrganizationList:
+@api.get("/v1/organizations", response_model=users.OrganizationList, tags=['Users'])
+async def list_organizations(request: Request) -> users.OrganizationList:
     return users.list_orgs(user_id=request.user.id)
 
 
-@api.get("/v1/orgnizations/{org_id}/members", tags=['Users'])
+@api.get("/v1/organizations/{org_id}/members", tags=['Users'])
 async def list_org_members(request: Request, org_id: str):
     headers = get_headers(request=request)
 
@@ -682,7 +682,7 @@ async def list_org_members(request: Request, org_id: str):
     }
 
 
-@api.post("/v1/orgnizations/{org_id}/members", tags=['Users'])
+@api.post("/v1/organizations/{org_id}/members", tags=['Users'])
 async def add_org_member(request: Request, org_id: str, member: users.OrgMemberCreate):
     headers = get_headers(request=request)
 

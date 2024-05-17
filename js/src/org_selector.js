@@ -7,7 +7,7 @@ export const OrgSelector = () => {
 
     const loadOrgs = () => {
 
-        fetch("/api/v1/orgnizations")
+        fetch("/api/v1/organizations")
             .then(res => res.json())
             .then(data => {
                 if (defaultOrg === null) {

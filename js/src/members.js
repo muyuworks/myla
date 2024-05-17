@@ -14,7 +14,7 @@ export const Members = () => {
     }
 
     const loadMembers = () => {
-        fetch(`/api/v1/orgnizations/${localStorage.getItem('org_id')}/members`, {
+        fetch(`/api/v1/organizations/${localStorage.getItem('org_id')}/members`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ export const Members = () => {
         let username = inviteMemberForm.getFieldValue('username');
         let role = inviteMemberForm.getFieldValue('role');
 
-        fetch(`/api/v1/orgnizations/${localStorage.getItem('org_id')}/members`, {
+        fetch(`/api/v1/organizations/${localStorage.getItem('org_id')}/members`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
