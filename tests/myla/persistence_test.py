@@ -1,5 +1,6 @@
 
 import sqlite3
+import threading
 import unittest
 
 from myla import persistence, threads, utils
@@ -11,8 +12,10 @@ stop = False
 class TestPersistence(unittest.TestCase):
     def setUp(self) -> None:
 
-        self.db = persistence.Persistence(database_url=f"sqlite:///{db_file}", connect_args={"timeout": 30})
+        self.db = persistence.Persistence(database_url=f"sqlite:///{db_file}", connect_args={"timeout": 1})
         self.db.initialize_database()
+        #with self.db.create_session() as session:
+        #    session.exec(text("PRAGMA journal_mode = WAL"))
 
     def tearDown(self) -> None:
         #if os.path.exists(db_file):
@@ -74,10 +77,10 @@ class TestPersistence(unittest.TestCase):
                     stop = True
                     raise e
 
-        #threading.Thread(target=_write_thread).start()
-        #threading.Thread(target=_write_thread).start()
-        #threading.Thread(target=_write_thread).start()
+        threading.Thread(target=_write_thread).start()
+        threading.Thread(target=_write_thread).start()
+        threading.Thread(target=_write_thread).start()
         #threading.Thread(target=_native_write_thread).start()
-        #threading.Thread(target=_read_thread).start()
-        #threading.Thread(target=_read_thread).start()
-        #threading.Thread(target=_read_thread).start()
+        threading.Thread(target=_read_thread).start()
+        threading.Thread(target=_read_thread).start()
+        threading.Thread(target=_read_thread).start()
