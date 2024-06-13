@@ -1,18 +1,20 @@
-import os
 import json
+import os
 from typing import Optional
-from ._base import Record, VectorStore
-from ._embeddings import Embeddings
-from .sentence_transformers_embeddings import SentenceTransformerEmbeddings
-from .lancedb_vectorstore import LanceDB
-from .faiss_vectorstore import FAISS
-from .chromadb_vectorstore import Chromadb
-from .faiss_group import FAISSGroup
-from . import pandas_loader, pdf_loader
+
 from .._logging import logger
 from ..utils import create_instance
+from . import pandas_loader, pdf_loader
+from ._base import Record, VectorStore
+from ._embeddings import Embeddings
+from .chromadb_vectorstore import Chromadb
+from .faiss_group import FAISSGroup
+from .faiss_vectorstore import FAISS
+from .lancedb_vectorstore import LanceDB
+from .sentence_transformers_embeddings import SentenceTransformerEmbeddings
 
 _default_embeddings = None
+
 
 def get_default_embeddings():
     global _default_embeddings
@@ -32,7 +34,7 @@ def get_default_embeddings():
 
         if multi_process_devices is not None:
             multi_process_devices = multi_process_devices.split(",")
-        model_kwargs={'device': device if device else "cpu"}
+        model_kwargs = {'device': device if device else "cpu"}
 
         if not impl or impl == 'sentence_transformers':
             _default_embeddings = SentenceTransformerEmbeddings(
@@ -42,11 +44,24 @@ def get_default_embeddings():
                 multi_process=multi_process,
                 multi_process_devices=multi_process_devices
             )
+        elif impl == 'xinference':
+            from .xinference_embeddings import XinferenceEmbeddings
+
+            base_url = os.environ.get("XINFERENCE_BASE_URL")
+            model_id = os.environ.get("XINFERENCE_MODEL_ID")
+
+            _default_embeddings = XinferenceEmbeddings(
+                base_url=base_url,
+                model_id=model_id,
+                instruction=instruction
+            )
         else:
             raise ValueError(f"Embedding implement not supported: {impl}")
     return _default_embeddings
 
+
 _default_vs = {}
+
 
 def get_default_vectorstore():
     impl = os.environ.get("VECTOR_STORE_IMPL")
@@ -74,7 +89,9 @@ def get_default_vectorstore():
         _default_vs[impl] = vs
     return vs
 
+
 _loaders = {}
+
 
 def load_loaders():
     """Load configured Loaders."""
@@ -95,11 +112,13 @@ def load_loaders():
         except Exception as e:
             logger.warn(f"Create Loader failed: {e}", exc_info=e)
 
+
 def get_loader_instance(name: str):
     """Get configured Loader."""
     return _loaders.get(name)
 
-def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns = None, loader: Optional[str] = None, **kwargs):
+
+def load_vectorstore_from_file(collection: str, fname: str, ftype: str, embeddings_columns=None, loader: Optional[str] = None, **kwargs):
     vs = get_default_vectorstore()
 
     if loader:
