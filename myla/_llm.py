@@ -49,7 +49,7 @@ async def chat_complete(run: runs.RunRead, iter):
         thread = threads.get(id=thread_id)
 
         # set instructions
-        if instructions is not None:
+        if instructions is not None and len(instructions) > 0:
             messages.append({
                 "role": "system",
                 "content": instructions
@@ -213,11 +213,13 @@ def combine_system_messages(messages):
                 "role": msg["role"],
                 "content": msg["content"]
             })
-    r_messages = [
-        {
-            "role": "system",
-            "content": '\n'.join(system_message)
-        }
-    ]
+    r_messages = []
+    if len(system_message) > 0:
+        r_messages.append(
+            {
+                "role": "system",
+                "content": '\n'.join(system_message)
+            }
+        )
     r_messages.extend(normal_messages)
     return r_messages

@@ -1,8 +1,10 @@
 import os
 from typing import Dict, List
+
 import openai
-from .backend import LLM
+
 from .. import utils
+from .backend import LLM
 
 
 class OpenAI(LLM):
@@ -47,6 +49,7 @@ class OpenAI(LLM):
             model = self.model
         return sync_generate(instructions=instructions, model=model, stream=stream, **kwargs)
 
+
 async def chat(messages: List[Dict], model=None, stream=False, api_key=None, base_url=None, **kwargs):
     if not api_key:
         api_key = os.environ.get("LLM_API_KEY")
@@ -84,6 +87,7 @@ async def generate(instructions: str, model=None, stream=False, **kwargs):
     }], model=model, stream=stream, **kwargs)
     return r
 
+
 def sync_chat(messages: List[Dict], model=None, stream=False, api_key=None, base_url=None, **kwargs):
     if not api_key:
         api_key = os.environ.get("LLM_API_KEY")
@@ -112,6 +116,7 @@ def sync_chat(messages: List[Dict], model=None, stream=False, api_key=None, base
             return genereated
 
     return _call()
+
 
 def sync_generate(instructions: str, model=None, stream=False, **kwargs):
     r = sync_chat(messages=[{
