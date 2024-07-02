@@ -11,7 +11,6 @@ from .chromadb_vectorstore import Chromadb
 from .faiss_group import FAISSGroup
 from .faiss_vectorstore import FAISS
 from .lancedb_vectorstore import LanceDB
-from .sentence_transformers_embeddings import SentenceTransformerEmbeddings
 
 _default_embeddings = None
 
@@ -37,6 +36,8 @@ def get_default_embeddings():
         model_kwargs = {'device': device if device else "cpu"}
 
         if not impl or impl == 'sentence_transformers':
+            from .sentence_transformers_embeddings import \
+                SentenceTransformerEmbeddings
             _default_embeddings = SentenceTransformerEmbeddings(
                 model_name=model_name,
                 model_kwargs=model_kwargs,
