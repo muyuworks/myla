@@ -1,5 +1,6 @@
 import os
-from .backend import LLM
+
+from .backend import LLM, Usage
 
 
 def get(model_name=None):

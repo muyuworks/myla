@@ -327,6 +327,11 @@ async def list_messages(
 async def create_run(request: Request, thread_id: str, run: runs.RunCreate, stream: bool = False, timeout: int = 30):
     t = check_thread_permission(thread_id, request, "write")
 
+    if stream:
+        if run.metadata is None:
+            run.metadata = {}
+        run.metadata["stream"] = True
+
     r = runs.create(thread_id=thread_id, run=run, user_id=request.user.id, org_id=t.org_id)
 
     # Submit run to run

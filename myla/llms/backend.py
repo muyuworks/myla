@@ -16,3 +16,9 @@ class LLM:
 
     def sync_generate(self, instructions: str, model=None, stream=False, **kwargs):
         raise NotImplemented()
+
+
+class Usage:
+    def __init__(self, prompt_tokens: int = 0, completion_tokens: int = 0) -> None:
+        self.prompt_tokens = prompt_tokens
+        self.completion_tokens = completion_tokens

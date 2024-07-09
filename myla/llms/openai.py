@@ -60,6 +60,10 @@ async def chat(messages: List[Dict], model=None, stream=False, api_key=None, bas
 
     llm = openai.AsyncOpenAI(api_key=api_key, base_url=base_url)
 
+    usage = None
+    if "usage" in kwargs:
+        usage = kwargs.pop("usage")
+
     @utils.retry
     async def _call():
         resp = await llm.chat.completions.create(
@@ -75,6 +79,9 @@ async def chat(messages: List[Dict], model=None, stream=False, api_key=None, bas
             return iter()
         else:
             genereated = resp.choices[0].message.content
+            if usage:
+                usage.prompt_tokens = resp.usage.prompt_tokens
+                usage.completion_tokens = resp.usage.completion_tokens
             return genereated
 
     return await _call()

@@ -7,6 +7,7 @@ from typing import Optional
 from . import assistants, llms, runs, threads
 from ._logging import logger as log
 from ._tools import get_tool
+from .llms import Usage
 from .messages import MessageCreate
 from .messages import create as create_message
 from .messages import list as list_messages
@@ -116,6 +117,7 @@ async def chat_complete(run: runs.RunRead, iter):
         log.debug(f"Context after tools: {context}")
 
         genereated = []
+        usage = Usage()
 
         if context.is_completed:
             completed_msg = context.messages[-1]["content"]
@@ -124,18 +126,28 @@ async def chat_complete(run: runs.RunRead, iter):
         else:
             combined_messages = combine_system_messages(messages=context.messages)
             llm = llms.get(model_name=model)
-            resp = await llm.chat(messages=combined_messages, stream=True, **llm_args)
 
-            async for c in resp:
-                if c is not None:
-                    genereated.append(c)
-                    await iter.put(c)
-                    await asyncio.sleep(0) # back to envent loop for iter.get
+            stream = False
+            if run_metadata.get("stream"):
+                stream = True
+            resp = await llm.chat(messages=combined_messages, stream=stream, usage=usage, **llm_args)
+
+            if stream:
+                async for c in resp:
+                    if c is not None:
+                        genereated.append(c)
+                        await iter.put(c)
+                        await asyncio.sleep(0) # back to envent loop for iter.get
+            else:
+                genereated.append(resp)
+
+        msg_metadata = context.message_metadata
+        msg_metadata["usage"] = {"prompt_tokens": usage.prompt_tokens, "completion_tokens": usage.completion_tokens}
 
         msg_create = MessageCreate(
             role="assistant",
             content=''.join(genereated),
-            metadata=context.message_metadata
+            metadata=msg_metadata
         )
         create_message(thread_id=thread_id, message=msg_create, assistant_id=assistant_id, run_id=run.id, user_id=run.user_id, org_id=run.org_id)
 
