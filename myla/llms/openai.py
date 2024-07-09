@@ -105,6 +105,10 @@ def sync_chat(messages: List[Dict], model=None, stream=False, api_key=None, base
 
     llm = openai.OpenAI(api_key=api_key, base_url=base_url)
 
+    usage = None
+    if "usage" in kwargs:
+        usage = kwargs.pop("usage")
+
     @utils.retry
     def _call():
         resp = llm.chat.completions.create(
@@ -120,6 +124,9 @@ def sync_chat(messages: List[Dict], model=None, stream=False, api_key=None, base
             return iter()
         else:
             genereated = resp.choices[0].message.content
+            if usage:
+                usage.prompt_tokens = resp.usage.prompt_tokens
+                usage.completion_tokens = resp.usage.completion_tokens
             return genereated
 
     return _call()
