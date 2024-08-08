@@ -94,6 +94,10 @@ async def chat_complete(run: runs.RunRead, iter):
             started_at=int(round(datetime.datetime.now().timestamp()))
         )
 
+        stream = False
+        if run_metadata.get("stream"):
+            stream = True
+
         # Run tools
         context: Context = await run_tools(
                 assistant=assistant,
@@ -127,9 +131,6 @@ async def chat_complete(run: runs.RunRead, iter):
             combined_messages = combine_system_messages(messages=context.messages)
             llm = llms.get(model_name=model)
 
-            stream = False
-            if run_metadata.get("stream"):
-                stream = True
             resp = await llm.chat(messages=combined_messages, stream=stream, usage=usage, **llm_args)
 
             if stream:
