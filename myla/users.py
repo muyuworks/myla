@@ -321,6 +321,7 @@ def login(user: UserLogin, session: Session = None) -> Union[UserLoginResult, No
         for sk in sks.data:
             if sk.tag == 'web':
                 sk_web = sk
+                break
 
         if not sk_web:
             sk_web = create_secret_key(key=SecrectKeyCreate(tag='web'), user_id=r.id, session=session)

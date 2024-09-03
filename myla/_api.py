@@ -702,3 +702,58 @@ async def add_org_member(request: Request, org_id: str, member: users.OrgMemberC
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
+
+from authlib.integrations.starlette_client import OAuth
+from starlette.middleware.sessions import SessionMiddleware
+
+api.add_middleware(SessionMiddleware, secret_key=utils.random_key())
+
+
+oauth = OAuth()
+oauth.register(
+    name='oidc',
+    server_metadata_url=os.environ.get("OIDC_SERVER_METADATA_URL"),
+    client_id=os.environ.get("OIDC_CLIENT_ID"),
+    client_secret=os.environ.get("OIDC_CLIENT_SECRET"),
+    client_kwargs={'scope': 'openid email profile'},
+)
+
+
+@api.get("/v1/login/oidc", tags=['Users'])
+async def login_oidc(request: Request):
+    api_endpoint = os.environ.get("API_ENDPOINT", "http://localhost")
+    redirect_uri = f"{api_endpoint}/api/v1/auth/oidc"
+    return await oauth.oidc.authorize_redirect(request, redirect_uri)
+
+
+@api.get("/v1/auth/oidc", tags=['Users'])
+async def auth_via_oidc(request: Request):
+    token = await oauth.oidc.authorize_access_token(request)
+    userinfo = await oauth.oidc.userinfo(token=token)
+    username = userinfo.get("preferred_username")
+
+    if username is None:
+        raise HTTPException(status_code=400, detail="Username not found")
+
+    user = users.get_user_by_uername(username=username)
+    if user is None:
+        user = users.create_user(users.UserCreate(
+            username=username,
+            display_name=username,
+            password=utils.random_key())
+        )
+    else:
+        user = users.UserRead(**user.model_dump())
+
+    sks = users.list_secret_keys(user_id=user.id)
+    sk_web = None
+    for sk in sks.data:
+        if sk.tag == 'web':
+            sk_web = sk
+            break
+
+    if not sk_web:
+        sk_web = users.create_secret_key(key=users.SecrectKeyCreate(tag='web'), user_id=user.id)
+
+    return users.UserLoginResult(user=user, secret_key=sk_web)

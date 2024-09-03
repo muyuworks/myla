@@ -24,3 +24,5 @@ aiofiles
 
 sentence_transformers
 faiss-cpu
+
+Authlib
